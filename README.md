@@ -1,10 +1,14 @@
 # 💬 npm-expansions
 A simple JSON rest API providing random expansions of the NPM acronym with an associated website to boot!
 
+<br>
+
 # 🧭 Project Goals
 - To learn about rust as a language, specifically ownership and type rules
 - To learn about thread management in rust
 - To learn the nitty gritty details of HTTP and server implementation
+
+<br>
 
 # 📋 ToDo
 - Essential functionality
