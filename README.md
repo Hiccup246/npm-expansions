@@ -1,11 +1,16 @@
-# npm-expansions
-A simple rest API proving random expansions of the NPM acronym
+# 💬 npm-expansions
+A simple JSON rest API providing random expansions of the NPM acronym with an associated website to boot!
 
-# ToDo
-- Create rust starter project
-- Core functionality
-    - Download all npm-expansions from https://github.com/Hiccup246/npm-expansions on a regular basis
-    - JSON rest API that picks a random expansion from the list and returns it
+# 🧭 Project Goals
+- To learn about rust as a language, specifically ownership and type rules
+- To learn about thread management in rust
+- To learn the nitty gritty details of HTTP and server implementation
+
+# 📋 ToDo
+- Essential functionality
+    - JSON rest API that picks a random expansion from a list and returns it
     - A basic website with UI that generates a random npm expansion
     - A basic website with UI that allows you to view all npm expansions
-- Polish readme with usage, description, screenshot sections etc
+- Polished readme which outlines the goal of the project, contains a screenshot of the website and a description of the API with sections on usage, development and installation
+- Optional functionality
+    - Background routine to check if the official npm expansions repo has updated its `expansions.txt` file and to update this project's equivalent file with any changes. Note that the last change to the expansions text file occurred two years ago.
