@@ -14,8 +14,14 @@ fn main() {
     }
 }
 
-fn handle_connection(mut stream: TcpStream) { 
-    stream.write_all("HELLO \r \n".as_bytes()).unwrap();
+fn handle_connection(mut stream: TcpStream) {
+    let status_line = "HTTP/1.1 200 OK";
+    let expansion = "";
+    let contents = "{\"npm-expansion\": \"hello\"}";
+    let length = contents.len();
+    let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}\r\n");
+    println!("{}", response);
+    stream.write_all(response.as_bytes()).unwrap();
 }
 
 #[cfg(test)]
@@ -35,8 +41,11 @@ mod tests {
         handle_connection(incoming_stream);
 
         let buf_reader = BufReader::new(&mut connection);
-        let server_response = buf_reader.lines().next().unwrap().unwrap();
-
-        assert_eq!(server_response, "HELLO \r ");
+        let http_request: Vec<_> = buf_reader
+            .lines()
+            .map(|result| result.unwrap_or("default".to_string()))
+            .collect();
+        
+        assert_eq!(format!("{:?}", http_request), "[\"HTTP/1.1 200 OK\", \"Content-Length: 26\", \"\", \"{\\\"npm-expansion\\\": \\\"hello\\\"}\", \"default\"]");
     }
 }
