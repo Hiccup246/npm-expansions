@@ -21,25 +21,21 @@ fn main() {
 }
 
 fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
-    let status_line = "HTTP/1.1 200 OK";
+    let mut status_line = "HTTP/1.1 200 OK";
     let response;
-
-    if *request_headers.get("Content-Type").unwrap_or(&"".to_string()) == "application/json".to_string() {
-        let expansion = NpmExpansionGenerator::random_expansion();
-        let contents = format!("{{\"npm-expansion\": \"{expansion}\"}}");
-        let length = contents.len();
-        let content_type = "application/json";
-
-        response = format!(
-            "{status_line}\r\n
-            Content-Length: {length}\r\n
-            Content-Type: {content_type}\r\n
-            {contents}\r\n\r\n"
-        );
-    } else {
+    
+    // If request accepts text/html then we are good to go
+    if true {
         let contents = fs::read_to_string("npm_expansions.html").unwrap();
         let length = contents.len();
 
+        response = format!(
+            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+        );
+    } else {
+        status_line = "HTTP/1.1 406 Not Acceptable";
+        let contents = format!("Please accept text/html");
+        let length = contents.len();
         response = format!(
             "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
         );
@@ -49,17 +45,52 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
 }
 
 fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, String>) {
-    let status_line = "HTTP/1.1 404 NOT FOUND";
+    let mut status_line = "HTTP/1.1 404 NOT FOUND";
     let response;
 
+    // If request accepts application/json then we are good to go
     if *request_headers.get("Content-Type").unwrap_or(&"".to_string()) == "application/json".to_string() {
         response = format!(
             "{status_line}\r\n\r\n"
         );
-    } else {
+    // If request accepts text/html then we are good to go
+    } else if *request_headers.get("Content-Type").unwrap_or(&"".to_string()) == "application/json".to_string() {
         let contents = fs::read_to_string("404.html").unwrap();
         let length = contents.len();
 
+        response = format!(
+            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+        );
+    // If request does not accept any types return 406
+    } else {
+        status_line = "HTTP/1.1 406 Not Acceptable";
+        let contents = format!("Please accept application/json");
+        let length = contents.len();
+        response = format!(
+            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+        );
+    }
+
+    stream.write_all(response.as_bytes()).unwrap();
+}
+
+fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
+    let mut status_line = "HTTP/1.1 200 OK";
+    let response;
+
+    // If request accepts application/json then we are good to go
+    if true {
+        let expansion = NpmExpansionGenerator::random_expansion();
+        let contents = format!("{{\"npm-expansion\": \"{expansion}\"}}");
+        let length = contents.len();
+        let content_type = "application/json";
+
+        response = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n{contents}\r\n"
+        );
+    } else {
+        status_line = "HTTP/1.1 406 Not Acceptable";
+        let contents = format!("Please accept application/json");
+        let length = contents.len();
         response = format!(
             "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
         );
@@ -88,6 +119,8 @@ fn handle_connection(mut stream: TcpStream) {
 
     if request_line == "GET / HTTP/1.1" {
         handle_root_route(stream, request_structure)
+    } else if request_line == "GET /random HTTP/1.1" {
+        handle_random_route(stream, request_structure)
     } else {
         handle_not_found(stream, request_structure)
     }

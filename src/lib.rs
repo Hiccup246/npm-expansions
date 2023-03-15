@@ -12,6 +12,8 @@
 // - Start in main and split to library files when needed
 // - When JSON route is completed move to HTML
 // - Start single threaded then move to multi threaded (tracer rounds approach)
+// - 500 internal server error for any errors
+// - Perhaps move each route code into a struct called "controller"?
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
