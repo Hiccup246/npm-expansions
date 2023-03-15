@@ -1,6 +1,7 @@
 use std::{
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
+    time::Duration,
 };
 
 fn main() {
@@ -13,35 +14,29 @@ fn main() {
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
-    // let buf_reader = BufReader::new(&mut stream);
-
-    // let request_line = buf_reader.lines().next().unwrap().unwrap();
-    // println!("{}", request_line);
-    
-    stream.write_all("HELLO".as_bytes()).unwrap();
+fn handle_connection(mut stream: TcpStream) { 
+    stream.write_all("HELLO \r \n".as_bytes()).unwrap();
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn setup_server_and_connection() -> (TcpListener, TcpStream) {
+        (TcpListener::bind("127.0.0.1:7878").unwrap(), TcpStream::connect("127.0.0.1:7878").unwrap())
+    }
+
     #[test]
     fn handle_connection_get_root() {
-        let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+        let (mut listener, mut connection) = setup_server_and_connection();
+        let incoming_stream = listener.incoming().next().unwrap().unwrap();
+        connection.write("GET \n \r".as_bytes()).unwrap();    
 
-        let mut incoming = TcpStream::connect("127.0.0.1:7878").unwrap();
-        incoming.write("GET".as_bytes()).unwrap();
-        // Write incoming request to listener
-        let stream = listener.incoming().next().unwrap().unwrap();
+        handle_connection(incoming_stream);
 
-        handle_connection(stream);
-        
-        let buf_reader = BufReader::new(&mut incoming);
+        let buf_reader = BufReader::new(&mut connection);
+        let server_response = buf_reader.lines().next().unwrap().unwrap();
 
-        let request_line = buf_reader.lines().next().unwrap().unwrap();
-        // Assert stream has correct response data
-
-        assert_eq!(request_line, "");
+        assert_eq!(server_response, "HELLO \r ");
     }
 }
