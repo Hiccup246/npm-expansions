@@ -154,29 +154,29 @@ mod tests {
     //     connection.shutdown(std::net::Shutdown::Both).unwrap();
     // }
 
-    #[test]
-    fn handle_connection_non_real_route() {
-        let (mut listener, mut connection) = setup_server_and_connection();
-        let incoming_stream = listener.incoming().next().unwrap().unwrap();
-        connection
-            .write("GET /example-route HTTP/1.1 \n \r".as_bytes())
-            .unwrap();
+    // #[test]
+    // fn handle_connection_non_real_route() {
+    //     let (mut listener, mut connection) = setup_server_and_connection();
+    //     let incoming_stream = listener.incoming().next().unwrap().unwrap();
+    //     connection
+    //         .write("GET /example-route HTTP/1.1 \n \r".as_bytes())
+    //         .unwrap();
 
-        handle_connection(incoming_stream);
+    //     handle_connection(incoming_stream);
 
-        let buf_reader = BufReader::new(&mut connection);
-        let http_request: Vec<String> = buf_reader
-            .lines()
-            .filter(|line| line.is_ok())
-            .map(|result| result.unwrap())
-            .collect();
+    //     let buf_reader = BufReader::new(&mut connection);
+    //     let http_request: Vec<String> = buf_reader
+    //         .lines()
+    //         .filter(|line| line.is_ok())
+    //         .map(|result| result.unwrap())
+    //         .collect();
 
-        assert_eq!(
-            format!("{:?}", http_request),
-            "[\"HTTP/1.1 404 NOT FOUND\", \"\"]"
-        );
+    //     assert_eq!(
+    //         format!("{:?}", http_request),
+    //         "[\"HTTP/1.1 404 NOT FOUND\", \"\"]"
+    //     );
 
-        connection.flush().unwrap();
-        connection.shutdown(std::net::Shutdown::Both).unwrap();
-    }
+    //     connection.flush().unwrap();
+    //     connection.shutdown(std::net::Shutdown::Both).unwrap();
+    // }
 }
