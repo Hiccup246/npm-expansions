@@ -1,10 +1,11 @@
 use std::{
+    collections::HashMap,
     fs,
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
-    collections::HashMap,
 };
 
+mod accept_header_parser;
 mod expansions_generator;
 pub use crate::expansions_generator::NpmExpansionGenerator;
 
@@ -12,7 +13,7 @@ fn main() {
     // NpmExpansionsGenerator::convert_text_file();
     // fs::read_to_string("expansions.txt").unwrap();
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
-    
+
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
@@ -23,22 +24,18 @@ fn main() {
 fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
     let mut status_line = "HTTP/1.1 200 OK";
     let response;
-    
+
     // If request accepts text/html then we are good to go
     if true {
         let contents = fs::read_to_string("npm_expansions.html").unwrap();
         let length = contents.len();
 
-        response = format!(
-            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
-        );
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     } else {
         status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept text/html");
         let length = contents.len();
-        response = format!(
-            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
-        );
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
 
     stream.write_all(response.as_bytes()).unwrap();
@@ -49,26 +46,28 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
     let response;
 
     // If request accepts application/json then we are good to go
-    if *request_headers.get("Content-Type").unwrap_or(&"".to_string()) == "application/json".to_string() {
-        response = format!(
-            "{status_line}\r\n\r\n"
-        );
+    if *request_headers
+        .get("Content-Type")
+        .unwrap_or(&"".to_string())
+        == "application/json".to_string()
+    {
+        response = format!("{status_line}\r\n\r\n");
     // If request accepts text/html then we are good to go
-    } else if *request_headers.get("Content-Type").unwrap_or(&"".to_string()) == "application/json".to_string() {
+    } else if *request_headers
+        .get("Content-Type")
+        .unwrap_or(&"".to_string())
+        == "application/json".to_string()
+    {
         let contents = fs::read_to_string("404.html").unwrap();
         let length = contents.len();
 
-        response = format!(
-            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
-        );
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     // If request does not accept any types return 406
     } else {
         status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept application/json");
         let length = contents.len();
-        response = format!(
-            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
-        );
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
 
     stream.write_all(response.as_bytes()).unwrap();
@@ -91,9 +90,7 @@ fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, S
         status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept application/json");
         let length = contents.len();
-        response = format!(
-            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
-        );
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
 
     stream.write_all(response.as_bytes()).unwrap();
@@ -108,14 +105,13 @@ fn handle_connection(mut stream: TcpStream) {
 
     let request_line = buffer.next().unwrap();
 
-    let mut request_structure:HashMap<String, String> = HashMap::new();
+    let mut request_structure: HashMap<String, String> = HashMap::new();
 
     for header in buffer {
         let (key, value) = header.split_at(header.find(":").unwrap() + 1);
         let (_colon, header_value) = value.split_at(1);
         request_structure.insert(key.to_string(), header_value.trim().to_string());
-    };
-
+    }
 
     if request_line == "GET / HTTP/1.1" {
         handle_root_route(stream, request_structure)
@@ -131,14 +127,17 @@ mod tests {
     use super::*;
 
     fn setup_server_and_connection() -> (TcpListener, TcpStream) {
-        (TcpListener::bind("127.0.0.1:7878").unwrap(), TcpStream::connect("127.0.0.1:7878").unwrap())
+        (
+            TcpListener::bind("127.0.0.1:7878").unwrap(),
+            TcpStream::connect("127.0.0.1:7878").unwrap(),
+        )
     }
 
     // #[test]
     // fn handle_connection_get_root() {
     //     let (mut listener, mut connection) = setup_server_and_connection();
     //     let incoming_stream = listener.incoming().next().unwrap().unwrap();
-    //     connection.write("GET \n \r".as_bytes()).unwrap();    
+    //     connection.write("GET \n \r".as_bytes()).unwrap();
 
     //     handle_connection(incoming_stream);
 
@@ -148,7 +147,7 @@ mod tests {
     //         .filter(|line| line.is_ok())
     //         .map(|result| result.unwrap())
     //         .collect();
-        
+
     //     assert_eq!(format!("{:?}", http_request), "[\"HTTP/1.1 200 OK\", \"Content-Length: 26\", \"\", \"{\\\"npm-expansion\\\": \\\"hello\\\"}\"]");
 
     //     connection.flush().unwrap();
@@ -159,7 +158,9 @@ mod tests {
     fn handle_connection_non_real_route() {
         let (mut listener, mut connection) = setup_server_and_connection();
         let incoming_stream = listener.incoming().next().unwrap().unwrap();
-        connection.write("GET /example-route HTTP/1.1 \n \r".as_bytes()).unwrap();    
+        connection
+            .write("GET /example-route HTTP/1.1 \n \r".as_bytes())
+            .unwrap();
 
         handle_connection(incoming_stream);
 
@@ -169,8 +170,11 @@ mod tests {
             .filter(|line| line.is_ok())
             .map(|result| result.unwrap())
             .collect();
-        
-        assert_eq!(format!("{:?}", http_request), "[\"HTTP/1.1 404 NOT FOUND\", \"\"]");
+
+        assert_eq!(
+            format!("{:?}", http_request),
+            "[\"HTTP/1.1 404 NOT FOUND\", \"\"]"
+        );
 
         connection.flush().unwrap();
         connection.shutdown(std::net::Shutdown::Both).unwrap();
