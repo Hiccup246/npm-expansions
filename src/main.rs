@@ -57,7 +57,7 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     } else {
         status_line = "HTTP/1.1 406 Not Acceptable";
-        let contents = format!("Please accept application/json");
+        let contents = format!("Please accept application/json or text/html");
         let length = contents.len();
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
