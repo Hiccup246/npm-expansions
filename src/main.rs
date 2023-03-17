@@ -22,17 +22,19 @@ fn main() {
 }
 
 fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
-    let mut status_line = "HTTP/1.1 200 OK";
     let response;
 
-    // If request accepts text/html then we are good to go
-    if true {
+    // If request accepts application/json then we are good to go
+    let best = best_match(Vec::from(["text/html".to_string()]), request_headers.get("Accept").unwrap());
+    
+    if best == "text/html" {
+        let status_line = "HTTP/1.1 200 OK";
         let contents = fs::read_to_string("npm_expansions.html").unwrap();
         let length = contents.len();
 
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     } else {
-        status_line = "HTTP/1.1 406 Not Acceptable";
+        let status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept text/html");
         let length = contents.len();
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
@@ -66,20 +68,18 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
 }
 
 fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
-    let mut status_line = "HTTP/1.1 200 OK";
-    let response;
+    let response: String;
+    let best = best_match(Vec::from(["application/json".to_string()]), request_headers.get("Accept").unwrap());
 
-    // If request accepts application/json then we are good to go
-    if true {
+    if best == "application/json" {
+        let status_line = "HTTP/1.1 200 OK";
         let expansion = NpmExpansionGenerator::random_expansion();
         let contents = format!("{{\"npm-expansion\": \"{expansion}\"}}");
         let length = contents.len();
         let content_type = "application/json";
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n{contents}\r\n"
-        );
+        response = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n{contents}\r\n")
     } else {
-        status_line = "HTTP/1.1 406 Not Acceptable";
+        let status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept application/json");
         let length = contents.len();
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
