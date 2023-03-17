@@ -21,6 +21,8 @@
 // - 500 internal server error for any errors
 // - Perhaps move each route code into a struct called "controller"?
 // - Remember some issues could be client caused. If they parse incorrect headers thats 400 not 500
+// - Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
+// - Have src folder for code and dist folder for minified output
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
