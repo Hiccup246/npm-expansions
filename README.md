@@ -18,3 +18,6 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 - Polished readme which outlines the goal of the project, contains a screenshot of the website and a description of the API with sections on usage, development and installation
 - Optional functionality
     - Background routine to check if the official npm expansions repo has updated its `expansions.txt` file and to update this project's equivalent file with any changes. Note that the last change to the expansions text file occurred two years ago.
+- When application is run two global constants probably stored in a singelton config can be created
+    - Static file names vector/array
+    - NPM expansions vector/array
