@@ -124,28 +124,29 @@ fn handle_connection(mut stream: TcpStream) {
 fn serve_static_file(status_line: String, mut stream: TcpStream) {
     let split_status_line:Vec<&str> = status_line.split(" ").collect();
     let file_name = split_status_line.get(1).unwrap();
+    let extension = file_name.split(".").last().unwrap();
+
+    let content_type = match extension {
+        "png" => "image/png",
+        "ico" => "image/vnd.microsoft.icon",
+        "xml" => "application/xml",
+        "txt" => "text/plain",
+        _ => ""
+    };
+
     let file_path = format!("static{file_name}");
-    let contents: String;
-    let response:String;
-    let status_line = "HTTP/1.1 200 OK";
-
-    if file_name.ends_with(".ico") || file_name.ends_with(".png") {
-        let toto = fs::read(file_path).unwrap();
-        let length = toto.len();
-        let content_type = "image/vnd.microsoft.icon";
-        response = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n");
-
-        stream.write(response.as_bytes()).unwrap();
-        stream.write(&toto).unwrap();
+    let contents = fs::read(file_path).unwrap();
+    let length = contents.len();
+    let response: String;
+    
+    if content_type.is_empty() {
+        response = format!("HTTP/1.1 200 OK\r\nContent-Length: {length}\r\n\r\n");
     } else {
-        contents = fs::read_to_string(file_path).unwrap();
-        let length = contents.len();
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{:?}",contents);
-        stream.write_all(response.as_bytes()).unwrap();
-
+        response = format!("HTTP/1.1 200 OK\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n");
     }
 
-
+    stream.write(response.as_bytes()).unwrap();
+    stream.write(&contents).unwrap();
 }
 
 fn match_static(status_line: &str) -> bool {
