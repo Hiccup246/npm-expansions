@@ -113,13 +113,11 @@ fn handle_connection(mut stream: TcpStream) {
         request_structure.insert(key.to_string(), header_value.trim().to_string());
     }
 
-    if request_line == "GET / HTTP/1.1" {
-        handle_root_route(stream, request_structure)
-    } else if request_line == "GET /random HTTP/1.1" {
-        handle_random_route(stream, request_structure)
-    } else {
-        handle_not_found(stream, request_structure)
-    }
+    match request_line.as_str() {
+        "GET / HTTP/1.1" => handle_root_route(stream, request_structure),
+        "GET /random HTTP/1.1" => handle_random_route(stream, request_structure),
+        &_ =>  handle_not_found(stream, request_structure)
+    };
 }
 
 #[cfg(test)]
