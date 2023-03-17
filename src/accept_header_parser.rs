@@ -60,7 +60,7 @@ pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>
     best_fit_q
 }
 
-pub fn best_match(supported: Vec<String>, header: String) -> String {
+pub fn best_match(supported: Vec<String>, header: &String) -> String {
     if header.is_empty() || supported.len() == 0 {
         return "".to_string()
     }
@@ -148,31 +148,31 @@ mod tests {
 
     #[test]
     fn best_match_exact() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), "application/json, text/plain".to_string()), "text/plain".to_string());
+        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, text/plain".to_string()), "text/plain".to_string());
     }
 
     #[test]
     fn best_match_type_generic() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), "application/json, */plain".to_string()), "text/plain".to_string());
+        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, */plain".to_string()), "text/plain".to_string());
     }
 
     #[test]
     fn best_match_subtype_generic() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), "application/json, text/*".to_string()), "text/*".to_string());
+        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, text/*".to_string()), "text/*".to_string());
     }
 
     #[test]
     fn best_match_no_match() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), "application/json, image/jpeg".to_string()), "".to_string());
+        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, image/jpeg".to_string()), "".to_string());
     }
 
     #[test]
     fn best_match_no_supported_types() {
-        assert_eq!(best_match(Vec::from([]), "application/json, image/jpeg".to_string()), "".to_string());
+        assert_eq!(best_match(Vec::from([]), &"application/json, image/jpeg".to_string()), "".to_string());
     }
 
     #[test]
     fn best_match_no_header() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "".to_string()]), "".to_string()), "".to_string());
+        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "".to_string()]), &"".to_string()), "".to_string());
     }
 }
