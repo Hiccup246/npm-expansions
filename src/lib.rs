@@ -20,6 +20,7 @@
 // - Implement husky with testing and formatting
 // - 500 internal server error for any errors
 // - Perhaps move each route code into a struct called "controller"?
+// - Remember some issues could be client caused. If they parse incorrect headers thats 400 not 500
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
