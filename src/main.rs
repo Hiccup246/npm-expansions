@@ -116,8 +116,53 @@ fn handle_connection(mut stream: TcpStream) {
     match request_line.as_str() {
         "GET / HTTP/1.1" => handle_root_route(stream, request_structure),
         "GET /random HTTP/1.1" => handle_random_route(stream, request_structure),
+        status_line if match_static(status_line) => serve_static_file(status_line.to_string(), stream),
         &_ =>  handle_not_found(stream, request_structure)
     };
+}
+
+fn serve_static_file(status_line: String, mut stream: TcpStream) {
+    let split_status_line:Vec<&str> = status_line.split(" ").collect();
+    let file_name = split_status_line.get(1).unwrap();
+    let file_path = format!("static{file_name}");
+    let contents: String;
+    let response:String;
+    let status_line = "HTTP/1.1 200 OK";
+
+    if file_name.ends_with(".ico") || file_name.ends_with(".png") {
+        let toto = fs::read(file_path).unwrap();
+        let length = toto.len();
+        let content_type = "image/vnd.microsoft.icon";
+        response = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n");
+
+        stream.write(response.as_bytes()).unwrap();
+        stream.write(&toto).unwrap();
+    } else {
+        contents = fs::read_to_string(file_path).unwrap();
+        let length = contents.len();
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{:?}",contents);
+        stream.write_all(response.as_bytes()).unwrap();
+
+    }
+
+
+}
+
+fn match_static(status_line: &str) -> bool {
+    let static_file_names:Vec<String> = directory_file_names("static".to_string())
+    .iter()
+    .map(|directory_name| format!("GET /{directory_name} HTTP/1.1") )
+    .collect();
+
+    static_file_names.contains(&status_line.to_string())
+}
+
+fn directory_file_names(directoryPath: String) -> Vec<String> {
+    let directory = fs::read_dir(directoryPath).unwrap();
+    directory
+        .map(|dirEntry| dirEntry.unwrap())
+        .filter(|dirEntry| dirEntry.file_type().unwrap().is_file())
+        .map(|dirEntry| dirEntry.file_name().into_string().unwrap()).collect()
 }
 
 #[cfg(test)]
