@@ -37,6 +37,7 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
         let status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept text/html");
         let length = contents.len();
+
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
 
@@ -61,6 +62,7 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
         status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept application/json or text/html");
         let length = contents.len();
+
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
 
@@ -77,11 +79,13 @@ fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, S
         let contents = format!("{{\"npm-expansion\": \"{expansion}\"}}");
         let length = contents.len();
         let content_type = "application/json";
+
         response = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n{contents}\r\n")
     } else {
         let status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept application/json");
         let length = contents.len();
+        
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
 
