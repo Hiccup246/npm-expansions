@@ -8,7 +8,7 @@ use std::{
 mod accept_header_parser;
 mod expansions_generator;
 pub use crate::expansions_generator::NpmExpansionGenerator;
-
+pub use accept_header_parser::best_match;
 fn main() {
     // NpmExpansionsGenerator::convert_text_file();
     // fs::read_to_string("expansions.txt").unwrap();
@@ -46,23 +46,15 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
     let response;
 
     // If request accepts application/json then we are good to go
-    if *request_headers
-        .get("Content-Type")
-        .unwrap_or(&"".to_string())
-        == "application/json".to_string()
-    {
+    let best = best_match(Vec::from(["application/json".to_string(), "text/html".to_string()]), request_headers.get("Accept").unwrap());
+    
+    if best == "application/json" {
         response = format!("{status_line}\r\n\r\n");
-    // If request accepts text/html then we are good to go
-    } else if *request_headers
-        .get("Content-Type")
-        .unwrap_or(&"".to_string())
-        == "application/json".to_string()
-    {
+    } else if best == "text/html" {
         let contents = fs::read_to_string("404.html").unwrap();
         let length = contents.len();
 
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    // If request does not accept any types return 406
     } else {
         status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept application/json");
@@ -108,7 +100,7 @@ fn handle_connection(mut stream: TcpStream) {
     let mut request_structure: HashMap<String, String> = HashMap::new();
 
     for header in buffer {
-        let (key, value) = header.split_at(header.find(":").unwrap() + 1);
+        let (key, value) = header.split_at(header.find(":").unwrap());
         let (_colon, header_value) = value.split_at(1);
         request_structure.insert(key.to_string(), header_value.trim().to_string());
     }
