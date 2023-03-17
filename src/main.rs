@@ -32,19 +32,19 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
 
     if best == "text/html" {
         let status_line = "HTTP/1.1 200 OK";
-        let contents = fs::read_to_string("npm_expansions.html").unwrap();
+        let contents = fs::read_to_string("pages/npm_expansions/npm_expansions.html").unwrap();
         let length = contents.len();
 
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     } else if best == "text/css" {
         let status_line = "HTTP/1.1 200 OK";
-        let contents = fs::read_to_string("npm_expansions.css").unwrap();
+        let contents = fs::read_to_string("pages/npm_expansions/npm_expansions.css").unwrap();
         let length = contents.len();
 
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     } else if best == "text/javascript" {
         let status_line = "HTTP/1.1 200 OK";
-        let contents = fs::read_to_string("npm_expansions.js").unwrap();
+        let contents = fs::read_to_string("pages/npm_expansions/npm_expansions.js").unwrap();
         let length = contents.len();
 
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
@@ -72,7 +72,7 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
     if best == "application/json" {
         response = format!("{status_line}\r\n\r\n");
     } else if best == "text/html" {
-        let contents = fs::read_to_string("404.html").unwrap();
+        let contents = fs::read_to_string("pages/not_found/not_found.html").unwrap();
         let length = contents.len();
 
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
