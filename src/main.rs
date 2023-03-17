@@ -26,13 +26,25 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
 
     // If request accepts application/json then we are good to go
     let best = best_match(
-        Vec::from(["text/html".to_string()]),
+        Vec::from(["text/html".to_string(), "text/css".to_string(), "text/javascript".to_string()]),
         request_headers.get("Accept").unwrap(),
     );
 
     if best == "text/html" {
         let status_line = "HTTP/1.1 200 OK";
         let contents = fs::read_to_string("npm_expansions.html").unwrap();
+        let length = contents.len();
+
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+    } else if best == "text/css" {
+        let status_line = "HTTP/1.1 200 OK";
+        let contents = fs::read_to_string("npm_expansions.css").unwrap();
+        let length = contents.len();
+
+        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+    } else if best == "text/javascript" {
+        let status_line = "HTTP/1.1 200 OK";
+        let contents = fs::read_to_string("npm_expansions.js").unwrap();
         let length = contents.len();
 
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
