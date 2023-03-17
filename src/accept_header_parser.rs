@@ -6,7 +6,7 @@ pub fn parse_mime_type<'a>(mime_type: &'a str) -> Option<(&'a str, &'a str, f32)
     let q_value: Vec<&str> = parts.get(1).unwrap_or(&"q=1").split("=").collect();
 
     if q_value.len() != 2 {
-        return None
+        return None;
     }
 
     let mut parsed_q_value = q_value.get(1).unwrap_or(&"1").parse().unwrap_or(1.0);
@@ -20,7 +20,7 @@ pub fn parse_mime_type<'a>(mime_type: &'a str) -> Option<(&'a str, &'a str, f32)
     let subtype = type_breakdown.get(1)?;
 
     if subtype.is_empty() || atype.is_empty() {
-        return None
+        return None;
     }
     // (application, json, 1)
     Some((atype, subtype, parsed_q_value))
@@ -35,17 +35,17 @@ pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>
         if *parsed_type == trarget_type || *parsed_type == "*" {
             if *parsed_subtype == target_subtype || *parsed_subtype == "*" {
                 let mut fitness = -1.0;
-                 
+
                 if *parsed_type == trarget_type {
                     fitness += 100.0
-                 } else {
+                } else {
                     fitness += 0.0
-                 };
-                
+                };
+
                 if *parsed_subtype == target_subtype {
                     fitness += 10.0
                 } else {
-                    fitness +=  0.0
+                    fitness += 0.0
                 };
                 fitness += target_priority;
 
@@ -62,7 +62,7 @@ pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>
 
 pub fn best_match(supported: Vec<String>, header: &String) -> String {
     if header.is_empty() || supported.len() == 0 {
-        return "".to_string()
+        return "".to_string();
     }
 
     let parsed_header = &header
@@ -76,11 +76,9 @@ pub fn best_match(supported: Vec<String>, header: &String) -> String {
 
     weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-    let final_match = weighted_matches
-        .get(weighted_matches.len() - 1)
-        .unwrap();
+    let final_match = weighted_matches.get(weighted_matches.len() - 1).unwrap();
 
-    if final_match.0 != 0.0 &&final_match.1 != "" {
+    if final_match.0 != 0.0 && final_match.1 != "" {
         final_match.1.to_string()
     } else {
         "".to_string()
@@ -93,7 +91,10 @@ mod tests {
 
     #[test]
     fn parse_mime_type_t() {
-        assert_eq!(parse_mime_type("application/json").unwrap(), ("application", "json", 1.0));
+        assert_eq!(
+            parse_mime_type("application/json").unwrap(),
+            ("application", "json", 1.0)
+        );
     }
 
     #[test]
@@ -108,7 +109,10 @@ mod tests {
 
     #[test]
     fn parse_mime_type_quality() {
-        assert_eq!(parse_mime_type("text/plain;q=0.8").unwrap(), ("text", "plain", 0.8));
+        assert_eq!(
+            parse_mime_type("text/plain;q=0.8").unwrap(),
+            ("text", "plain", 0.8)
+        );
     }
 
     #[test]
@@ -128,51 +132,105 @@ mod tests {
 
     #[test]
     fn fitness_of_mime_type_exact_match() {
-        assert_eq!(fitness_of_mime_type("text/plain", &Vec::from([("text", "plain", 1.0), ("text","html", 1.0)])), 1.0);
+        assert_eq!(
+            fitness_of_mime_type(
+                "text/plain",
+                &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)])
+            ),
+            1.0
+        );
     }
 
     #[test]
     fn fitness_of_mime_type_no_match() {
-        assert_eq!(fitness_of_mime_type("text/plain", &Vec::from([("text","html", 1.0)])), 0.0);
+        assert_eq!(
+            fitness_of_mime_type("text/plain", &Vec::from([("text", "html", 1.0)])),
+            0.0
+        );
     }
 
     #[test]
     fn fitness_of_mime_type_half_match() {
-        assert_eq!(fitness_of_mime_type("text/plain", &Vec::from([("text", "*", 1.0), ("application","json", 1.0)])), 1.0);
+        assert_eq!(
+            fitness_of_mime_type(
+                "text/plain",
+                &Vec::from([("text", "*", 1.0), ("application", "json", 1.0)])
+            ),
+            1.0
+        );
     }
 
     #[test]
     fn fitness_of_mime_type_quality_match() {
-        assert_eq!(fitness_of_mime_type("text/plain", &Vec::from([("text", "plain", 0.5), ("text", "*", 1.0)])), 0.5);
+        assert_eq!(
+            fitness_of_mime_type(
+                "text/plain",
+                &Vec::from([("text", "plain", 0.5), ("text", "*", 1.0)])
+            ),
+            0.5
+        );
     }
 
     #[test]
     fn best_match_exact() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, text/plain".to_string()), "text/plain".to_string());
+        assert_eq!(
+            best_match(
+                Vec::from(["text/plain".to_string(), "text/*".to_string()]),
+                &"application/json, text/plain".to_string()
+            ),
+            "text/plain".to_string()
+        );
     }
 
     #[test]
     fn best_match_type_generic() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, */plain".to_string()), "text/plain".to_string());
+        assert_eq!(
+            best_match(
+                Vec::from(["text/plain".to_string(), "text/*".to_string()]),
+                &"application/json, */plain".to_string()
+            ),
+            "text/plain".to_string()
+        );
     }
 
     #[test]
     fn best_match_subtype_generic() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, text/*".to_string()), "text/*".to_string());
+        assert_eq!(
+            best_match(
+                Vec::from(["text/plain".to_string(), "text/*".to_string()]),
+                &"application/json, text/*".to_string()
+            ),
+            "text/*".to_string()
+        );
     }
 
     #[test]
     fn best_match_no_match() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "text/*".to_string()]), &"application/json, image/jpeg".to_string()), "".to_string());
+        assert_eq!(
+            best_match(
+                Vec::from(["text/plain".to_string(), "text/*".to_string()]),
+                &"application/json, image/jpeg".to_string()
+            ),
+            "".to_string()
+        );
     }
 
     #[test]
     fn best_match_no_supported_types() {
-        assert_eq!(best_match(Vec::from([]), &"application/json, image/jpeg".to_string()), "".to_string());
+        assert_eq!(
+            best_match(Vec::from([]), &"application/json, image/jpeg".to_string()),
+            "".to_string()
+        );
     }
 
     #[test]
     fn best_match_no_header() {
-        assert_eq!(best_match(Vec::from(["text/plain".to_string(), "".to_string()]), &"".to_string()), "".to_string());
+        assert_eq!(
+            best_match(
+                Vec::from(["text/plain".to_string(), "".to_string()]),
+                &"".to_string()
+            ),
+            "".to_string()
+        );
     }
 }

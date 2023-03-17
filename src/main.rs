@@ -25,8 +25,11 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
     let response;
 
     // If request accepts application/json then we are good to go
-    let best = best_match(Vec::from(["text/html".to_string()]), request_headers.get("Accept").unwrap());
-    
+    let best = best_match(
+        Vec::from(["text/html".to_string()]),
+        request_headers.get("Accept").unwrap(),
+    );
+
     if best == "text/html" {
         let status_line = "HTTP/1.1 200 OK";
         let contents = fs::read_to_string("npm_expansions.html").unwrap();
@@ -49,8 +52,11 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
     let response;
 
     // If request accepts application/json then we are good to go
-    let best = best_match(Vec::from(["application/json".to_string(), "text/html".to_string()]), request_headers.get("Accept").unwrap());
-    
+    let best = best_match(
+        Vec::from(["application/json".to_string(), "text/html".to_string()]),
+        request_headers.get("Accept").unwrap(),
+    );
+
     if best == "application/json" {
         response = format!("{status_line}\r\n\r\n");
     } else if best == "text/html" {
@@ -71,7 +77,10 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
 
 fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
     let response: String;
-    let best = best_match(Vec::from(["application/json".to_string()]), request_headers.get("Accept").unwrap());
+    let best = best_match(
+        Vec::from(["application/json".to_string()]),
+        request_headers.get("Accept").unwrap(),
+    );
 
     if best == "application/json" {
         let status_line = "HTTP/1.1 200 OK";
@@ -85,7 +94,7 @@ fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, S
         let status_line = "HTTP/1.1 406 Not Acceptable";
         let contents = format!("Please accept application/json");
         let length = contents.len();
-        
+
         response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
     }
 
@@ -112,13 +121,15 @@ fn handle_connection(mut stream: TcpStream) {
     match request_line.as_str() {
         "GET / HTTP/1.1" => handle_root_route(stream, request_structure),
         "GET /random HTTP/1.1" => handle_random_route(stream, request_structure),
-        status_line if match_static(status_line) => serve_static_file(status_line.to_string(), stream),
-        &_ =>  handle_not_found(stream, request_structure)
+        status_line if match_static(status_line) => {
+            serve_static_file(status_line.to_string(), stream)
+        }
+        &_ => handle_not_found(stream, request_structure),
     };
 }
 
 fn serve_static_file(status_line: String, mut stream: TcpStream) {
-    let split_status_line:Vec<&str> = status_line.split(" ").collect();
+    let split_status_line: Vec<&str> = status_line.split(" ").collect();
     let file_name = split_status_line.get(1).unwrap();
     let extension = file_name.split(".").last().unwrap();
 
@@ -127,18 +138,20 @@ fn serve_static_file(status_line: String, mut stream: TcpStream) {
         "ico" => "image/vnd.microsoft.icon",
         "xml" => "application/xml",
         "txt" => "text/plain",
-        _ => ""
+        _ => "",
     };
 
     let file_path = format!("static{file_name}");
     let contents = fs::read(file_path).unwrap();
     let length = contents.len();
     let response: String;
-    
+
     if content_type.is_empty() {
         response = format!("HTTP/1.1 200 OK\r\nContent-Length: {length}\r\n\r\n");
     } else {
-        response = format!("HTTP/1.1 200 OK\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n");
+        response = format!(
+            "HTTP/1.1 200 OK\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n"
+        );
     }
 
     stream.write(response.as_bytes()).unwrap();
@@ -146,10 +159,10 @@ fn serve_static_file(status_line: String, mut stream: TcpStream) {
 }
 
 fn match_static(status_line: &str) -> bool {
-    let static_file_names:Vec<String> = directory_file_names("static".to_string())
-    .iter()
-    .map(|directory_name| format!("GET /{directory_name} HTTP/1.1") )
-    .collect();
+    let static_file_names: Vec<String> = directory_file_names("static".to_string())
+        .iter()
+        .map(|directory_name| format!("GET /{directory_name} HTTP/1.1"))
+        .collect();
 
     static_file_names.contains(&status_line.to_string())
 }
@@ -159,7 +172,8 @@ fn directory_file_names(directoryPath: String) -> Vec<String> {
     directory
         .map(|dirEntry| dirEntry.unwrap())
         .filter(|dirEntry| dirEntry.file_type().unwrap().is_file())
-        .map(|dirEntry| dirEntry.file_name().into_string().unwrap()).collect()
+        .map(|dirEntry| dirEntry.file_name().into_string().unwrap())
+        .collect()
 }
 
 #[cfg(test)]
