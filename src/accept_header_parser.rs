@@ -2,7 +2,7 @@ use std::fmt;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
-struct MimeTypeParseError;
+pub struct MimeTypeParseError;
 
 // Generation of an error is completely separate from how it is displayed.
 // There's no need to be concerned about cluttering complex logic with the display style.
@@ -13,11 +13,6 @@ impl fmt::Display for MimeTypeParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Invalid Mime Type")
     }
-}
-
-enum MimeParameter {
-    Str(&'static str),
-    Float(f32),
 }
 
 /// Usually doc comments may include sections "Examples", "Panics" and "Failures".
@@ -46,7 +41,7 @@ pub fn best_match(supported: Vec<String>, header: &String) -> String {
 
     let parsed_header = &header
         .split(",")
-        .map(|header_str| parse_mime_type(header_str).unwrap())
+        .map(|header_str| fitness_ready_mime_type(header_str).unwrap())
         .collect();
     let mut weighted_matches: Vec<(f32, &String)> = supported
         .iter()
@@ -64,54 +59,23 @@ pub fn best_match(supported: Vec<String>, header: &String) -> String {
     }
 }
 
-pub fn fitness_ready_mime_type(mime_type: &str) -> Result<(&str, &str, HashMap<String, MimeParameter>), MimeTypeParseError> {
+pub fn fitness_ready_mime_type(mime_type: &str) -> Result<(&str, &str, f32), MimeTypeParseError> {
     let (mime_type, subtype, parameter) = parse_mime_type(mime_type)?;
+    let mut quality = 1.0;
     
-    if let Some((parameter_hash)) = parameter {
-        let fitness_hash: HashMap<String, MimeParameter> = parameter_hash.clone();
-        parameter_hash.entry("q").or_insert(1.0);
-        parameter_hash.entry("Q").and_modify(|mana| if *mana < 0 += 200).or_insert(100);
+    if let Some(parameter_hash) = parameter {
+        let parsed_quality = parameter_hash.get("q").unwrap_or(&"").parse().unwrap_or(1.0);
 
-
-
-    } else {
-        let aa: HashMap<String, MimeParameter> = HashMap::from([("q".to_string(), 1.0)])
-        Ok((mime_type, subtype, HashMap::from([("q".to_string(), 1.0)])))
+        if parsed_quality < 0.0 || parsed_quality > 1.0 {
+            quality = 1.0
+        };   
     }
-}
 
-pub fn parse_mime_type<'a>(
-    mime_type: &'a str,
-) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
-    let parts: Vec<&str> = mime_type.trim().split(";").collect();    
-
-    let parameters:Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
-        let split_parameters:Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values.into_iter()
-            .map(|val| val.split_once("=").ok_or(MimeTypeParseError)).collect();
-
-        if let Ok(split_parameters) = split_parameters {
-            Some(HashMap::from_iter(split_parameters))
-        } else {
-            None
-        } 
-    } else {
-        None
-    };
-
-    let mime_type = match parts.get(0) {
-        Some(mime_type_value) => mime_type_value.split_once("/"),
-        _ => None,
-    };
-
-    if let Some(mime_type) = mime_type {
-        Ok((mime_type.0, mime_type.1, parameters))
-    } else {
-        Err(MimeTypeParseError)
-    }
+    Ok((mime_type, subtype, quality))
 }
 
 pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>) -> f32 {
-    let (trarget_type, target_subtype, target_priority) = parse_mime_type(mime_type).unwrap();
+    let (trarget_type, target_subtype, target_priority) = fitness_ready_mime_type(mime_type).unwrap();
     let mut best_fitness = -1.0;
     let mut best_fit_q = 0.0;
 
@@ -142,6 +106,36 @@ pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>
     }
 
     best_fit_q
+}
+
+pub fn parse_mime_type<'a>(
+    mime_type: &'a str,
+) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
+    let parts: Vec<&str> = mime_type.trim().split(";").collect();    
+
+    let parameters:Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
+        let split_parameters:Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values.into_iter()
+            .map(|val| val.split_once("=").ok_or(MimeTypeParseError)).collect();
+
+        if let Ok(split_parameters) = split_parameters {
+            Some(HashMap::from_iter(split_parameters))
+        } else {
+            None
+        } 
+    } else {
+        None
+    };
+
+    let mime_type = match parts.get(0) {
+        Some(mime_type_value) => mime_type_value.split_once("/"),
+        _ => None,
+    };
+
+    if let Some(mime_type) = mime_type {
+        Ok((mime_type.0, mime_type.1, parameters))
+    } else {
+        Err(MimeTypeParseError)
+    }
 }
 
 #[cfg(test)]
