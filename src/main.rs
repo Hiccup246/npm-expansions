@@ -26,7 +26,11 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
 
     // If request accepts application/json then we are good to go
     let best = best_match(
-        Vec::from(["text/html".to_string(), "text/css".to_string(), "text/javascript".to_string()]),
+        Vec::from([
+            "text/html".to_string(),
+            "text/css".to_string(),
+            "text/javascript".to_string(),
+        ]),
         request_headers.get("Accept").unwrap(),
     );
 
