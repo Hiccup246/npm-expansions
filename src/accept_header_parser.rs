@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 use std::fmt;
 
 /// Usually doc comments may include sections "Examples", "Panics" and "Failures".
@@ -49,7 +49,6 @@ pub fn fitness_ready_mime_type() {
     // let [mime, quality] = parts[..1];
     let q_value: Vec<&str> = parts.get(1).unwrap_or(&"q=1").split("=").collect();
 
-
     if q_value.len() != 2 {
         return None;
     }
@@ -77,18 +76,20 @@ impl fmt::Display for MimeTypeParseError {
     }
 }
 
-pub fn parse_mime_type<'a>(mime_type: &'a str) -> Result<(&'a str, &'a str, Option<(&'a str, &'a str)>), MimeTypeParseError> {
+pub fn parse_mime_type<'a>(
+    mime_type: &'a str,
+) -> Result<(&'a str, &'a str, Option<(&'a str, &'a str)>), MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(";").collect();
     let types_breakdown: Vec<&str> = parts.get(0).ok_or(MimeTypeParseError)?.split("/").collect();
 
     let parameter = match parts.get(1) {
         Some(parameter_value) => parameter_value.split_once("="),
-        _ => None
+        _ => None,
     };
 
     let mime_type = match parts.get(0) {
         Some(mime_type_value) => mime_type_value.split_once("/"),
-        _ => None
+        _ => None,
     };
 
     if let Some(mime_type) = mime_type {
@@ -132,15 +133,13 @@ pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>
     best_fit_q
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     mod test_parse_mime_type {
         use super::*;
-        
+
         #[test]
         fn valid_mime() {
             assert_eq!(
@@ -148,17 +147,17 @@ mod tests {
                 ("application", "json", 1.0)
             );
         }
-    
+
         #[test]
         fn wild_card_type_mime() {
             assert_eq!(parse_mime_type("*/*").unwrap(), ("*", "*", 1.0));
         }
-    
+
         #[test]
         fn wild_card_subtype_mime() {
             assert_eq!(parse_mime_type("text/*").unwrap(), ("text", "*", 1.0));
         }
-    
+
         #[test]
         fn mime_with_quality() {
             assert_eq!(
@@ -166,24 +165,23 @@ mod tests {
                 ("text", "plain", 0.8)
             );
         }
-    
+
         #[test]
         fn no_type_mime() {
             assert_eq!(parse_mime_type("/plain"), None);
         }
-    
+
         #[test]
         fn no_subtype_mime() {
             assert_eq!(parse_mime_type("text/"), None);
         }
-    
+
         #[test]
         fn malformed_quality_mime() {
             assert_eq!(parse_mime_type("text/plain;q0.8"), None);
         }
-    
     }
-    
+
     #[test]
     fn fitness_of_mime_type_exact_match() {
         assert_eq!(
