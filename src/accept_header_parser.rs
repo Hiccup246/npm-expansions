@@ -1,5 +1,25 @@
-use std::collections::HashMap;
 use std::fmt;
+use std::collections::HashMap;
+
+#[derive(Debug, Clone)]
+struct MimeTypeParseError;
+
+// Generation of an error is completely separate from how it is displayed.
+// There's no need to be concerned about cluttering complex logic with the display style.
+//
+// Note that we don't store any extra info about the errors. This means we can't state
+// which string failed to parse without modifying our types to carry that information.
+impl fmt::Display for MimeTypeParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Invalid Mime Type")
+    }
+}
+
+enum MimeParameter {
+    String,
+    F64,
+    Str,
+}
 
 /// Usually doc comments may include sections "Examples", "Panics" and "Failures".
 ///
@@ -45,46 +65,54 @@ pub fn best_match(supported: Vec<String>, header: &String) -> String {
     }
 }
 
-pub fn fitness_ready_mime_type() {
-    // let [mime, quality] = parts[..1];
-    let q_value: Vec<&str> = parts.get(1).unwrap_or(&"q=1").split("=").collect();
+pub fn fitness_ready_mime_type(mime_type: &str) -> Result<(&str, &str, HashMap<String, MimeParameter>), MimeTypeParseError> {
+    let (mime_type, subtype, parameter) = parse_mime_type(mime_type)?;
 
-    if q_value.len() != 2 {
-        return None;
-    }
+    if let Some((parameter_name, parameter_value)) = parameter {
+        if parameter_name == "q" {
+            let mut parsed_parameter_value = parameter_value.parse().unwrap_or(1.0);
+            if parsed_parameter_value > 1.0 || parsed_parameter_value < 0.0 {
+                parsed_parameter_value = 1.0;
+            }
+        } else {
 
-    let mut parsed_q_value = q_value.get(1).unwrap_or(&"1").parse().unwrap_or(1.0);
+        }
+    } else {
 
-    if parsed_q_value > 1.0 || parsed_q_value < 0.0 {
-        parsed_q_value = 1.0;
-    }
-}
-// Take in an acceptance string
-// Return a hashmap with name and priority
-
-#[derive(Debug, Clone)]
-struct MimeTypeParseError;
-
-// Generation of an error is completely separate from how it is displayed.
-// There's no need to be concerned about cluttering complex logic with the display style.
-//
-// Note that we don't store any extra info about the errors. This means we can't state
-// which string failed to parse without modifying our types to carry that information.
-impl fmt::Display for MimeTypeParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Invalid Mime Type")
     }
 }
 
 pub fn parse_mime_type<'a>(
     mime_type: &'a str,
-) -> Result<(&'a str, &'a str, Option<(&'a str, &'a str)>), MimeTypeParseError> {
+) -> Result<(&'a str, &'a str, HashMap<&str, &str>), MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(";").collect();
-    let types_breakdown: Vec<&str> = parts.get(0).ok_or(MimeTypeParseError)?.split("/").collect();
+    let mut parameters:HashMap<&str, &str> = HashMap::new();
+    let ii:HashMap<_, _> = HashMap::from([["", ""], ["", ""]]);
+    let toto:Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
+        let pp:Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values.into_iter()
+            .map(|val| val.split_once("=").ok_or(MimeTypeParseError)).collect();
 
-    let parameter = match parts.get(1) {
-        Some(parameter_value) => parameter_value.split_once("="),
-        _ => None,
+        if let Ok(yy) = pp {
+            let a:HashMap<&str, &str> = HashMap::from_iter(yy);
+            Some(a)
+        } else {
+            None
+        } 
+    } else {
+        None
+    };
+
+
+    if let Some(parameter_values) = parts.get(1..) {
+        for parameter in parameter_values.into_iter() {
+            if let Some((parameter_name, parameter_value)) = parameter.split_once("=") {
+                parameters.insert(parameter_name, parameter_value);
+            } else {
+                Err(MimeTypeParseError);
+            }
+        }
+    } else {
+
     };
 
     let mime_type = match parts.get(0) {
@@ -93,7 +121,7 @@ pub fn parse_mime_type<'a>(
     };
 
     if let Some(mime_type) = mime_type {
-        Ok((mime_type.0, mime_type.1, parameter))
+        Ok((mime_type.0, mime_type.1, parameters))
     } else {
         Err(MimeTypeParseError)
     }
