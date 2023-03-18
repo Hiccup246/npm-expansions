@@ -16,9 +16,8 @@ impl fmt::Display for MimeTypeParseError {
 }
 
 enum MimeParameter {
-    String,
-    F64,
-    Str,
+    Str(&'static str),
+    Float(f32),
 }
 
 /// Usually doc comments may include sections "Examples", "Panics" and "Failures".
@@ -67,52 +66,36 @@ pub fn best_match(supported: Vec<String>, header: &String) -> String {
 
 pub fn fitness_ready_mime_type(mime_type: &str) -> Result<(&str, &str, HashMap<String, MimeParameter>), MimeTypeParseError> {
     let (mime_type, subtype, parameter) = parse_mime_type(mime_type)?;
+    
+    if let Some((parameter_hash)) = parameter {
+        let fitness_hash: HashMap<String, MimeParameter> = parameter_hash.clone();
+        parameter_hash.entry("q").or_insert(1.0);
+        parameter_hash.entry("Q").and_modify(|mana| if *mana < 0 += 200).or_insert(100);
 
-    if let Some((parameter_name, parameter_value)) = parameter {
-        if parameter_name == "q" {
-            let mut parsed_parameter_value = parameter_value.parse().unwrap_or(1.0);
-            if parsed_parameter_value > 1.0 || parsed_parameter_value < 0.0 {
-                parsed_parameter_value = 1.0;
-            }
-        } else {
 
-        }
+
     } else {
-
+        let aa: HashMap<String, MimeParameter> = HashMap::from([("q".to_string(), 1.0)])
+        Ok((mime_type, subtype, HashMap::from([("q".to_string(), 1.0)])))
     }
 }
 
 pub fn parse_mime_type<'a>(
     mime_type: &'a str,
-) -> Result<(&'a str, &'a str, HashMap<&str, &str>), MimeTypeParseError> {
-    let parts: Vec<&str> = mime_type.trim().split(";").collect();
-    let mut parameters:HashMap<&str, &str> = HashMap::new();
-    let ii:HashMap<_, _> = HashMap::from([["", ""], ["", ""]]);
-    let toto:Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
-        let pp:Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values.into_iter()
+) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
+    let parts: Vec<&str> = mime_type.trim().split(";").collect();    
+
+    let parameters:Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
+        let split_parameters:Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values.into_iter()
             .map(|val| val.split_once("=").ok_or(MimeTypeParseError)).collect();
 
-        if let Ok(yy) = pp {
-            let a:HashMap<&str, &str> = HashMap::from_iter(yy);
-            Some(a)
+        if let Ok(split_parameters) = split_parameters {
+            Some(HashMap::from_iter(split_parameters))
         } else {
             None
         } 
     } else {
         None
-    };
-
-
-    if let Some(parameter_values) = parts.get(1..) {
-        for parameter in parameter_values.into_iter() {
-            if let Some((parameter_name, parameter_value)) = parameter.split_once("=") {
-                parameters.insert(parameter_name, parameter_value);
-            } else {
-                Err(MimeTypeParseError);
-            }
-        }
-    } else {
-
     };
 
     let mime_type = match parts.get(0) {
