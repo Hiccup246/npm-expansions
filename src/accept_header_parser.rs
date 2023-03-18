@@ -74,38 +74,39 @@ pub fn fitness_ready_mime_type(mime_type: &str) -> Result<(&str, &str, f32), Mim
     Ok((mime_type, subtype, quality))
 }
 
-pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>) -> f32 {
-    let (trarget_type, target_subtype, target_priority) = fitness_ready_mime_type(mime_type).unwrap();
+pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>) -> Result<f32, MimeTypeParseError> {
+    let (mime_type, mime_subtype, mime_quality) = fitness_ready_mime_type(mime_type)?;
     let mut best_fitness = -1.0;
-    let mut best_fit_q = 0.0;
+    let mut best_mime_type_quality = 0.0;
 
-    for (parsed_type, parsed_subtype, parsed_priority) in mime_range {
-        if *parsed_type == trarget_type || *parsed_type == "*" {
-            if *parsed_subtype == target_subtype || *parsed_subtype == "*" {
+    for (range_type, range_subtype, range_quality) in mime_range {
+        if *range_type == mime_type || *range_type == "*" {
+            if *range_subtype == mime_subtype || *range_subtype == "*" {
                 let mut fitness = -1.0;
 
-                if *parsed_type == trarget_type {
+                if *range_type == mime_type {
                     fitness += 100.0
                 } else {
                     fitness += 0.0
                 };
 
-                if *parsed_subtype == target_subtype {
+                if *range_subtype == mime_subtype {
                     fitness += 10.0
                 } else {
                     fitness += 0.0
                 };
-                fitness += target_priority;
+                
+                fitness += range_quality;
 
                 if fitness > best_fitness {
                     best_fitness = fitness;
-                    best_fit_q = *parsed_priority;
+                    best_mime_type_quality = *range_quality;
                 }
             }
         }
     }
 
-    best_fit_q
+    Ok(best_mime_type_quality)
 }
 
 pub fn parse_mime_type<'a>(
