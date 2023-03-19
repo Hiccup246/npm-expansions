@@ -92,9 +92,9 @@ pub fn fitness_ready_mime_type(
             .parse()
             .unwrap_or(1.0);
 
-        if parsed_quality < 0.0 || parsed_quality > 1.0 {
-            quality = 1.0
-        };
+        if parsed_quality >= 0.0 || parsed_quality <= 1.0 {
+            quality = parsed_quality;
+        }
     }
 
     Ok((mime_type, subtype, quality))
@@ -111,7 +111,7 @@ pub fn fitness_of_mime_type(
     for (range_type, range_subtype, range_quality) in mime_range {
         if *range_type == mime_type || *range_type == "*" {
             if *range_subtype == mime_subtype || *range_subtype == "*" {
-                let mut fitness = -1.0;
+                let mut fitness = 0.0;
 
                 if *range_type == mime_type {
                     fitness += 100.0
