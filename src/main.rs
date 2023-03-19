@@ -6,8 +6,8 @@ use std::{
 };
 
 mod accept_header_handler;
-mod npm_expansions;
 mod mime_type_parser;
+mod npm_expansions;
 
 pub use crate::npm_expansions::NpmExpansions;
 
