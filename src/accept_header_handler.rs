@@ -50,7 +50,7 @@ pub fn best_match(
         .collect();
 
     if let Ok(parsed_accept_headers) = parsed_accept_headers {
-        let mut weighted_matches: Result<Vec<(f32, &str)>, mime_type_parser::MimeTypeParseError> =
+        let weighted_matches: Result<Vec<(f32, &str)>, mime_type_parser::MimeTypeParseError> =
             supported_mime_types
                 .iter()
                 .map(|mime_type| {
@@ -59,10 +59,12 @@ pub fn best_match(
                 })
                 .collect();
 
-        if let Ok(weighted_matches) = weighted_matches {
-            weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+        if let Ok(mut ok_weighted_matches) = weighted_matches {
+            ok_weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-            let final_match = weighted_matches.get(weighted_matches.len() - 1).unwrap();
+            let final_match = ok_weighted_matches
+                .get(ok_weighted_matches.len() - 1)
+                .unwrap();
 
             if final_match.0 != 0.0 {
                 Ok(final_match.1.to_string())
