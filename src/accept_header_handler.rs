@@ -1,8 +1,11 @@
 use crate::mime_type_parser;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SupportedMimeTypeError;
+
+#[derive(Debug)]
 pub struct InvalidAcceptHeaderError;
+
 pub trait ParseError {}
 
 impl ParseError for InvalidAcceptHeaderError {}
