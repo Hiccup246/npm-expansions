@@ -134,7 +134,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn fitness_of_mime_type_exact_match() {
+        fn exact_match() {
             assert_eq!(
                 fitness_of_mime_type(
                     "text/plain",
@@ -145,7 +145,7 @@ mod tests {
         }
 
         #[test]
-        fn fitness_of_mime_type_no_match() {
+        fn no_match() {
             assert_eq!(
                 fitness_of_mime_type("text/plain", &Vec::from([("text", "html", 1.0)])),
                 0.0
@@ -153,7 +153,7 @@ mod tests {
         }
 
         #[test]
-        fn fitness_of_mime_type_half_match() {
+        fn half_match() {
             assert_eq!(
                 fitness_of_mime_type(
                     "text/plain",
@@ -164,7 +164,7 @@ mod tests {
         }
 
         #[test]
-        fn fitness_of_mime_type_quality_match() {
+        fn quality_match() {
             assert_eq!(
                 fitness_of_mime_type(
                     "text/plain",
@@ -179,7 +179,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn best_match_exact() {
+        fn exact_match() {
             assert_eq!(
                 best_match(
                     Vec::from(["text/plain".to_string(), "text/*".to_string()]),
@@ -190,7 +190,7 @@ mod tests {
         }
 
         #[test]
-        fn best_match_type_generic() {
+        fn generic_type_match() {
             assert_eq!(
                 best_match(
                     Vec::from(["text/plain".to_string(), "text/*".to_string()]),
@@ -201,7 +201,7 @@ mod tests {
         }
 
         #[test]
-        fn best_match_subtype_generic() {
+        fn generic_subtype_match() {
             assert_eq!(
                 best_match(
                     Vec::from(["text/plain".to_string(), "text/*".to_string()]),
@@ -212,7 +212,7 @@ mod tests {
         }
 
         #[test]
-        fn best_match_no_match() {
+        fn no_match() {
             assert_eq!(
                 best_match(
                     Vec::from(["text/plain".to_string(), "text/*".to_string()]),
@@ -223,7 +223,7 @@ mod tests {
         }
 
         #[test]
-        fn best_match_no_supported_types() {
+        fn no_supported_mime_types() {
             assert_eq!(
                 best_match(Vec::from([]), &"application/json, image/jpeg".to_string()),
                 "".to_string()
@@ -231,7 +231,7 @@ mod tests {
         }
 
         #[test]
-        fn best_match_no_header() {
+        fn no_accept_header() {
             assert_eq!(
                 best_match(
                     Vec::from(["text/plain".to_string(), "".to_string()]),
