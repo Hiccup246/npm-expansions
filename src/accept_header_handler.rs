@@ -115,15 +115,11 @@ pub fn fitness_of_mime_type(
 
                 if *range_type == mime_type {
                     fitness += 100.0
-                } else {
-                    fitness += 0.0
-                };
+                }
 
                 if *range_subtype == mime_subtype {
                     fitness += 10.0
-                } else {
-                    fitness += 0.0
-                };
+                }
 
                 fitness += range_quality;
 
