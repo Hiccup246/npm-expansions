@@ -2,9 +2,9 @@ use rand::Rng;
 use std::fs;
 use std::io::BufRead;
 
-pub struct NpmExpansionGenerator {}
+pub struct NpmExpansions {}
 
-impl NpmExpansionGenerator {
+impl NpmExpansions {
     const EXPANSIONS: [&str; 841] = [
         "N00b Pwn M3",
         "N00b's Programming Machine",
@@ -849,7 +849,7 @@ impl NpmExpansionGenerator {
         "Nylon Pendulum Movement",
     ];
 
-    pub fn convert_expansions_file_to_array(path: String) -> Vec<String> {
+    pub fn print_expansions_file(path: String) {
         let expansions_file = fs::read(path).unwrap();
         let expansions: Vec<String> = expansions_file
             .lines()
@@ -857,10 +857,10 @@ impl NpmExpansionGenerator {
             .filter(|line| !line.starts_with("#") && !line.starts_with("*"))
             .collect();
 
-        expansions
+        println!("{:?}", expansions);
     }
 
-    pub fn expansions() -> [&'static str; 841] {
+    pub fn all_expansions() -> [&'static str; 841] {
         Self::EXPANSIONS
     }
 
@@ -872,5 +872,15 @@ impl NpmExpansionGenerator {
             .unwrap()
             .clone()
             .to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+
     }
 }
