@@ -6,10 +6,10 @@ use std::{
 };
 
 mod accept_header_handler;
-mod expansions_generator;
+mod npm_expansions;
 mod mime_type_parser;
 
-pub use crate::expansions_generator::NpmExpansionGenerator;
+pub use crate::npm_expansions::NpmExpansions;
 
 fn main() {
     // NpmExpansionsGenerator::convert_text_file();
@@ -70,7 +70,7 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
     let response;
 
     // If request accepts application/json then we are good to go
-    let best = best_match(
+    let best = accept_header_handler::best_match(
         Vec::from(["application/json".to_string(), "text/html".to_string()]),
         request_headers.get("Accept").unwrap(),
     );
@@ -95,14 +95,14 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
 
 fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
     let response: String;
-    let best = best_match(
+    let best = accept_header_handler::best_match(
         Vec::from(["application/json".to_string()]),
         request_headers.get("Accept").unwrap(),
     );
 
     if best == "application/json" {
         let status_line = "HTTP/1.1 200 OK";
-        let expansion = NpmExpansionGenerator::random_expansion();
+        let expansion = NpmExpansions::random_expansion();
         let contents = format!("{{\"npm-expansion\": \"{expansion}\"}}");
         let length = contents.len();
         let content_type = "application/json";
