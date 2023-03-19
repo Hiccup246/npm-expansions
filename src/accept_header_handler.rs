@@ -142,7 +142,8 @@ mod tests {
                 fitness_of_mime_type(
                     "text/plain",
                     &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)])
-                ),
+                )
+                .unwrap(),
                 1.0
             );
         }
@@ -150,7 +151,7 @@ mod tests {
         #[test]
         fn no_match() {
             assert_eq!(
-                fitness_of_mime_type("text/plain", &Vec::from([("text", "html", 1.0)])),
+                fitness_of_mime_type("text/plain", &Vec::from([("text", "html", 1.0)])).unwrap(),
                 0.0
             );
         }
@@ -161,7 +162,8 @@ mod tests {
                 fitness_of_mime_type(
                     "text/plain",
                     &Vec::from([("text", "*", 1.0), ("application", "json", 1.0)])
-                ),
+                )
+                .unwrap(),
                 1.0
             );
         }
@@ -172,9 +174,28 @@ mod tests {
                 fitness_of_mime_type(
                     "text/plain",
                     &Vec::from([("text", "plain", 0.5), ("text", "*", 1.0)])
-                ),
+                )
+                .unwrap(),
                 0.5
             );
+        }
+
+        #[test]
+        fn invalid_supported_mime_type() {
+            assert!(fitness_of_mime_type(
+                "text/",
+                &Vec::from([("text", "plain", 0.5), ("text", "*", 1.0)])
+            )
+            .is_err());
+        }
+
+        #[test]
+        fn invalid_mime_range() {
+            assert!(fitness_of_mime_type(
+                "text/plain",
+                &Vec::from([("text", "", 0.5), ("text", "*", 1.0)])
+            )
+            .is_err());
         }
     }
 
