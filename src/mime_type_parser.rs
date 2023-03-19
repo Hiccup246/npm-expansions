@@ -1,15 +1,22 @@
 use std::{collections::HashMap, fmt};
 
-pub struct MimeTypeParseError;
+#[derive(Debug)]
+pub struct MimeTypeParseError {
+    pub failed_mime_type: String,
+}
 
-// Generation of an error is completely separate from how it is displayed.
-// There's no need to be concerned about cluttering complex logic with the display style.
-//
-// Note that we don't store any extra info about the errors. This means we can't state
-// which string failed to parse without modifying our types to carry that information.
+impl MimeTypeParseError {
+    fn new(mime_type: String) -> MimeTypeParseError {
+        MimeTypeParseError {
+            failed_mime_type: mime_type,
+        }
+    }
+}
+
 impl fmt::Display for MimeTypeParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Invalid Mime Type")
+        let message = format!("{} is an invalid Mime Type", self.failed_mime_type);
+        write!(f, "{message}")
     }
 }
 
@@ -21,7 +28,10 @@ pub fn parse_mime_type<'a>(
     let parameters: Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
         let split_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values
             .into_iter()
-            .map(|val| val.split_once("=").ok_or(MimeTypeParseError))
+            .map(|val| {
+                val.split_once("=")
+                    .ok_or(MimeTypeParseError::new(mime_type.to_string()))
+            })
             .collect();
 
         if let Ok(split_parameters) = split_parameters {
@@ -33,18 +43,19 @@ pub fn parse_mime_type<'a>(
         None
     };
 
-    let mime_type = match parts.get(0) {
+    let parsed_mime_type = match parts.get(0) {
         Some(mime_type_value) => mime_type_value.split_once("/"),
         _ => None,
     };
 
-    if let Some(mime_type) = mime_type {
-        Ok((mime_type.0, mime_type.1, parameters))
+    if let Some(parsed_mime_type) = parsed_mime_type {
+        Ok((parsed_mime_type.0, parsed_mime_type.1, parameters))
     } else {
-        Err(MimeTypeParseError)
+        Err(MimeTypeParseError::new(mime_type.to_string()))
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -52,40 +63,43 @@ mod tests {
     fn valid_mime() {
         assert_eq!(
             parse_mime_type("application/json").unwrap(),
-            ("application", "json", 1.0)
+            ("application", "json", None)
         );
     }
 
     #[test]
     fn wild_card_type_mime() {
-        assert_eq!(parse_mime_type("*/*").unwrap(), ("*", "*", 1.0));
+        assert_eq!(parse_mime_type("*/*").unwrap(), ("*", "*", None));
     }
 
     #[test]
     fn wild_card_subtype_mime() {
-        assert_eq!(parse_mime_type("text/*").unwrap(), ("text", "*", 1.0));
+        assert_eq!(parse_mime_type("text/*").unwrap(), ("text", "*", None));
     }
 
     #[test]
     fn mime_with_quality() {
+        let parsed_mime = parse_mime_type("text/plain;q=0.8").unwrap();
+        let full_unwrapped = (parsed_mime.0, parsed_mime.1, parsed_mime.2.unwrap());
+
         assert_eq!(
-            parse_mime_type("text/plain;q=0.8").unwrap(),
-            ("text", "plain", 0.8)
+            full_unwrapped,
+            ("text", "plain", HashMap::from([("q", "0.8")]))
         );
     }
 
     #[test]
     fn no_type_mime() {
-        assert_eq!(parse_mime_type("/plain"), None);
+        assert!(parse_mime_type("/plain").is_err());
     }
 
     #[test]
     fn no_subtype_mime() {
-        assert_eq!(parse_mime_type("text/"), None);
+        assert!(parse_mime_type("text/").is_err());
     }
 
     #[test]
     fn malformed_quality_mime() {
-        assert_eq!(parse_mime_type("text/plain;q0.8"), None);
+        assert!(parse_mime_type("text/plain;q0.8").is_err());
     }
 }
