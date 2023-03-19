@@ -1,4 +1,5 @@
 use crate::mime_type_parser;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct SupportedMimeTypeError;
@@ -7,6 +8,12 @@ pub struct SupportedMimeTypeError;
 pub struct InvalidAcceptHeaderError;
 
 pub trait ParseError {}
+
+impl fmt::Debug for dyn ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Parse Error Occured")
+    }
+}
 
 impl ParseError for InvalidAcceptHeaderError {}
 impl ParseError for SupportedMimeTypeError {}
@@ -206,10 +213,11 @@ mod tests {
         fn exact_match() {
             assert_eq!(
                 best_match(
-                    Vec::from(["text/plain".to_string(), "text/*".to_string()]),
-                    &"application/json, text/plain".to_string()
-                ),
-                "text/plain".to_string()
+                    Vec::from(["text/plain", "text/*"]),
+                    "application/json, text/plain"
+                )
+                .unwrap(),
+                "text/plain"
             );
         }
 
@@ -217,10 +225,11 @@ mod tests {
         fn generic_type_match() {
             assert_eq!(
                 best_match(
-                    Vec::from(["text/plain".to_string(), "text/*".to_string()]),
-                    &"application/json, */plain".to_string()
-                ),
-                "text/plain".to_string()
+                    Vec::from(["text/plain", "text/*"]),
+                    "application/json, */plain"
+                )
+                .unwrap(),
+                "text/plain"
             );
         }
 
@@ -228,10 +237,11 @@ mod tests {
         fn generic_subtype_match() {
             assert_eq!(
                 best_match(
-                    Vec::from(["text/plain".to_string(), "text/*".to_string()]),
-                    &"application/json, text/*".to_string()
-                ),
-                "text/*".to_string()
+                    Vec::from(["text/plain", "text/*"]),
+                    "application/json, text/*"
+                )
+                .unwrap(),
+                "text/*"
             );
         }
 
@@ -239,30 +249,35 @@ mod tests {
         fn no_match() {
             assert_eq!(
                 best_match(
-                    Vec::from(["text/plain".to_string(), "text/*".to_string()]),
-                    &"application/json, image/jpeg".to_string()
-                ),
-                "".to_string()
+                    Vec::from(["text/plain", "text/*"]),
+                    "application/json, image/jpeg"
+                )
+                .unwrap(),
+                ""
             );
         }
 
         #[test]
         fn no_supported_mime_types() {
             assert_eq!(
-                best_match(Vec::from([]), &"application/json, image/jpeg".to_string()),
-                "".to_string()
+                best_match(Vec::from([]), "application/json, image/jpeg").unwrap(),
+                ""
             );
         }
 
         #[test]
         fn no_accept_header() {
-            assert_eq!(
-                best_match(
-                    Vec::from(["text/plain".to_string(), "".to_string()]),
-                    &"".to_string()
-                ),
-                "".to_string()
-            );
+            assert_eq!(best_match(Vec::from(["text/plain", ""]), "").unwrap(), "");
+        }
+
+        #[test]
+        fn invalid_supported_mime_type() {
+            assert!(best_match(Vec::from(["text/"]), "application/json, image/jpeg").is_err());
+        }
+
+        #[test]
+        fn invalid_accept_header() {
+            assert!(best_match(Vec::from(["text/plain"]), "application/, image/jpeg").is_err());
         }
     }
 }
