@@ -31,7 +31,10 @@ pub fn best_match(
     supported_mime_types: Vec<&str>,
     accept_header: &str,
 ) -> Result<String, Box<dyn ParseError>> {
-    let parsed_accept_headers: Result<Vec<(&str, &str, f32)>, mime_type_parser::MimeTypeParseError> = accept_header
+    let parsed_accept_headers: Result<
+        Vec<(&str, &str, f32)>,
+        mime_type_parser::MimeTypeParseError,
+    > = accept_header
         .split(",")
         .map(|header_str| fitness_ready_mime_type(header_str))
         .collect();
@@ -64,7 +67,9 @@ pub fn best_match(
     }
 }
 
-pub fn fitness_ready_mime_type(mime_type: &str) -> Result<(&str, &str, f32), mime_type_parser::MimeTypeParseError> {
+pub fn fitness_ready_mime_type(
+    mime_type: &str,
+) -> Result<(&str, &str, f32), mime_type_parser::MimeTypeParseError> {
     let (mime_type, subtype, parameter) = mime_type_parser::parse_mime_type(mime_type)?;
     let mut quality = 1.0;
 
@@ -124,7 +129,7 @@ pub fn fitness_of_mime_type(
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     mod fitness_of_mime_type_tests {
         use super::*;
 
@@ -138,7 +143,7 @@ mod tests {
                 1.0
             );
         }
-    
+
         #[test]
         fn fitness_of_mime_type_no_match() {
             assert_eq!(
@@ -146,7 +151,7 @@ mod tests {
                 0.0
             );
         }
-    
+
         #[test]
         fn fitness_of_mime_type_half_match() {
             assert_eq!(
@@ -157,7 +162,7 @@ mod tests {
                 1.0
             );
         }
-    
+
         #[test]
         fn fitness_of_mime_type_quality_match() {
             assert_eq!(
@@ -183,7 +188,7 @@ mod tests {
                 "text/plain".to_string()
             );
         }
-    
+
         #[test]
         fn best_match_type_generic() {
             assert_eq!(
@@ -194,7 +199,7 @@ mod tests {
                 "text/plain".to_string()
             );
         }
-    
+
         #[test]
         fn best_match_subtype_generic() {
             assert_eq!(
@@ -205,7 +210,7 @@ mod tests {
                 "text/*".to_string()
             );
         }
-    
+
         #[test]
         fn best_match_no_match() {
             assert_eq!(
@@ -216,7 +221,7 @@ mod tests {
                 "".to_string()
             );
         }
-    
+
         #[test]
         fn best_match_no_supported_types() {
             assert_eq!(
@@ -224,7 +229,7 @@ mod tests {
                 "".to_string()
             );
         }
-    
+
         #[test]
         fn best_match_no_header() {
             assert_eq!(

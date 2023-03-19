@@ -6,8 +6,8 @@ use std::{
 };
 
 mod accept_header_handler;
-mod mime_type_parser;
 mod expansions_generator;
+mod mime_type_parser;
 
 pub use crate::expansions_generator::NpmExpansionGenerator;
 
