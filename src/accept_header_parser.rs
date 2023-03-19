@@ -1,8 +1,14 @@
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct MimeTypeParseError;
+pub struct SupportedMimeTypeError;
+pub struct InvalidAcceptHeaderError;
+pub trait ParseError {}
+
+impl ParseError for InvalidAcceptHeaderError {}
+impl ParseError for SupportedMimeTypeError {}
 
 // Generation of an error is completely separate from how it is displayed.
 // There's no need to be concerned about cluttering complex logic with the display style.
@@ -34,47 +40,66 @@ impl fmt::Display for MimeTypeParseError {
 /// // panics on division by zero
 /// doccomments::div(10, 0);
 /// ```
-pub fn best_match(supported: Vec<String>, header: &String) -> String {
-    if header.is_empty() || supported.len() == 0 {
-        return "".to_string();
-    }
-
-    let parsed_header = &header
+pub fn best_match(
+    supported_mime_types: Vec<&str>,
+    accept_header: &str,
+) -> Result<String, Box<dyn ParseError>> {
+    let parsed_accept_headers: Result<Vec<(&str, &str, f32)>, MimeTypeParseError> = accept_header
         .split(",")
-        .map(|header_str| fitness_ready_mime_type(header_str).unwrap())
-        .collect();
-    let mut weighted_matches: Vec<(f32, &String)> = supported
-        .iter()
-        .map(|mime_type| (fitness_of_mime_type(mime_type, parsed_header), mime_type))
+        .map(|header_str| fitness_ready_mime_type(header_str))
         .collect();
 
-    weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    if let Ok(parsed_accept_headers) = parsed_accept_headers {
+        let mut weighted_matches: Result<Vec<(f32, &str)>, MimeTypeParseError> =
+            supported_mime_types
+                .iter()
+                .map(|mime_type| {
+                    fitness_of_mime_type(mime_type, &parsed_accept_headers)
+                        .and_then(|val| Ok((val, *mime_type)))
+                })
+                .collect();
 
-    let final_match = weighted_matches.get(weighted_matches.len() - 1).unwrap();
+        if let Ok(weighted_matches) = weighted_matches {
+            weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-    if final_match.0 != 0.0 && final_match.1 != "" {
-        final_match.1.to_string()
+            let final_match = weighted_matches.get(weighted_matches.len() - 1).unwrap();
+
+            if final_match.0 != 0.0 {
+                Ok(final_match.1.to_string())
+            } else {
+                Ok("".to_string())
+            }
+        } else {
+            return Err(Box::new(SupportedMimeTypeError));
+        }
     } else {
-        "".to_string()
+        return Err(Box::new(InvalidAcceptHeaderError));
     }
 }
 
 pub fn fitness_ready_mime_type(mime_type: &str) -> Result<(&str, &str, f32), MimeTypeParseError> {
     let (mime_type, subtype, parameter) = parse_mime_type(mime_type)?;
     let mut quality = 1.0;
-    
+
     if let Some(parameter_hash) = parameter {
-        let parsed_quality = parameter_hash.get("q").unwrap_or(&"").parse().unwrap_or(1.0);
+        let parsed_quality = parameter_hash
+            .get("q")
+            .unwrap_or(&"")
+            .parse()
+            .unwrap_or(1.0);
 
         if parsed_quality < 0.0 || parsed_quality > 1.0 {
             quality = 1.0
-        };   
+        };
     }
 
     Ok((mime_type, subtype, quality))
 }
 
-pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>) -> Result<f32, MimeTypeParseError> {
+pub fn fitness_of_mime_type(
+    mime_type: &str,
+    mime_range: &Vec<(&str, &str, f32)>,
+) -> Result<f32, MimeTypeParseError> {
     let (mime_type, mime_subtype, mime_quality) = fitness_ready_mime_type(mime_type)?;
     let mut best_fitness = -1.0;
     let mut best_mime_type_quality = 0.0;
@@ -95,7 +120,7 @@ pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>
                 } else {
                     fitness += 0.0
                 };
-                
+
                 fitness += range_quality;
 
                 if fitness > best_fitness {
@@ -112,17 +137,19 @@ pub fn fitness_of_mime_type(mime_type: &str, mime_range: &Vec<(&str, &str, f32)>
 pub fn parse_mime_type<'a>(
     mime_type: &'a str,
 ) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
-    let parts: Vec<&str> = mime_type.trim().split(";").collect();    
+    let parts: Vec<&str> = mime_type.trim().split(";").collect();
 
-    let parameters:Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
-        let split_parameters:Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values.into_iter()
-            .map(|val| val.split_once("=").ok_or(MimeTypeParseError)).collect();
+    let parameters: Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
+        let split_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values
+            .into_iter()
+            .map(|val| val.split_once("=").ok_or(MimeTypeParseError))
+            .collect();
 
         if let Ok(split_parameters) = split_parameters {
             Some(HashMap::from_iter(split_parameters))
         } else {
             None
-        } 
+        }
     } else {
         None
     };
