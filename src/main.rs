@@ -5,10 +5,12 @@ use std::{
     net::{TcpListener, TcpStream},
 };
 
-mod accept_header_parser;
+mod accept_header_handler;
+mod mime_type_parser;
 mod expansions_generator;
+
 pub use crate::expansions_generator::NpmExpansionGenerator;
-pub use accept_header_parser::best_match;
+
 fn main() {
     // NpmExpansionsGenerator::convert_text_file();
     // fs::read_to_string("expansions.txt").unwrap();
@@ -25,7 +27,7 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
     let response;
 
     // If request accepts application/json then we are good to go
-    let best = best_match(
+    let best = accept_header_handler::best_match(
         Vec::from([
             "text/html".to_string(),
             "text/css".to_string(),
