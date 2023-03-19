@@ -28,13 +28,10 @@ fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, Str
 
     // If request accepts application/json then we are good to go
     let best = accept_header_handler::best_match(
-        Vec::from([
-            "text/html".to_string(),
-            "text/css".to_string(),
-            "text/javascript".to_string(),
-        ]),
+        Vec::from(["text/html", "text/css", "text/javascript"]),
         request_headers.get("Accept").unwrap(),
-    );
+    )
+    .unwrap();
 
     if best == "text/html" {
         let status_line = "HTTP/1.1 200 OK";
@@ -71,9 +68,10 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
 
     // If request accepts application/json then we are good to go
     let best = accept_header_handler::best_match(
-        Vec::from(["application/json".to_string(), "text/html".to_string()]),
+        Vec::from(["application/json", "text/html"]),
         request_headers.get("Accept").unwrap(),
-    );
+    )
+    .unwrap();
 
     if best == "application/json" {
         response = format!("{status_line}\r\n\r\n");
@@ -96,9 +94,10 @@ fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, Stri
 fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
     let response: String;
     let best = accept_header_handler::best_match(
-        Vec::from(["application/json".to_string()]),
+        Vec::from(["application/json"]),
         request_headers.get("Accept").unwrap(),
-    );
+    )
+    .unwrap();
 
     if best == "application/json" {
         let status_line = "HTTP/1.1 200 OK";
