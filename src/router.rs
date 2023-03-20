@@ -16,7 +16,7 @@ pub struct Router<'a> {
     // Start-up will include building static file routes
     // stream: &TcpStream,
     // static_files_directory: &str,
-    routes_config: HashMap<&'a str,fn(&Request) -> &[u8]>,
+    routes_config: HashMap<&'a str,fn(&Request) -> Vec<u8>>,
 }
 
 // There will be two controllers
@@ -29,20 +29,19 @@ pub struct Router<'a> {
 // the router methods
 impl Router<'_> {
     pub fn new<'a>(
-        routes_config: HashMap<&'a str,fn(&Request) -> &[u8]>,
+        routes_config: HashMap<&'a str,fn(&Request) -> Vec<u8>>,
     ) -> Router<'a> {
         Router {
             routes_config,
         }
     }
 
-    pub fn route_request(&self, request: Request) -> &[u8] {
+    pub fn route_request(&self, request: Request) -> Vec<u8> {
         let status_line = request.status_line();
         let controller_function = self.routes_config.get(status_line);
 
         if let Some(controller_function) = controller_function {
-            let response = controller_function(&request);
-            return response;
+            return controller_function(&request);
         } else {
 
         }
@@ -66,7 +65,7 @@ impl Router<'_> {
         // QUESTION
         // Should the router know about the stream? Perhaps it should  just return a byte response
         // and then the main function just "writes out"
-        "hello".as_bytes()
+        "hello".as_bytes().to_vec()
     }
 }
 
