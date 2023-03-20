@@ -200,11 +200,14 @@ mod tests {
 
         #[test]
         fn invalid_mime_range() {
-            assert!(fitness_of_mime_type(
-                "text/plain",
-                &Vec::from([("text", "", 0.5), ("text", "*", 1.0)])
-            )
-            .is_err());
+            assert_eq!(
+                fitness_of_mime_type(
+                    "text/plain",
+                    &Vec::from([("text", "", 0.5), ("", "*", 1.0)])
+                )
+                .unwrap(),
+                0.0
+            );
         }
     }
 
