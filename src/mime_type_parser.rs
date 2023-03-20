@@ -47,7 +47,7 @@ pub fn parse_mime_type<'a>(
 ) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(";").collect();
 
-    let parameters: Option<HashMap<&str, &str>> = if let Some(parameter_values) = parts.get(1..) {
+    let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> = if let Some(parameter_values) = parts.get(1..) {
         let split_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values
             .into_iter()
             .map(|val| {
@@ -57,12 +57,16 @@ pub fn parse_mime_type<'a>(
             .collect();
 
         if let Ok(split_parameters) = split_parameters {
-            Some(HashMap::from_iter(split_parameters))
+            if split_parameters.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(HashMap::from_iter(split_parameters)))
+            }
         } else {
-            None
+            Err(split_parameters.err().unwrap())
         }
     } else {
-        None
+        Ok(None)
     };
 
     let parsed_mime_type = match parts.get(0) {
@@ -71,7 +75,16 @@ pub fn parse_mime_type<'a>(
     };
 
     if let Some(parsed_mime_type) = parsed_mime_type {
-        Ok((parsed_mime_type.0, parsed_mime_type.1, parameters))
+
+        if parameters.is_err() {
+            Err(parameters.err().unwrap())
+        } else {
+            if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
+                Err(MimeTypeParseError::new(mime_type.to_string()))
+            } else {
+                Ok((parsed_mime_type.0, parsed_mime_type.1, parameters.unwrap()))
+            }
+        }
     } else {
         Err(MimeTypeParseError::new(mime_type.to_string()))
     }
@@ -112,6 +125,7 @@ mod tests {
 
     #[test]
     fn no_type_mime() {
+        println!("{}", parse_mime_type("/plain").is_err());
         assert!(parse_mime_type("/plain").is_err());
     }
 
@@ -123,5 +137,10 @@ mod tests {
     #[test]
     fn malformed_quality_mime() {
         assert!(parse_mime_type("text/plain;q0.8").is_err());
+    }
+
+    #[test]
+    fn no_forward_slash() {
+        assert!(parse_mime_type("text").is_err());
     }
 }
