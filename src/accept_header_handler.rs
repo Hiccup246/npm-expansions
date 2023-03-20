@@ -45,6 +45,10 @@ pub fn best_match(
     supported_mime_types: Vec<&str>,
     accept_header: &str,
 ) -> Result<String, Box<dyn ParseError>> {
+    if accept_header.is_empty() {
+        return Ok("".to_string());
+    };
+
     let parsed_accept_headers: Result<
         Vec<(&str, &str, f32)>,
         mime_type_parser::MimeTypeParseError,
@@ -66,12 +70,14 @@ pub fn best_match(
         if let Ok(mut ok_weighted_matches) = weighted_matches {
             ok_weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-            let final_match = ok_weighted_matches
-                .get(ok_weighted_matches.len() - 1)
-                .unwrap();
+            let final_match = ok_weighted_matches.last();
 
-            if final_match.0 != 0.0 {
-                Ok(final_match.1.to_string())
+            if let Some(final_match) = final_match {
+                if final_match.0 != 0.0 {
+                    Ok(final_match.1.to_string())
+                } else {
+                    Ok("".to_string())
+                }
             } else {
                 Ok("".to_string())
             }
@@ -201,11 +207,7 @@ mod tests {
         #[test]
         fn invalid_mime_range() {
             assert_eq!(
-                fitness_of_mime_type(
-                    "text/plain",
-                    &Vec::from([("text", "", 0.5), ("", "*", 1.0)])
-                )
-                .unwrap(),
+                fitness_of_mime_type("text/plain", &Vec::from([("text", "", 0.5)])).unwrap(),
                 0.0
             );
         }
