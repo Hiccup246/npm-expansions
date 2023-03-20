@@ -1,3 +1,4 @@
+// Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
 use crate::mime_type_parser;
 use std::fmt;
 
@@ -18,24 +19,27 @@ impl fmt::Debug for dyn ParseError {
 impl ParseError for InvalidAcceptHeaderError {}
 impl ParseError for SupportedMimeTypeError {}
 
-/// Usually doc comments may include sections "Examples", "Panics" and "Failures".
+/// Returns the most appropriate mime type given a list of desired types and an accept header
 ///
-/// The next function divides two numbers.
+/// # Arguments
+///
+/// * `supported_mime_types` - A vector of desired mime types represented as string slices
+/// * `accept_header` - A string slice representing a given accept header
 ///
 /// # Examples
 ///
 /// ```
-/// let result = doccomments::div(10, 2);
-/// assert_eq!(result, 5);
+/// let best_mime_match = best_match(Vec::from(["application/json"], "text/plain, application/json"));
+/// assert_eq!(best_mime_match.unwrap(), "application/json".to_string());
 /// ```
 ///
-/// # Panics
+/// # Failures
 ///
-/// The function panics if the second argument is zero.
+/// The function fails if any of the supported mime types or the accept header is malformed
 ///
-/// ```rust,should_panic
-/// // panics on division by zero
-/// doccomments::div(10, 0);
+/// ```rust,should_error
+/// // fails if given malformed supported mime types or the accept header
+/// best_match(Vec::from(["application/"], "/plain"))
 /// ```
 pub fn best_match(
     supported_mime_types: Vec<&str>,
