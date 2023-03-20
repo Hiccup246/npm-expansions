@@ -1,3 +1,4 @@
+// Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
 use std::{collections::HashMap, fmt};
 
 #[derive(Debug)]
@@ -20,6 +21,27 @@ impl fmt::Display for MimeTypeParseError {
     }
 }
 
+/// Parses a mime type string slice into a tuple consisting of its type, subtype and parameters
+///
+/// # Arguments
+///
+/// * `mime_type` - A mime type represented as a string slice
+///
+/// # Examples
+///
+/// ```
+/// let parsed_mime_type = parse_mime_type("text/html");
+/// assert_eq!(parsed_mime_type.unwrap(), ("text", "html", Option<HashMap::new()>));
+/// ```
+///
+/// # Failures
+///
+/// The function fails if the given mime type is invalid (correctness based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+///
+/// ```rust,should_error
+/// // fails if given malformed supported mime types or the accept header
+/// parse_mime_type("text/")
+/// ```
 pub fn parse_mime_type<'a>(
     mime_type: &'a str,
 ) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
