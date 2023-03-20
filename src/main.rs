@@ -8,19 +8,64 @@ use std::{
 mod accept_header_handler;
 mod mime_type_parser;
 mod npm_expansions;
+mod router;
+mod request;
 
+pub use request::Request;
 pub use crate::npm_expansions::NpmExpansions;
 
+
+trait ControllerFunction {
+
+}
+
+pub struct Controller {
+
+}
+
+impl Controller {
+    pub fn index<'a>(request: &Request) -> &'a [u8] {
+        "HTTP/1.1 200 OK".as_bytes()
+    }
+
+    pub fn random<'a>(request: &Request) -> &'a [u8] {
+        "HTTP/1.1 200 OK".as_bytes()
+    }
+
+    pub fn not_found(request: &Request) {
+        
+    }
+
+    pub fn internal_server_error(request: &Request) {
+        
+    }
+}
+
+impl ControllerFunction for Controller {
+
+}
+
 fn main() {
-    // NpmExpansionsGenerator::convert_text_file();
-    // fs::read_to_string("expansions.txt").unwrap();
+    let route_config:HashMap<&str,fn(&Request) -> &[u8]> = HashMap::from([
+        ("GET / HTTP/1.1", Controller::index as fn(&Request) -> &[u8]),
+        ("GET /random HTTP/1.1", Controller::random as fn(&Request) -> &[u8])
+    ]);
+    let router = router::Router::new(route_config);
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream);
+        // handle_connection(stream);
+        new_connection_handler(stream, &router);
     }
+}
+
+fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
+    let request = Request::new(&stream);
+    let response = router.route_request(request);
+
+    stream.write_all(response);
 }
 
 fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {

@@ -5,23 +5,18 @@ use std::{
     net::{TcpListener, TcpStream},
 };
 
-pub struct RoutesConfig {
-    // fn(&str) is a placeholder. In reality it should accept a request header hashmap (and later maybe a request body)
-    // fn(&str) should perhaps implement a trait. Trait will be what the controller structs use
-    // - trait of functions accepting a request header (maybe as argument types may be good enough)
-    route_map: HashMap<(&str, &str, &str), fn(&str)>,
-}
+pub use crate::request::Request;
 
-pub struct Router {
+pub struct Router<'a> {
     // Handle 404 routes
     // Handle incorrect version routes
     // Handle static routes
     // Handle legit routes
 
     // Start-up will include building static file routes
-    stream: &TcpStream,
-    static_files_directory: &str,
-    routes_config: RoutesConfig,
+    // stream: &TcpStream,
+    // static_files_directory: &str,
+    routes_config: HashMap<&'a str,fn(&Request) -> &[u8]>,
 }
 
 // There will be two controllers
@@ -32,20 +27,25 @@ pub struct Router {
 // Therefor we should pass a router a config file mapping
 // route names to controller methods. And the router should merely call
 // the router methods
-impl Router {
-    pub fn new(
-        &self,
-        stream: &TcpStream,
-        static_files_directory: &str,
-        routes_config: RoutesConfig,
-    ) -> Router {
+impl Router<'_> {
+    pub fn new<'a>(
+        routes_config: HashMap<&'a str,fn(&Request) -> &[u8]>,
+    ) -> Router<'a> {
         Router {
-            static_files_directory,
             routes_config,
         }
     }
 
-    pub fn route_request(stream: TcpStream) {
+    pub fn route_request(&self, request: Request) -> &[u8] {
+        let status_line = request.status_line();
+        let controller_function = self.routes_config.get(status_line);
+
+        if let Some(controller_function) = controller_function {
+            let response = controller_function(&request);
+            return response;
+        } else {
+
+        }
         // Build request headers here
         // Parse request so can route effectivley
         // match request to route config
@@ -66,6 +66,7 @@ impl Router {
         // QUESTION
         // Should the router know about the stream? Perhaps it should  just return a byte response
         // and then the main function just "writes out"
+        "hello".as_bytes()
     }
 }
 
