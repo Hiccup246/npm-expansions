@@ -47,27 +47,28 @@ pub fn parse_mime_type<'a>(
 ) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(";").collect();
 
-    let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> = if let Some(parameter_values) = parts.get(1..) {
-        let split_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values
-            .into_iter()
-            .map(|val| {
-                val.split_once("=")
-                    .ok_or(MimeTypeParseError::new(mime_type.to_string()))
-            })
-            .collect();
+    let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> =
+        if let Some(parameter_values) = parts.get(1..) {
+            let split_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values
+                .into_iter()
+                .map(|val| {
+                    val.split_once("=")
+                        .ok_or(MimeTypeParseError::new(mime_type.to_string()))
+                })
+                .collect();
 
-        if let Ok(split_parameters) = split_parameters {
-            if split_parameters.is_empty() {
-                Ok(None)
+            if let Ok(split_parameters) = split_parameters {
+                if split_parameters.is_empty() {
+                    Ok(None)
+                } else {
+                    Ok(Some(HashMap::from_iter(split_parameters)))
+                }
             } else {
-                Ok(Some(HashMap::from_iter(split_parameters)))
+                Err(split_parameters.err().unwrap())
             }
         } else {
-            Err(split_parameters.err().unwrap())
-        }
-    } else {
-        Ok(None)
-    };
+            Ok(None)
+        };
 
     let parsed_mime_type = match parts.get(0) {
         Some(mime_type_value) => mime_type_value.split_once("/"),
@@ -75,7 +76,6 @@ pub fn parse_mime_type<'a>(
     };
 
     if let Some(parsed_mime_type) = parsed_mime_type {
-
         if parameters.is_err() {
             Err(parameters.err().unwrap())
         } else {
