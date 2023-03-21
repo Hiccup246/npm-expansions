@@ -8,29 +8,50 @@ pub struct Request {
     headers: HashMap<String, String>,
 }
 
+#[derive(Debug)]
+pub struct RequestParseError;
+
 impl Request {
     // Build should return a result which the main function will use to return as 500 if an error occured
-    pub fn build(mut stream: impl Read + Write) -> Request {
+    pub fn build(mut stream: impl Read + Write) -> Result<Request, RequestParseError> {
         let buf_reader = BufReader::new(&mut stream);
-        let mut buffer = buf_reader
-            .lines()
-            .map(|result| result.unwrap())
-            .take_while(|line| !line.is_empty());
+        let mut buffer = buf_reader.lines();
 
-        let status_line = buffer.next().unwrap();
+        let status_line;
+
+        if let Some(line) = buffer.next() {
+            if let Ok(current_line) = line {
+                status_line = current_line;
+            } else {
+                return Err(RequestParseError);
+            }
+        } else {
+            return Err(RequestParseError);
+        }
 
         let mut headers: HashMap<String, String> = HashMap::new();
 
-        for header in buffer {
-            let (key, value) = header.split_at(header.find(":").unwrap());
-            let (_colon, header_value) = value.split_at(1);
-            headers.insert(key.trim().to_string(), header_value.trim().to_string());
+        for line in buffer {
+            if let Ok(current_line) = line {
+                if current_line.is_empty() {
+                    return Ok(Request {
+                        status_line,
+                        headers,
+                    });
+                } else {
+                    let (key, value) =
+                        current_line.split_at(current_line.find(":").ok_or(RequestParseError)?);
+                    let (_colon, header_value) = value.split_at(1);
+                    headers.insert(key.trim().to_string(), header_value.trim().to_string());
+                }
+            } else {
+                return Err(RequestParseError);
+            }
         }
-
-        Request {
+        Ok(Request {
             status_line,
             headers,
-        }
+        })
     }
 
     pub fn new(status_line: &str, headers: HashMap<String, String>) -> Request {
@@ -68,7 +89,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(stream);
+            let request = Request::build(stream).unwrap();
 
             assert_eq!(request.status_line(), "GET / HTTP/1.1")
         }
@@ -84,7 +105,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(stream);
+            let request = Request::build(stream).unwrap();
 
             assert_eq!(
                 request.headers(),

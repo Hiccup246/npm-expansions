@@ -30,7 +30,7 @@ fn main() {
 
 // If any error occurs then we should just render 500
 fn connection_handler(mut stream: TcpStream, router: &router::Router) {
-    let request = Request::build(&stream);
+    let request = Request::build(&stream).unwrap();
     let response = router.route_request(request).unwrap();
     stream.write_all(response.as_slice()).unwrap();
 }
