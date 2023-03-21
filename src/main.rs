@@ -8,20 +8,15 @@ use std::{
 mod accept_header_handler;
 mod mime_type_parser;
 mod npm_expansions;
-mod router;
 mod request;
+mod router;
 
-pub use request::Request;
 pub use crate::npm_expansions::NpmExpansions;
+pub use request::Request;
 
+trait ControllerFunction {}
 
-trait ControllerFunction {
-
-}
-
-pub struct Controller {
-
-}
+pub struct Controller {}
 
 impl Controller {
     pub fn index<'a>(request: &Request) -> Vec<u8> {
@@ -32,23 +27,26 @@ impl Controller {
         "HTTP/1.1 200 OK".as_bytes().to_vec()
     }
 
-    pub fn not_found(request: &Request) {
-        
+    pub fn not_found(request: &Request) -> Vec<u8> {
+        "HTTP/1.1 200 OK".as_bytes().to_vec()
     }
 
-    pub fn internal_server_error(request: &Request) {
-        
-    }
+    pub fn internal_server_error(request: &Request) {}
 }
 
-impl ControllerFunction for Controller {
-
-}
+impl ControllerFunction for Controller {}
 
 fn main() {
-    let route_config:HashMap<&str,fn(&Request) -> Vec<u8>> = HashMap::from([
-        ("GET / HTTP/1.1", Controller::index as fn(&Request) -> Vec<u8>),
-        ("GET /random HTTP/1.1", Controller::random as fn(&Request) -> Vec<u8>)
+    let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> = HashMap::from([
+        (
+            "GET / HTTP/1.1",
+            Controller::index as fn(&Request) -> Vec<u8>,
+        ),
+        (
+            "GET /random HTTP/1.1",
+            Controller::random as fn(&Request) -> Vec<u8>,
+        ),
+        ("404", Controller::not_found as fn(&Request) -> Vec<u8>),
     ]);
     let router = router::Router::new(route_config);
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
@@ -63,7 +61,7 @@ fn main() {
 
 fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
     let request = Request::new(&stream);
-    let response = router.route_request(request);
+    let response = router.route_request(request).unwrap();
     stream.write_all(response.as_slice()).unwrap();
 }
 

@@ -1,12 +1,12 @@
 use std::{
     collections::HashMap,
-    net::TcpStream,
     io::{prelude::*, BufReader},
+    net::TcpStream,
 };
 
 pub struct Request {
-    status_line: String,
-    headers: HashMap<String, String>,
+    pub status_line: String,
+    pub headers: HashMap<String, String>,
 }
 
 impl Request {
@@ -27,7 +27,10 @@ impl Request {
             headers.insert(key.to_string(), header_value.trim().to_string());
         }
 
-        Request { status_line, headers }
+        Request {
+            status_line,
+            headers,
+        }
     }
 
     pub fn status_line(&self) -> &str {
