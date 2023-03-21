@@ -1,24 +1,15 @@
+use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 use std::{
     collections::HashMap,
     io::{prelude::*, BufReader, Read, Write},
 };
-
-use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 
 pub struct Request {
     status_line: String,
     headers: HashMap<String, String>,
 }
 
-// impl fmt::Debug for dyn RequestParsingError {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "Request Parsing Error")
-//     }
-// }
-
 impl Request {
-    // Build should return a result which the main function will use to return as 500 if an error occured
-    // Limit headers + status line to 8000 bytes
     pub fn build(mut stream: impl Read + Write) -> Result<Request, NpmExpansionsError> {
         let buf_reader = BufReader::new(&mut stream);
         let mut buffer = buf_reader.take(8000).lines();
