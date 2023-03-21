@@ -3,43 +3,9 @@ use crate::npm_expansion_error::NpmErrorKind;
 use crate::response::Response;
 use crate::NpmExpansions;
 use crate::Request;
-use std::collections::HashMap;
 use std::fs;
 
 pub struct Controller {}
-
-fn ok(contents: String) -> Vec<u8> {
-    let length = contents.len();
-    format!("HTTP/1.1 200 OK\r\nContent-Length: {length}\r\n\r\n{contents}")
-        .as_bytes()
-        .to_vec()
-}
-
-fn not_acceptable(contents: String) -> Vec<u8> {
-    let length = contents.len();
-    format!("HTTP/1.1 406 Not Acceptable\r\nContent-Length: {length}\r\nContent-Type: application/json\r\n\r\n{contents}").as_bytes().to_vec()
-}
-
-fn not_found_route(contents: String) -> Vec<u8> {
-    let length = contents.len();
-    format!("HTTP/1.1 404 NOT FOUND\r\nContent-Length: {length}\r\n\r\n{contents}")
-        .as_bytes()
-        .to_vec()
-}
-
-fn internal(contents: String) -> Vec<u8> {
-    let length = contents.len();
-    format!("HTTP/1.1 500 INTERNAL SERVER ERROR\r\nContent-Length: {length}\r\n\r\n{contents}")
-        .as_bytes()
-        .to_vec()
-}
-
-fn bad_req(contents: String) -> Vec<u8> {
-    let length = contents.len();
-    format!("HTTP/1.1 400 BAD REQUEST\r\nContent-Length: {length}\r\n\r\n{contents}")
-        .as_bytes()
-        .to_vec()
-}
 
 impl Controller {
     pub fn index(request: &Request) -> Vec<u8> {

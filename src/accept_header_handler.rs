@@ -99,7 +99,7 @@ pub fn fitness_of_mime_type(
     mime_type: &str,
     mime_range: &Vec<(&str, &str, f32)>,
 ) -> Result<f32, mime_type_parser::MimeTypeParseError> {
-    let (mime_type, mime_subtype, mime_quality) = fitness_ready_mime_type(mime_type)?;
+    let (mime_type, mime_subtype, _mime_quality) = fitness_ready_mime_type(mime_type)?;
     let mut best_fitness = -1.0;
     let mut best_mime_type_quality = 0.0;
 

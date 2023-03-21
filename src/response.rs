@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 pub struct Response {
     status_line: String,
     headers: String,

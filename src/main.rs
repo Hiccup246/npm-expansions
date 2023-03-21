@@ -119,14 +119,14 @@ fn directory_file_names(directory_path: String) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
 
-    fn setup_server_and_connection() -> (TcpListener, TcpStream) {
-        (
-            TcpListener::bind("127.0.0.1:7878").unwrap(),
-            TcpStream::connect("127.0.0.1:7878").unwrap(),
-        )
-    }
+    // fn setup_server_and_connection() -> (TcpListener, TcpStream) {
+    //     (
+    //         TcpListener::bind("127.0.0.1:7878").unwrap(),
+    //         TcpStream::connect("127.0.0.1:7878").unwrap(),
+    //     )
+    // }
 
     // #[test]
     // fn handle_connection_get_root() {
