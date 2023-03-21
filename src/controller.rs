@@ -101,7 +101,36 @@ impl Controller {
         response.as_bytes().to_vec()
     }
 
-    pub fn internal_server_error(request: &Request) {}
+    pub fn internal_server_error(request: &Request) -> Vec<u8> {
+        let mut status_line = "HTTP/1.1 500 INTERNAL SERVER ERROR";
+        let response;
+
+        // If request accepts application/json then we are good to go
+        let best = accept_header_handler::best_match(
+            Vec::from(["application/json", "text/html"]),
+            request.headers().get("Accept").unwrap(),
+        )
+        .unwrap();
+
+        if best == "application/json" {
+            response = format!("{status_line}\r\n\r\n");
+        } else if best == "text/html" {
+            let contents =
+                fs::read_to_string("pages/internal_server_error/internal_server_error.html")
+                    .unwrap();
+            let length = contents.len();
+
+            response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+        } else {
+            status_line = "HTTP/1.1 406 Not Acceptable";
+            let contents = format!("Please accept application/json or text/html");
+            let length = contents.len();
+
+            response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+        }
+
+        response.as_bytes().to_vec()
+    }
 
     pub fn static_file(request: &Request) -> Vec<u8> {
         let split_status_line: Vec<&str> = request.status_line().split(" ").collect();
