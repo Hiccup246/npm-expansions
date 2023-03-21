@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt,
     io::{prelude::*, BufReader, Read, Write},
 };
 
@@ -11,11 +12,30 @@ pub struct Request {
 #[derive(Debug)]
 pub struct RequestParseError;
 
+#[derive(Debug)]
+pub struct TooManyHeaders;
+
+#[derive(Debug, PartialEq)]
+pub struct InvalidHeader;
+
+pub trait RequestParsingError {}
+
+impl RequestParsingError for RequestParseError {}
+impl RequestParsingError for TooManyHeaders {}
+impl RequestParsingError for InvalidHeader {}
+
+impl fmt::Debug for dyn RequestParsingError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Request Parsing Error")
+    }
+}
+
 impl Request {
     // Build should return a result which the main function will use to return as 500 if an error occured
-    pub fn build(mut stream: impl Read + Write) -> Result<Request, RequestParseError> {
+    // Limit headers + status line to 8000 bytes
+    pub fn build(mut stream: impl Read + Write) -> Result<Request, Box<dyn RequestParsingError>> {
         let buf_reader = BufReader::new(&mut stream);
-        let mut buffer = buf_reader.lines();
+        let mut buffer = buf_reader.take(8000).lines();
 
         let status_line;
 
@@ -23,10 +43,10 @@ impl Request {
             if let Ok(current_line) = line {
                 status_line = current_line;
             } else {
-                return Err(RequestParseError);
+                return Err(Box::new(RequestParseError));
             }
         } else {
-            return Err(RequestParseError);
+            return Err(Box::new(RequestParseError));
         }
 
         let mut headers: HashMap<String, String> = HashMap::new();
@@ -39,19 +59,23 @@ impl Request {
                         headers,
                     });
                 } else {
-                    let (key, value) =
-                        current_line.split_at(current_line.find(":").ok_or(RequestParseError)?);
-                    let (_colon, header_value) = value.split_at(1);
-                    headers.insert(key.trim().to_string(), header_value.trim().to_string());
+                    let colon_position = current_line.find(":");
+
+                    if let Some(colon_position) = colon_position {
+                        let (key, value) = current_line.split_at(colon_position);
+                        let (_colon, header_value) = value.split_at(1);
+
+                        headers.insert(key.trim().to_string(), header_value.trim().to_string());
+                    } else {
+                        return Err(Box::new(InvalidHeader));
+                    }
                 }
             } else {
-                return Err(RequestParseError);
+                return Err(Box::new(RequestParseError));
             }
         }
-        Ok(Request {
-            status_line,
-            headers,
-        })
+
+        Err(Box::new(RequestParseError))
     }
 
     pub fn new(status_line: &str, headers: HashMap<String, String>) -> Request {
