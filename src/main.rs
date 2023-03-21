@@ -17,7 +17,7 @@ mod router;
 
 pub use crate::npm_expansions::NpmExpansions;
 pub use controller::Controller;
-use npm_expansion_error::NpmErrorKind;
+use npm_expansion_error::{ NpmErrorKind, NpmExpansionsError };
 pub use request::Request;
 
 fn main() {
@@ -31,7 +31,17 @@ fn main() {
     }
 }
 
-// If any error occurs then we should just render 500
+// Make this function real by
+// - Making route_request return NpmExpansionsError
+// fn toto(mut stream: TcpStream, router: &router::Router) -> Result<(), NpmExpansionsError> {
+//     let request = Request::build(&stream)?;
+//     let response = router.route_request(request)?;
+
+//     stream.write_all(response.as_slice()).unwrap();
+
+//     Ok(())
+// }
+
 fn connection_handler(mut stream: TcpStream, router: &router::Router) {
     let request = Request::build(&stream);
 
