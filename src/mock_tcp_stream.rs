@@ -1,5 +1,4 @@
-use super::*;
-use std::{cmp::min, io::Error};
+use std::{cmp::min, io::{Read, Write, Error}};
 
 pub struct MockTcpStream {
     pub read_data: Vec<u8>,
