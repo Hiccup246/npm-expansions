@@ -60,6 +60,7 @@ fn main() {
     }
 }
 
+// If any error occurs then we should just render 500
 fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
     let request = Request::build(&stream);
     let response = router.route_request(request).unwrap();
