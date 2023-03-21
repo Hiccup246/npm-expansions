@@ -1,23 +1,6 @@
 // Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
 use crate::mime_type_parser;
-use std::fmt;
-
-#[derive(Debug)]
-pub struct SupportedMimeTypeError;
-
-#[derive(Debug)]
-pub struct InvalidAcceptHeaderError;
-
-pub trait ParseError {}
-
-impl fmt::Debug for dyn ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Parse Error Occured")
-    }
-}
-
-impl ParseError for InvalidAcceptHeaderError {}
-impl ParseError for SupportedMimeTypeError {}
+use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 
 /// Returns the most appropriate mime type given a list of desired types and an accept header
 ///
@@ -44,7 +27,7 @@ impl ParseError for SupportedMimeTypeError {}
 pub fn best_match(
     supported_mime_types: Vec<&str>,
     accept_header: &str,
-) -> Result<String, Box<dyn ParseError>> {
+) -> Result<String, NpmExpansionsError> {
     if accept_header.is_empty() {
         return Ok("".to_string());
     };
@@ -82,10 +65,12 @@ pub fn best_match(
                 Ok("".to_string())
             }
         } else {
-            return Err(Box::new(SupportedMimeTypeError));
+            return Err(NpmExpansionsError::new(
+                NpmErrorKind::SupportedMimeTypeError,
+            ));
         }
     } else {
-        return Err(Box::new(InvalidAcceptHeaderError));
+        return Err(NpmExpansionsError::new(NpmErrorKind::InvalidHeader));
     }
 }
 

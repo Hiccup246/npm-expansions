@@ -8,6 +8,7 @@ pub enum NpmErrorKind {
     InvalidHeader,
     TooManyHeaders,
     RequestParseError,
+    SupportedMimeTypeError,
 }
 
 impl NpmExpansionsError {

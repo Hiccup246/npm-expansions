@@ -69,6 +69,7 @@ fn connection_handler(mut stream: TcpStream, router: &router::Router) {
                     "text/html,application/json".to_string(),
                 )]),
             )),
+            _ => panic!("Unknown error"),
         };
 
         stream.write_all(response.as_slice()).unwrap();
