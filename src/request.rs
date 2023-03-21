@@ -9,6 +9,7 @@ pub struct Request {
 }
 
 impl Request {
+    // Build should return a result which the main function will use to return as 500 if an error occured
     pub fn build<'a>(mut stream: impl Read + Write) -> Request {
         let buf_reader = BufReader::new(&mut stream);
         let mut buffer = buf_reader
