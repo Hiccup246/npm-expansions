@@ -53,44 +53,48 @@ mod tests {
     use super::*;
     use crate::mock_tcp_stream::MockTcpStream;
 
-    #[test]
-    fn parses_status_line() {
-        let input_bytes = b"GET / HTTP/1.1\r\n\r\n";
-        let mut contents = vec![0u8; 1024];
+    mod build_tests {
+        use super::*;
 
-        contents[..input_bytes.len()].clone_from_slice(input_bytes);
+        #[test]
+        fn parses_status_line() {
+            let input_bytes = b"GET / HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
 
-        let stream = MockTcpStream {
-            read_data: contents,
-            write_data: Vec::new(),
-        };
-        let request = Request::build(stream);
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-        assert_eq!(request.status_line(), "GET / HTTP/1.1")
-    }
+            let stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(stream);
 
-    #[test]
-    fn parses_headers() {
-        let input_bytes = b"GET / HTTP/1.1\n\rAccept: application/text,text/plain;q=0.1\r\nContent-Length: 0\r\n\r\n";
-        let mut contents = vec![0u8; 1024];
+            assert_eq!(request.status_line(), "GET / HTTP/1.1")
+        }
 
-        contents[..input_bytes.len()].clone_from_slice(input_bytes);
+        #[test]
+        fn parses_headers() {
+            let input_bytes = b"GET / HTTP/1.1\n\rAccept: application/text,text/plain;q=0.1\r\nContent-Length: 0\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
 
-        let stream = MockTcpStream {
-            read_data: contents,
-            write_data: Vec::new(),
-        };
-        let request = Request::build(stream);
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-        assert_eq!(
-            request.headers(),
-            &HashMap::from([
-                ("Content-Length".to_string(), "0".to_string()),
-                (
-                    "Accept".to_string(),
-                    "application/text,text/plain;q=0.1".to_string()
-                ),
-            ])
-        )
+            let stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(stream);
+
+            assert_eq!(
+                request.headers(),
+                &HashMap::from([
+                    ("Content-Length".to_string(), "0".to_string()),
+                    (
+                        "Accept".to_string(),
+                        "application/text,text/plain;q=0.1".to_string()
+                    ),
+                ])
+            )
+        }
     }
 }
