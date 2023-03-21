@@ -30,9 +30,32 @@ fn main() {
 
 // If any error occurs then we should just render 500
 fn connection_handler(mut stream: TcpStream, router: &router::Router) {
-    let request = Request::build(&stream).unwrap();
-    let response = router.route_request(request).unwrap();
-    stream.write_all(response.as_slice()).unwrap();
+    let request = Request::build(&stream);
+
+    if let Ok(request) = request {
+        let response = router.route_request(request);
+
+        if let Ok(response) = response {
+            stream.write_all(response.as_slice()).unwrap();
+        } else {
+            stream
+                .write_all(
+                    Controller::internal_server_error(&Request::build(&stream).unwrap()).as_slice(),
+                )
+                .unwrap();
+        }
+    } else {
+        let internal_server_error_request = Request::new(
+            "",
+            HashMap::from([(
+                "Accept".to_string(),
+                "text/html,application/json".to_string(),
+            )]),
+        );
+        stream
+            .write_all(Controller::internal_server_error(&internal_server_error_request).as_slice())
+            .unwrap();
+    }
 }
 
 fn route_config() -> HashMap<String, fn(&Request) -> Vec<u8>> {
@@ -66,12 +89,12 @@ fn route_config() -> HashMap<String, fn(&Request) -> Vec<u8>> {
     config
 }
 
-fn directory_file_names(directoryPath: String) -> Vec<String> {
-    let directory = fs::read_dir(directoryPath).unwrap();
+fn directory_file_names(directory_path: String) -> Vec<String> {
+    let directory = fs::read_dir(directory_path).unwrap();
     directory
-        .map(|dirEntry| dirEntry.unwrap())
-        .filter(|dirEntry| dirEntry.file_type().unwrap().is_file())
-        .map(|dirEntry| dirEntry.file_name().into_string().unwrap())
+        .map(|dir_entry| dir_entry.unwrap())
+        .filter(|dir_entry| dir_entry.file_type().unwrap().is_file())
+        .map(|dir_entry| dir_entry.file_name().into_string().unwrap())
         .collect()
 }
 
