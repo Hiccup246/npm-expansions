@@ -10,7 +10,7 @@ pub struct Request {
 
 impl Request {
     // Build should return a result which the main function will use to return as 500 if an error occured
-    pub fn build<'a>(mut stream: impl Read + Write) -> Request {
+    pub fn build(mut stream: impl Read + Write) -> Request {
         let buf_reader = BufReader::new(&mut stream);
         let mut buffer = buf_reader
             .lines()
@@ -33,7 +33,7 @@ impl Request {
         }
     }
 
-    pub fn new<'a>(status_line: &str, headers: HashMap<String, String>) -> Request {
+    pub fn new(status_line: &str, headers: HashMap<String, String>) -> Request {
         Request {
             status_line: status_line.to_string(),
             headers: headers.clone(),
