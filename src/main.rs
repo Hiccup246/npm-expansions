@@ -15,7 +15,7 @@ mod router;
 
 pub use crate::npm_expansions::NpmExpansions;
 pub use controller::Controller;
-pub use request::Request;
+use request::{NpmErrorKind, Request};
 
 fn main() {
     let router = router::Router::new(route_config());
@@ -32,8 +32,8 @@ fn main() {
 fn connection_handler(mut stream: TcpStream, router: &router::Router) {
     let request = Request::build(&stream);
 
-    if let Ok(request) = request {
-        let response = router.route_request(request);
+    if let Ok(req) = request {
+        let response = router.route_request(req);
 
         if let Ok(response) = response {
             stream.write_all(response.as_slice()).unwrap();
@@ -44,17 +44,32 @@ fn connection_handler(mut stream: TcpStream, router: &router::Router) {
                 )
                 .unwrap();
         }
-    } else {
-        let internal_server_error_request = Request::new(
-            "",
-            HashMap::from([(
-                "Accept".to_string(),
-                "text/html,application/json".to_string(),
-            )]),
-        );
-        stream
-            .write_all(Controller::internal_server_error(&internal_server_error_request).as_slice())
-            .unwrap();
+    } else if let Err(error) = request {
+        let response = match error.kind() {
+            NpmErrorKind::RequestParseError => Controller::internal_server_error(&Request::new(
+                "",
+                HashMap::from([(
+                    "Accept".to_string(),
+                    "text/html,application/json".to_string(),
+                )]),
+            )),
+            NpmErrorKind::InvalidHeader => Controller::client_error(&Request::new(
+                "",
+                HashMap::from([(
+                    "Accept".to_string(),
+                    "text/html,application/json".to_string(),
+                )]),
+            )),
+            NpmErrorKind::TooManyHeaders => Controller::client_error(&Request::new(
+                "",
+                HashMap::from([(
+                    "Accept".to_string(),
+                    "text/html,application/json".to_string(),
+                )]),
+            )),
+        };
+
+        stream.write_all(response.as_slice()).unwrap();
     }
 }
 

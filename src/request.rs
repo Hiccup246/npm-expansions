@@ -10,30 +10,37 @@ pub struct Request {
 }
 
 #[derive(Debug)]
-pub struct RequestParseError;
+pub struct NpmExpansionsError {
+    kind: NpmErrorKind,
+}
 
 #[derive(Debug)]
-pub struct TooManyHeaders;
+pub enum NpmErrorKind {
+    InvalidHeader,
+    TooManyHeaders,
+    RequestParseError,
+}
 
-#[derive(Debug, PartialEq)]
-pub struct InvalidHeader;
+impl NpmExpansionsError {
+    pub fn new(kind: NpmErrorKind) -> NpmExpansionsError {
+        NpmExpansionsError { kind }
+    }
 
-pub trait RequestParsingError {}
-
-impl RequestParsingError for RequestParseError {}
-impl RequestParsingError for TooManyHeaders {}
-impl RequestParsingError for InvalidHeader {}
-
-impl fmt::Debug for dyn RequestParsingError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Request Parsing Error")
+    pub fn kind(&self) -> &NpmErrorKind {
+        &self.kind
     }
 }
+
+// impl fmt::Debug for dyn RequestParsingError {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "Request Parsing Error")
+//     }
+// }
 
 impl Request {
     // Build should return a result which the main function will use to return as 500 if an error occured
     // Limit headers + status line to 8000 bytes
-    pub fn build(mut stream: impl Read + Write) -> Result<Request, Box<dyn RequestParsingError>> {
+    pub fn build(mut stream: impl Read + Write) -> Result<Request, NpmExpansionsError> {
         let buf_reader = BufReader::new(&mut stream);
         let mut buffer = buf_reader.take(8000).lines();
 
@@ -43,10 +50,10 @@ impl Request {
             if let Ok(current_line) = line {
                 status_line = current_line;
             } else {
-                return Err(Box::new(RequestParseError));
+                return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
             }
         } else {
-            return Err(Box::new(RequestParseError));
+            return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
         }
 
         let mut headers: HashMap<String, String> = HashMap::new();
@@ -67,15 +74,15 @@ impl Request {
 
                         headers.insert(key.trim().to_string(), header_value.trim().to_string());
                     } else {
-                        return Err(Box::new(InvalidHeader));
+                        return Err(NpmExpansionsError::new(NpmErrorKind::InvalidHeader));
                     }
                 }
             } else {
-                return Err(Box::new(RequestParseError));
+                return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
             }
         }
 
-        Err(Box::new(RequestParseError))
+        Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError))
     }
 
     pub fn new(status_line: &str, headers: HashMap<String, String>) -> Request {
