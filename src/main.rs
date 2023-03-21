@@ -60,7 +60,7 @@ fn main() {
 }
 
 fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
-    let request = Request::new(&stream);
+    let request = Request::build(&stream);
     let response = router.route_request(request).unwrap();
     stream.write_all(response.as_slice()).unwrap();
 }

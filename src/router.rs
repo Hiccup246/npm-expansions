@@ -75,10 +75,7 @@ mod tests {
         let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> =
             HashMap::from([("GET / HTTP/1.1", actual_route)]);
         let router = Router::new(route_config);
-        let request = Request {
-            status_line: "GET / HTTP/1.1".to_string(),
-            headers: HashMap::new(),
-        };
+        let request = Request::new("GET / HTTP/1.1", HashMap::new());
         let response = router.route_request(request);
 
         assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec())
@@ -90,10 +87,7 @@ mod tests {
         let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> =
             HashMap::from([("404", not_found)]);
         let router = Router::new(route_config);
-        let request = Request {
-            status_line: "GET /fake_route HTTP/1.1".to_string(),
-            headers: HashMap::new(),
-        };
+        let request = Request::new("GET /fake_route HTTP/1.1", HashMap::new());
         let response = router.route_request(request);
 
         assert_eq!(response.unwrap(), "not_found".as_bytes().to_vec())
@@ -102,10 +96,7 @@ mod tests {
     #[test]
     fn no_route() {
         let router = Router::new(HashMap::new());
-        let request = Request {
-            status_line: "GET / HTTP/1.1".to_string(),
-            headers: HashMap::new(),
-        };
+        let request = Request::new("GET / HTTP/1.1", HashMap::new());
         let response = router.route_request(request);
 
         assert!(response.is_err())
