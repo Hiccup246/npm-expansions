@@ -7,6 +7,7 @@ use std::{
 
 mod accept_header_handler;
 mod mime_type_parser;
+mod mock_tcp_stream;
 mod npm_expansions;
 mod request;
 mod router;
