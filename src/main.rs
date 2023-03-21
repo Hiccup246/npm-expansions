@@ -18,72 +18,52 @@ pub use controller::Controller;
 pub use request::Request;
 
 fn main() {
-    let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> = HashMap::from([
-        (
-            "GET / HTTP/1.1",
-            Controller::index as fn(&Request) -> Vec<u8>,
-        ),
-        (
-            "GET /random HTTP/1.1",
-            Controller::random as fn(&Request) -> Vec<u8>,
-        ),
-        ("404", Controller::not_found as fn(&Request) -> Vec<u8>),
-    ]);
-    let router = router::Router::new(route_config);
+    let router = router::Router::new(route_config());
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        // handle_connection(stream);
-        new_connection_handler(stream, &router);
+        connection_handler(stream, &router);
     }
 }
 
 // If any error occurs then we should just render 500
-fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
+fn connection_handler(mut stream: TcpStream, router: &router::Router) {
     let request = Request::build(&stream);
     let response = router.route_request(request).unwrap();
     stream.write_all(response.as_slice()).unwrap();
 }
 
-fn serve_static_file(status_line: String, mut stream: TcpStream) {
-    let split_status_line: Vec<&str> = status_line.split(" ").collect();
-    let file_name = split_status_line.get(1).unwrap();
-    let extension = file_name.split(".").last().unwrap();
+fn route_config() -> HashMap<String, fn(&Request) -> Vec<u8>> {
+    let mut config: HashMap<String, fn(&Request) -> Vec<u8>> = HashMap::from([
+        (
+            "GET / HTTP/1.1".to_string(),
+            Controller::index as fn(&Request) -> Vec<u8>,
+        ),
+        (
+            "GET /random HTTP/1.1".to_string(),
+            Controller::random as fn(&Request) -> Vec<u8>,
+        ),
+        (
+            "404".to_string(),
+            Controller::not_found as fn(&Request) -> Vec<u8>,
+        ),
+    ]);
 
-    let content_type = match extension {
-        "png" => "image/png",
-        "ico" => "image/vnd.microsoft.icon",
-        "xml" => "application/xml",
-        "txt" => "text/plain",
-        _ => "",
-    };
+    let static_file_names: Vec<String> = directory_file_names("static".to_string())
+        .iter()
+        .map(|file_name| format!("GET /{file_name} HTTP/1.1"))
+        .collect();
 
-    let file_path = format!("static{file_name}");
-    let contents = fs::read(file_path).unwrap();
-    let length = contents.len();
-    let response: String;
-
-    if content_type.is_empty() {
-        response = format!("HTTP/1.1 200 OK\r\nContent-Length: {length}\r\n\r\n");
-    } else {
-        response = format!(
-            "HTTP/1.1 200 OK\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n"
+    for static_file in static_file_names {
+        config.insert(
+            static_file,
+            Controller::static_file as fn(&Request) -> Vec<u8>,
         );
     }
 
-    stream.write(response.as_bytes()).unwrap();
-    stream.write(&contents).unwrap();
-}
-
-fn match_static(status_line: &str) -> bool {
-    let static_file_names: Vec<String> = directory_file_names("static".to_string())
-        .iter()
-        .map(|directory_name| format!("GET /{directory_name} HTTP/1.1"))
-        .collect();
-
-    static_file_names.contains(&status_line.to_string())
+    config
 }
 
 fn directory_file_names(directoryPath: String) -> Vec<String> {

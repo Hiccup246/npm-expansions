@@ -5,12 +5,12 @@ pub use crate::request::Request;
 #[derive(Debug)]
 pub struct HandleRouteError;
 
-pub struct Router<'a> {
-    routes_config: HashMap<&'a str, fn(&Request) -> Vec<u8>>,
+pub struct Router {
+    routes_config: HashMap<String, fn(&Request) -> Vec<u8>>,
 }
 
-impl Router<'_> {
-    pub fn new<'a>(routes_config: HashMap<&'a str, fn(&Request) -> Vec<u8>>) -> Router<'a> {
+impl Router {
+    pub fn new<'a>(routes_config: HashMap<String, fn(&Request) -> Vec<u8>>) -> Router {
         Router { routes_config }
     }
 
@@ -72,8 +72,8 @@ mod tests {
     #[test]
     fn route_response() {
         let actual_route: fn(&Request) -> Vec<u8> = |_| "actual_route".as_bytes().to_vec();
-        let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> =
-            HashMap::from([("GET / HTTP/1.1", actual_route)]);
+        let route_config: HashMap<String, fn(&Request) -> Vec<u8>> =
+            HashMap::from([("GET / HTTP/1.1".to_string(), actual_route)]);
         let router = Router::new(route_config);
         let request = Request::new("GET / HTTP/1.1", HashMap::new());
         let response = router.route_request(request);
@@ -84,8 +84,8 @@ mod tests {
     #[test]
     fn route_not_found() {
         let not_found: fn(&Request) -> Vec<u8> = |_| "not_found".as_bytes().to_vec();
-        let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> =
-            HashMap::from([("404", not_found)]);
+        let route_config: HashMap<String, fn(&Request) -> Vec<u8>> =
+            HashMap::from([("404".to_string(), not_found)]);
         let router = Router::new(route_config);
         let request = Request::new("GET /fake_route HTTP/1.1", HashMap::new());
         let response = router.route_request(request);
