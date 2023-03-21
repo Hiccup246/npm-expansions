@@ -1,11 +1,12 @@
 use std::{
     collections::HashMap,
     fs,
-    io::{prelude::*, BufReader},
+    io::prelude::*,
     net::{TcpListener, TcpStream},
 };
 
 mod accept_header_handler;
+mod controller;
 mod mime_type_parser;
 mod mock_tcp_stream;
 mod npm_expansions;
@@ -13,29 +14,8 @@ mod request;
 mod router;
 
 pub use crate::npm_expansions::NpmExpansions;
+pub use controller::Controller;
 pub use request::Request;
-
-trait ControllerFunction {}
-
-pub struct Controller {}
-
-impl Controller {
-    pub fn index<'a>(request: &Request) -> Vec<u8> {
-        "HTTP/1.1 200 OK".as_bytes().to_vec()
-    }
-
-    pub fn random<'a>(request: &Request) -> Vec<u8> {
-        "HTTP/1.1 200 OK".as_bytes().to_vec()
-    }
-
-    pub fn not_found(request: &Request) -> Vec<u8> {
-        "HTTP/1.1 200 OK".as_bytes().to_vec()
-    }
-
-    pub fn internal_server_error(request: &Request) {}
-}
-
-impl ControllerFunction for Controller {}
 
 fn main() {
     let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> = HashMap::from([
@@ -65,128 +45,6 @@ fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
     let request = Request::build(&stream);
     let response = router.route_request(request).unwrap();
     stream.write_all(response.as_slice()).unwrap();
-}
-
-fn handle_root_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
-    let response;
-
-    // If request accepts application/json then we are good to go
-    let best = accept_header_handler::best_match(
-        Vec::from(["text/html", "text/css", "text/javascript"]),
-        request_headers.get("Accept").unwrap(),
-    )
-    .unwrap();
-
-    if best == "text/html" {
-        let status_line = "HTTP/1.1 200 OK";
-        let contents = fs::read_to_string("pages/npm_expansions/npm_expansions.html").unwrap();
-        let length = contents.len();
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    } else if best == "text/css" {
-        let status_line = "HTTP/1.1 200 OK";
-        let contents = fs::read_to_string("pages/npm_expansions/npm_expansions.css").unwrap();
-        let length = contents.len();
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    } else if best == "text/javascript" {
-        let status_line = "HTTP/1.1 200 OK";
-        let contents = fs::read_to_string("pages/npm_expansions/npm_expansions.js").unwrap();
-        let length = contents.len();
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    } else {
-        let status_line = "HTTP/1.1 406 Not Acceptable";
-        let contents = format!("Please accept text/html");
-        let length = contents.len();
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    }
-
-    stream.write_all(response.as_bytes()).unwrap();
-}
-
-fn handle_not_found(mut stream: TcpStream, request_headers: HashMap<String, String>) {
-    let mut status_line = "HTTP/1.1 404 NOT FOUND";
-    let response;
-
-    // If request accepts application/json then we are good to go
-    let best = accept_header_handler::best_match(
-        Vec::from(["application/json", "text/html"]),
-        request_headers.get("Accept").unwrap(),
-    )
-    .unwrap();
-
-    if best == "application/json" {
-        response = format!("{status_line}\r\n\r\n");
-    } else if best == "text/html" {
-        let contents = fs::read_to_string("pages/not_found/not_found.html").unwrap();
-        let length = contents.len();
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    } else {
-        status_line = "HTTP/1.1 406 Not Acceptable";
-        let contents = format!("Please accept application/json or text/html");
-        let length = contents.len();
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    }
-
-    stream.write_all(response.as_bytes()).unwrap();
-}
-
-fn handle_random_route(mut stream: TcpStream, request_headers: HashMap<String, String>) {
-    let response: String;
-    let best = accept_header_handler::best_match(
-        Vec::from(["application/json"]),
-        request_headers.get("Accept").unwrap(),
-    )
-    .unwrap();
-
-    if best == "application/json" {
-        let status_line = "HTTP/1.1 200 OK";
-        let expansion = NpmExpansions::random_expansion();
-        let contents = format!("{{\"npm-expansion\": \"{expansion}\"}}");
-        let length = contents.len();
-        let content_type = "application/json";
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: {content_type}\r\n\r\n{contents}\r\n")
-    } else {
-        let status_line = "HTTP/1.1 406 Not Acceptable";
-        let contents = format!("Please accept application/json");
-        let length = contents.len();
-
-        response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    }
-
-    stream.write_all(response.as_bytes()).unwrap();
-}
-
-fn handle_connection(mut stream: TcpStream) {
-    let buf_reader = BufReader::new(&mut stream);
-    let mut buffer = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty());
-
-    let request_line = buffer.next().unwrap();
-
-    let mut request_structure: HashMap<String, String> = HashMap::new();
-
-    for header in buffer {
-        let (key, value) = header.split_at(header.find(":").unwrap());
-        let (_colon, header_value) = value.split_at(1);
-        request_structure.insert(key.to_string(), header_value.trim().to_string());
-    }
-
-    match request_line.as_str() {
-        "GET / HTTP/1.1" => handle_root_route(stream, request_structure),
-        "GET /random HTTP/1.1" => handle_random_route(stream, request_structure),
-        status_line if match_static(status_line) => {
-            serve_static_file(status_line.to_string(), stream)
-        }
-        &_ => handle_not_found(stream, request_structure),
-    };
 }
 
 fn serve_static_file(status_line: String, mut stream: TcpStream) {
