@@ -12,6 +12,7 @@ mod mock_tcp_stream;
 mod npm_expansion_error;
 mod npm_expansions;
 mod request;
+mod response;
 mod router;
 
 pub use crate::npm_expansions::NpmExpansions;
