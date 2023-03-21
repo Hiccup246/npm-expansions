@@ -1,34 +1,13 @@
 use std::{
     collections::HashMap,
-    fmt,
     io::{prelude::*, BufReader, Read, Write},
 };
+
+use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 
 pub struct Request {
     status_line: String,
     headers: HashMap<String, String>,
-}
-
-#[derive(Debug)]
-pub struct NpmExpansionsError {
-    kind: NpmErrorKind,
-}
-
-#[derive(Debug)]
-pub enum NpmErrorKind {
-    InvalidHeader,
-    TooManyHeaders,
-    RequestParseError,
-}
-
-impl NpmExpansionsError {
-    pub fn new(kind: NpmErrorKind) -> NpmExpansionsError {
-        NpmExpansionsError { kind }
-    }
-
-    pub fn kind(&self) -> &NpmErrorKind {
-        &self.kind
-    }
 }
 
 // impl fmt::Debug for dyn RequestParsingError {

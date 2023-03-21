@@ -9,13 +9,15 @@ mod accept_header_handler;
 mod controller;
 mod mime_type_parser;
 mod mock_tcp_stream;
+mod npm_expansion_error;
 mod npm_expansions;
 mod request;
 mod router;
 
 pub use crate::npm_expansions::NpmExpansions;
 pub use controller::Controller;
-use request::{NpmErrorKind, Request};
+use npm_expansion_error::NpmErrorKind;
+pub use request::Request;
 
 fn main() {
     let router = router::Router::new(route_config());
