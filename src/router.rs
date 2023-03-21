@@ -1,9 +1,4 @@
-use std::{
-    collections::HashMap,
-    fs,
-    io::{prelude::*, BufReader},
-    net::{TcpListener, TcpStream},
-};
+use std::collections::HashMap;
 
 pub use crate::request::Request;
 
@@ -71,10 +66,7 @@ mod tests {
 
     #[test]
     fn no_route() {
-        let not_found: fn(&Request) -> Vec<u8> = |_| "not_found".as_bytes().to_vec();
-        let actual_route: fn(&Request) -> Vec<u8> = |_| "actual_route".as_bytes().to_vec();
-        let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> = HashMap::new();
-        let router = Router::new(route_config);
+        let router = Router::new(HashMap::new());
         let request = Request {
             status_line: "GET / HTTP/1.1".to_string(),
             headers: HashMap::new(),
