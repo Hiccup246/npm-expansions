@@ -37,8 +37,8 @@ impl Request {
     /// the server being unable to process the stream.
     ///
     /// ```rust,should_error
-    /// // fails if given malformed supported mime types or the accept header
-    /// let input_bytes = b"HTTP/1.1\r\n\r\n";
+    /// // fails if no http status line is given
+    /// let input_bytes = b"";
     /// let mut contents = vec![0u8; 1024];
     /// contents[..input_bytes.len()].clone_from_slice(input_bytes);
     /// let stream = MockTcpStream {
@@ -89,6 +89,7 @@ impl Request {
             }
         }
 
+        // TODO Make this error more specific. This error could be too many headers or no blank line to mark end of headers.
         Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError))
     }
 
@@ -155,6 +156,62 @@ mod tests {
                     ),
                 ])
             )
+        }
+
+        #[test]
+        fn invalid_status_line() {
+            let input_bytes = b"";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(stream);
+
+            assert!(request.is_err())
+        }
+
+        #[test]
+        fn invalid_headers() {
+            let input_bytes = b"GET / HTTP/1.1\r\nContent-Type jndfjdnf\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(stream);
+
+            assert!(request.is_err())
+        }
+
+        #[test]
+        fn request_has_no_empty_line() {
+            let input_bytes = b"GET / HTTP/1.1\r\n Content-Type: application/json";
+            let mut contents = vec![0u8; 1024];
+            let mut is_correct_error = false;
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(stream);
+
+            if let Err(err) = request {
+                is_correct_error = match err.kind() {
+                    NpmErrorKind::RequestParseError => true,
+                    _ => false,
+                };
+            }
+
+            assert_eq!(is_correct_error, true)
         }
     }
 }
