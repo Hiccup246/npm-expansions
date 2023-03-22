@@ -3,8 +3,6 @@ pub struct NpmExpansionsError {
     kind: NpmErrorKind,
 }
 
-// internal server error
-// client related issues
 #[derive(Debug)]
 pub enum NpmErrorKind {
     InvalidHeader,
