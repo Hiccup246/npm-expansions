@@ -1,6 +1,4 @@
 use rand::Rng;
-use std::fs;
-use std::io::BufRead;
 
 pub struct NpmExpansions {}
 
@@ -849,18 +847,19 @@ impl NpmExpansions {
         "Nylon Pendulum Movement",
     ];
 
-    pub fn print_expansions_file(path: String) {
-        let expansions_file = fs::read(path).unwrap();
-        let expansions: Vec<String> = expansions_file
-            .lines()
-            .map(|line| line.unwrap())
-            .filter(|line| !line.starts_with("#") && !line.starts_with("*"))
-            .collect();
+    // TODO Determine method of self updating loaded expansions list
+    // pub fn print_expansions_file(path: String) {
+    //     let expansions_file = fs::read(path).unwrap();
+    //     let expansions: Vec<String> = expansions_file
+    //         .lines()
+    //         .map(|line| line.unwrap())
+    //         .filter(|line| !line.starts_with("#") && !line.starts_with("*"))
+    //         .collect();
 
-        println!("{:?}", expansions);
-    }
+    //     println!("{:?}", expansions);
+    // }
 
-    pub fn all_expansions() -> [&'static str; 841] {
+    pub fn expansions() -> [&'static str; 841] {
         Self::EXPANSIONS
     }
 
@@ -876,4 +875,21 @@ impl NpmExpansions {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+
+    #[test]
+    fn returns_valid_expansion() {
+        let expansion_one = NpmExpansions::random_expansion();
+
+        assert!(!expansion_one.is_empty())
+    }
+
+    #[test]
+    fn returns_random_expansion() {
+        let expansion_one = NpmExpansions::random_expansion();
+        let expansion_two = NpmExpansions::random_expansion();
+
+        assert_ne!(expansion_one, expansion_two)
+    }
+}
