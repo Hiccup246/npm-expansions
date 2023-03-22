@@ -1,4 +1,8 @@
 # 💬 npm-expansions
+
+<!-- ![](https://img.shields.io/github/license/Hiccup246/npm-expansions)
+![](https://img.shields.io/github/languages/code-size/Hiccup246/npm-expansions) -->
+
 A simple JSON rest API providing random expansions of the NPM acronym with an associated website to boot!
 
 <br>
