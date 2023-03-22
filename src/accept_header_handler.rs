@@ -218,6 +218,43 @@ mod tests {
                 ("application", "json", 1.0)
             );
         }
+
+        #[test]
+        fn greater_than_one_quality() {
+            assert_eq!(
+                ensure_quality_value("application/json;q=1.8").unwrap(),
+                ("application", "json", 1.0)
+            );
+        }
+
+        #[test]
+        fn no_quality() {
+            assert_eq!(
+                ensure_quality_value("application/json").unwrap(),
+                ("application", "json", 1.0)
+            );
+        }
+
+        #[test]
+        fn invalid_quality() {
+            assert_eq!(
+                ensure_quality_value("application/json;q=0.6yg").unwrap(),
+                ("application", "json", 1.0)
+            );
+        }
+
+        #[test]
+        fn invalid_mime_type() {
+            assert!(ensure_quality_value("application/;q=0.6yg").is_err());
+        }
+
+        #[test]
+        fn valid_quality() {
+            assert_eq!(
+                ensure_quality_value("application/json;q=0.6").unwrap(),
+                ("application", "json", 0.6)
+            );
+        }
     }
 
     mod fitness_of_mime_type_tests {
