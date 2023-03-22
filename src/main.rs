@@ -21,7 +21,7 @@ use npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 pub use request::Request;
 
 fn main() {
-    let router = router::Router::new(routes_config::route_config());
+    let router = router::Router::new(routes_config::route_config("static"));
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
     for stream in listener.incoming() {
