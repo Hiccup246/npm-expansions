@@ -10,6 +10,43 @@ pub struct Request {
 }
 
 impl Request {
+    /// Builds a request object from a given http request stream
+    ///
+    /// # Arguments
+    ///
+    /// * `stream` - An incoming http request stream
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let input_bytes = b"GET / HTTP/1.1\r\n\r\n";
+    /// let mut contents = vec![0u8; 1024];
+    /// contents[..input_bytes.len()].clone_from_slice(input_bytes);
+    /// let stream = MockTcpStream {
+    ///     read_data: contents,
+    ///     write_data: Vec::new(),
+    /// };
+    /// let request = Request::build(stream).unwrap();
+    /// assert_eq!(request.status_line(), "GET / HTTP/1.1")
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the the given request stream is invalid. This can be due to
+    /// the request having too many headers, having no status line, having invalid headers or
+    /// the server being unable to process the stream.
+    ///
+    /// ```rust,should_error
+    /// // fails if given malformed supported mime types or the accept header
+    /// let input_bytes = b"HTTP/1.1\r\n\r\n";
+    /// let mut contents = vec![0u8; 1024];
+    /// contents[..input_bytes.len()].clone_from_slice(input_bytes);
+    /// let stream = MockTcpStream {
+    ///     read_data: contents,
+    ///     write_data: Vec::new(),
+    /// };
+    /// Request::build(stream)
+    /// ```
     pub fn build(mut stream: impl Read + Write) -> Result<Request, NpmExpansionsError> {
         let buf_reader = BufReader::new(&mut stream);
         let mut buffer = buf_reader.take(8000).lines();
