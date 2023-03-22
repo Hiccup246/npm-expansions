@@ -74,6 +74,26 @@ pub fn best_match(
     }
 }
 
+/// Returns a tuple containing a mime types type, subtype and guaranteed quality value (default 1.0)
+///
+/// # Arguments
+///
+/// * `mime_type` - A string slice representing a mime type
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(ensure_quality_value("application/json").unwrap(), ("application", "json", 1.0));
+/// ```
+///
+/// # Failures
+///
+/// The function fails if the given mime type is invalid
+///
+/// ```rust,should_error
+/// // fails if given mime type is invalid
+/// ensure_quality_value("application/;q=0.5")
+/// ```
 pub fn ensure_quality_value(
     mime_type: &str,
 ) -> Result<(&str, &str, f32), mime_type_parser::MimeTypeParseError> {
@@ -95,6 +115,28 @@ pub fn ensure_quality_value(
     Ok((mime_type, subtype, quality))
 }
 
+/// Calculates the fitness of a given mime type agains a list of mime types (mime range)
+///
+/// # Arguments
+///
+/// * `mime_type` - A mime type whoose fitness will be calculated
+/// * `mime_range` - A vector of mime type tuples which will be used to calculate the fitness of a mime type
+///
+/// # Examples
+///
+/// ```
+/// let fitness = fitness_of_mime_type("text/plain", &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)]));
+/// assert_eq!(fitness.unwrap(), 1.0);
+/// ```
+///
+/// # Failures
+///
+/// The function fails if the given mime type is invalid
+///
+/// ```rust,should_error
+/// // fails if the given mime type is invalid
+/// fitness_of_mime_type("text/", &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)]))
+/// ```
 pub fn fitness_of_mime_type(
     mime_type: &str,
     mime_range: &Vec<(&str, &str, f32)>,
