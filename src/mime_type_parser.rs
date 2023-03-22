@@ -39,7 +39,7 @@ impl fmt::Display for MimeTypeParseError {
 /// The function fails if the given mime type is invalid (correctness based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
 ///
 /// ```rust,should_error
-/// // fails if given malformed supported mime types or the accept header
+/// // fails if given a malformed mime type
 /// parse_mime_type("text/")
 /// ```
 pub fn parse_mime_type<'a>(
