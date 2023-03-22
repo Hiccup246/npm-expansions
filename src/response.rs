@@ -41,15 +41,32 @@ impl Response {
                 .to_vec()
         }
     }
+}
 
-    // pub fn to_vec(&self) -> Vec<u8> {
-    //     let status = self.status_line();
-    //     let contents = self.contents();
-    //     let headers = self.headers();
-    //     let length = contents.len();
-    //     let headers_vector:Vec<String> = headers.into_iter().map(|header| format!("{}: {}",header.0, header.1)).collect();
-    //     let headers_string = headers_vector.join(",\r\n");
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    //     format!("HTTP/1.1 {status}\r\nContent-Length: {length}\r\n{headers_string}\r\n\r\n{contents}").as_bytes().to_vec()
-    // }
+    #[test]
+    fn to_vec_correctly_formats_request_with_headers() {
+        let response = Response::new(
+            "200",
+            "Content-Type: application/json;q=0.5",
+            "Hello World!".to_string(),
+        );
+
+        assert_eq!(response.to_vec(), "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec())
+    }
+
+    #[test]
+    fn to_vec_correctly_formats_request_without_headers() {
+        let response = Response::new("200", "", "Hello World!".to_string());
+
+        assert_eq!(
+            response.to_vec(),
+            "HTTP/1.1 200\r\nContent-Length: 12\r\n\r\nHello World!"
+                .as_bytes()
+                .to_vec()
+        )
+    }
 }
