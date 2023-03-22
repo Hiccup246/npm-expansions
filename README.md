@@ -16,7 +16,7 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     2. Implement figma designs using current boilerplate html, css and js files
 2. ### Tests
     1. Refactor main tests
-    2. Add tests for all public untested functions
+    2. Add tests and documentation for all public functions which have none
 
 <br>
 
@@ -31,6 +31,7 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 - Setup NPM expansions struct before server begins to save processing at runtime
 - Add documentation comments for all public functions
 - Double check error handling and panic scenarios and consider making error generic and more specific
+- Add server logs for each request and failure
 
 <br>
 
