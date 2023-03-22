@@ -7,11 +7,13 @@ pub use crate::request::Request;
 pub struct HandleRouteError;
 
 pub struct Router {
-    routes_config: HashMap<String, fn(&Request) -> Vec<u8>>,
+    routes_config: HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>>,
 }
 
 impl Router {
-    pub fn new<'a>(routes_config: HashMap<String, fn(&Request) -> Vec<u8>>) -> Router {
+    pub fn new<'a>(
+        routes_config: HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>>,
+    ) -> Router {
         Router { routes_config }
     }
 
@@ -55,11 +57,11 @@ impl Router {
         let controller_function = self.routes_config.get(status_line);
 
         if let Some(controller_function) = controller_function {
-            return Ok(controller_function(&request));
+            return Ok(controller_function(&request)?);
         }
 
         if let Some(not_found_route) = self.routes_config.get("404") {
-            return Ok(not_found_route(&request));
+            return Ok(not_found_route(&request)?);
         } else {
             Err(NpmExpansionsError::new(NpmErrorKind::InternalServerError))
         }
@@ -72,8 +74,9 @@ mod tests {
 
     #[test]
     fn route_response() {
-        let actual_route: fn(&Request) -> Vec<u8> = |_| "actual_route".as_bytes().to_vec();
-        let route_config: HashMap<String, fn(&Request) -> Vec<u8>> =
+        let actual_route: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError> =
+            |_| Ok("actual_route".as_bytes().to_vec());
+        let route_config: HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>> =
             HashMap::from([("GET / HTTP/1.1".to_string(), actual_route)]);
         let router = Router::new(route_config);
         let request = Request::new("GET / HTTP/1.1", HashMap::new());
@@ -84,8 +87,9 @@ mod tests {
 
     #[test]
     fn route_not_found() {
-        let not_found: fn(&Request) -> Vec<u8> = |_| "not_found".as_bytes().to_vec();
-        let route_config: HashMap<String, fn(&Request) -> Vec<u8>> =
+        let not_found: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError> =
+            |_| Ok("not_found".as_bytes().to_vec());
+        let route_config: HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>> =
             HashMap::from([("404".to_string(), not_found)]);
         let router = Router::new(route_config);
         let request = Request::new("GET /fake_route HTTP/1.1", HashMap::new());

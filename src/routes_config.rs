@@ -1,29 +1,33 @@
 use crate::request::Request;
 use crate::Controller;
+use crate::NpmExpansionsError;
 use std::{collections::HashMap, fs};
 
-pub fn route_config() -> HashMap<String, fn(&Request) -> Vec<u8>> {
-    let mut config: HashMap<String, fn(&Request) -> Vec<u8>> = HashMap::from([
-        (
-            "GET / HTTP/1.1".to_string(),
-            Controller::index as fn(&Request) -> Vec<u8>,
-        ),
-        (
-            "GET /random HTTP/1.1".to_string(),
-            Controller::random as fn(&Request) -> Vec<u8>,
-        ),
-        (
-            "404".to_string(),
-            Controller::not_found as fn(&Request) -> Vec<u8>,
-        ),
-    ]);
+pub fn route_config() -> HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>> {
+    let mut config: HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>> =
+        HashMap::from([
+            (
+                "GET / HTTP/1.1".to_string(),
+                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            ),
+            (
+                "GET /random HTTP/1.1".to_string(),
+                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            ),
+            (
+                "404".to_string(),
+                Controller::not_found as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            ),
+        ]);
 
     insert_static_routes(&mut config);
 
     config
 }
 
-fn insert_static_routes(routes_config: &mut HashMap<String, fn(&Request) -> Vec<u8>>) {
+fn insert_static_routes(
+    routes_config: &mut HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>>,
+) {
     let static_file_names: Vec<String> = directory_file_names("static".to_string())
         .iter()
         .map(|file_name| format!("GET /{file_name} HTTP/1.1"))
@@ -32,7 +36,7 @@ fn insert_static_routes(routes_config: &mut HashMap<String, fn(&Request) -> Vec<
     for static_file in static_file_names {
         routes_config.insert(
             static_file,
-            Controller::static_file as fn(&Request) -> Vec<u8>,
+            Controller::static_file as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
         );
     }
 }

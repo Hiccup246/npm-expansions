@@ -46,6 +46,7 @@ fn connection_handler(mut stream: TcpStream, router: &router::Router) {
         let error_response = match res.kind() {
             NpmErrorKind::InvalidHeader => Controller::client_error(&error_request),
             NpmErrorKind::TooManyHeaders => Controller::client_error(&error_request),
+            NpmErrorKind::InvalidRequestStatusLine => Controller::client_error(&error_request),
             NpmErrorKind::InternalServerError => Controller::internal_server_error(&error_request),
             NpmErrorKind::RequestParseError => Controller::internal_server_error(&error_request),
             NpmErrorKind::SupportedMimeTypeError => {
@@ -53,8 +54,11 @@ fn connection_handler(mut stream: TcpStream, router: &router::Router) {
             }
         };
 
-        stream
-            .write_all(error_response.as_slice()).unwrap()
+        if let Ok(error_res) = error_response {
+            stream.write_all(error_res.as_slice()).unwrap()
+        }
+
+        panic!("Unconditional server failure. This is a server bug!")
     }
 }
 
