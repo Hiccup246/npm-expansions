@@ -27,80 +27,11 @@ fn main() {
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        new_connection_handler(stream, &router);
+        connection_handler(stream, &router);
     }
 }
-
-// Make this function real by
-// - Making route_request return NpmExpansionsError
-// fn toto(mut stream: TcpStream, router: &router::Router) -> Result<(), NpmExpansionsError> {
-//     let request = Request::build(&stream)?;
-//     let response = router.route_request(request)?;
-
-//     stream.write_all(response.as_slice()).unwrap();
-
-//     Ok(())
-// }
 
 fn connection_handler(mut stream: TcpStream, router: &router::Router) {
-    let request = Request::build(&stream);
-
-    if let Ok(req) = request {
-        let response = router.route_request(req);
-
-        if let Ok(response) = response {
-            stream.write_all(response.as_slice()).unwrap();
-        } else {
-            stream
-                .write_all(
-                    Controller::internal_server_error(&Request::build(&stream).unwrap()).as_slice(),
-                )
-                .unwrap();
-        }
-    } else if let Err(error) = request {
-        let response = match error.kind() {
-            NpmErrorKind::RequestParseError => Controller::internal_server_error(&Request::new(
-                "",
-                HashMap::from([(
-                    "Accept".to_string(),
-                    "text/html,application/json".to_string(),
-                )]),
-            )),
-            NpmErrorKind::InvalidHeader => Controller::client_error(&Request::new(
-                "",
-                HashMap::from([(
-                    "Accept".to_string(),
-                    "text/html,application/json".to_string(),
-                )]),
-            )),
-            NpmErrorKind::TooManyHeaders => Controller::client_error(&Request::new(
-                "",
-                HashMap::from([(
-                    "Accept".to_string(),
-                    "text/html,application/json".to_string(),
-                )]),
-            )),
-            _ => panic!("Unknown error"),
-        };
-
-        stream.write_all(response.as_slice()).unwrap();
-    }
-}
-
-// Build request, route it, respond and write to stream
-fn respond_to_request(
-    mut stream: &TcpStream,
-    router: &router::Router,
-) -> Result<(), NpmExpansionsError> {
-    let request = Request::build(stream)?;
-    let response = router.route_request(request)?;
-
-    stream.write_all(response.as_slice()).unwrap();
-
-    Ok(())
-}
-
-fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
     let response = respond_to_request(&mut stream, router);
 
     if let Err(res) = response {
@@ -111,7 +42,7 @@ fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
                 "text/html,application/json".to_string(),
             )]),
         );
-        // We respond to every kind of issue
+
         let error_response = match res.kind() {
             NpmErrorKind::InvalidHeader => Controller::client_error(&error_request),
             NpmErrorKind::TooManyHeaders => Controller::client_error(&error_request),
@@ -123,9 +54,20 @@ fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
         };
 
         stream
-            .write_all(error_response.as_slice())
-            .expect("Failed to write to stream")
+            .write_all(error_response.as_slice()).unwrap()
     }
+}
+
+fn respond_to_request(
+    mut stream: &TcpStream,
+    router: &router::Router,
+) -> Result<(), NpmExpansionsError> {
+    let request = Request::build(stream)?;
+    let response = router.route_request(request)?;
+
+    stream.write_all(response.as_slice()).unwrap();
+
+    Ok(())
 }
 
 #[cfg(test)]
