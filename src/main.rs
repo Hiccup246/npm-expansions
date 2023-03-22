@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::prelude::*,
+    io::{Read, Write},
     net::{TcpListener, TcpStream},
 };
 
@@ -63,7 +63,7 @@ fn connection_handler(mut stream: TcpStream, router: &router::Router) {
 }
 
 fn respond_to_request(
-    mut stream: &TcpStream,
+    stream: &mut (impl Read + Write),
     router: &router::Router,
 ) -> Result<(), NpmExpansionsError> {
     let request = Request::build(stream)?;

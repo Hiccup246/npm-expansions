@@ -47,8 +47,8 @@ impl Request {
     /// };
     /// Request::build(stream)
     /// ```
-    pub fn build(mut stream: impl Read + Write) -> Result<Request, NpmExpansionsError> {
-        let buf_reader = BufReader::new(&mut stream);
+    pub fn build(stream: &mut (impl Read + Write)) -> Result<Request, NpmExpansionsError> {
+        let buf_reader = BufReader::new(stream);
         let mut buffer = buf_reader.take(8000).lines();
 
         let status_line;
@@ -124,11 +124,11 @@ mod tests {
 
             contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-            let stream = MockTcpStream {
+            let mut stream = MockTcpStream {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(stream).unwrap();
+            let request = Request::build(&mut stream).unwrap();
 
             assert_eq!(request.status_line(), "GET / HTTP/1.1")
         }
@@ -140,11 +140,11 @@ mod tests {
 
             contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-            let stream = MockTcpStream {
+            let mut stream = MockTcpStream {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(stream).unwrap();
+            let request = Request::build(&mut stream).unwrap();
 
             assert_eq!(
                 request.headers(),
@@ -165,11 +165,11 @@ mod tests {
 
             contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-            let stream = MockTcpStream {
+            let mut stream = MockTcpStream {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(stream);
+            let request = Request::build(&mut stream);
 
             assert!(request.is_err())
         }
@@ -181,11 +181,11 @@ mod tests {
 
             contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-            let stream = MockTcpStream {
+            let mut stream = MockTcpStream {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(stream);
+            let request = Request::build(&mut stream);
 
             assert!(request.is_err())
         }
@@ -198,11 +198,11 @@ mod tests {
 
             contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-            let stream = MockTcpStream {
+            let mut stream = MockTcpStream {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(stream);
+            let request = Request::build(&mut stream);
 
             if let Err(err) = request {
                 is_correct_error = match err.kind() {
