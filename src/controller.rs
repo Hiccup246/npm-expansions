@@ -37,7 +37,7 @@ impl Controller {
                 format!("Please accept text/html, text/css or text/javascript"),
             ),
         }
-        .to_vec();
+        .into_http_response();
 
         Ok(response)
     }
@@ -63,7 +63,7 @@ impl Controller {
                 format!("Please accept application/json"),
             ),
         }
-        .to_vec();
+        .into_http_response();
 
         Ok(response)
     }
@@ -87,7 +87,7 @@ impl Controller {
                 format!("Please accept application/json or text/html"),
             ),
         }
-        .to_vec();
+        .into_http_response();
 
         Ok(response)
     }
@@ -116,7 +116,7 @@ impl Controller {
                 format!("Please accept application/json or text/html"),
             ),
         }
-        .to_vec();
+        .into_http_response();
 
         Ok(response)
     }
@@ -140,7 +140,7 @@ impl Controller {
                 format!("Please accept application/json or text/html"),
             ),
         }
-        .to_vec();
+        .into_http_response();
 
         Ok(response)
     }

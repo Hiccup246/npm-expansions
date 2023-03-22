@@ -25,7 +25,30 @@ impl Response {
         &self.contents
     }
 
-    pub fn to_vec(&self) -> Vec<u8> {
+    /// Converts a request object into a http response vector of bytes
+    ///
+    /// # Arguments
+    ///
+    /// * `&self` - Current instantiation of the Response struct
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let response = Response::new(
+    ///     "200",
+    ///     "Content-Type: application/json;q=0.5",
+    ///     "Hello World!".to_string(),
+    /// ).into_http_response();
+    /// let example_response = "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec();
+    ///
+    /// assert_eq!(response, example_response)
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// The function panics if string formatting via format! panics
+    ///
+    pub fn into_http_response(&self) -> Vec<u8> {
         let status = self.status_line();
         let contents = self.contents();
         let headers = self.headers();
@@ -47,26 +70,30 @@ impl Response {
 mod tests {
     use super::*;
 
-    #[test]
-    fn to_vec_correctly_formats_request_with_headers() {
-        let response = Response::new(
-            "200",
-            "Content-Type: application/json;q=0.5",
-            "Hello World!".to_string(),
-        );
+    mod into_http_response {
+        use super::*;
 
-        assert_eq!(response.to_vec(), "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec())
-    }
+        #[test]
+        fn correctly_reponse_with_headers() {
+            let response = Response::new(
+                "200",
+                "Content-Type: application/json;q=0.5",
+                "Hello World!".to_string(),
+            );
 
-    #[test]
-    fn to_vec_correctly_formats_request_without_headers() {
-        let response = Response::new("200", "", "Hello World!".to_string());
+            assert_eq!(response.into_http_response(), "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec())
+        }
 
-        assert_eq!(
-            response.to_vec(),
-            "HTTP/1.1 200\r\nContent-Length: 12\r\n\r\nHello World!"
-                .as_bytes()
-                .to_vec()
-        )
+        #[test]
+        fn correctly_reponse_without_headers() {
+            let response = Response::new("200", "", "Hello World!".to_string());
+
+            assert_eq!(
+                response.into_http_response(),
+                "HTTP/1.1 200\r\nContent-Length: 12\r\n\r\nHello World!"
+                    .as_bytes()
+                    .to_vec()
+            )
+        }
     }
 }
