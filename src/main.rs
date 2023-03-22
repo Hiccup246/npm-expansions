@@ -27,7 +27,7 @@ fn main() {
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        connection_handler(stream, &router);
+        new_connection_handler(stream, &router);
     }
 }
 
@@ -88,27 +88,45 @@ fn connection_handler(mut stream: TcpStream, router: &router::Router) {
 }
 
 // Build request, route it, respond and write to stream
-// fn respond_to_request(mut stream: TcpStream, router: &router::Router) -> Result<(), NpmExpansionsError> {
-//     let request = Request::build(&stream)?;
-//     let response = router.route_request(request)?;
+fn respond_to_request(
+    mut stream: &TcpStream,
+    router: &router::Router,
+) -> Result<(), NpmExpansionsError> {
+    let request = Request::build(stream)?;
+    let response = router.route_request(request)?;
 
-//     stream.write_all(response.as_slice()).unwrap();
-// }
+    stream.write_all(response.as_slice()).unwrap();
 
-// fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
-//     let response = respond_to_request(stream, router);
+    Ok(())
+}
 
-//     if let Err(res) = response {
+fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
+    let response = respond_to_request(&mut stream, router);
 
-//         // We respond to every kind of issue
-//         let error_response = match res.kind() {
-//             NpmErrorKind::InvalidHeader => ""
-//         };
+    if let Err(res) = response {
+        let error_request = Request::new(
+            "",
+            HashMap::from([(
+                "Accept".to_string(),
+                "text/html,application/json".to_string(),
+            )]),
+        );
+        // We respond to every kind of issue
+        let error_response = match res.kind() {
+            NpmErrorKind::InvalidHeader => Controller::client_error(&error_request),
+            NpmErrorKind::TooManyHeaders => Controller::client_error(&error_request),
+            NpmErrorKind::InternalServerError => Controller::internal_server_error(&error_request),
+            NpmErrorKind::RequestParseError => Controller::internal_server_error(&error_request),
+            NpmErrorKind::SupportedMimeTypeError => {
+                Controller::internal_server_error(&error_request)
+            }
+        };
 
-//         // If writing fails then print message/log issues
-//         stream.write_all(error_response.as_slice()).expect("Failed to write to stream")
-//     }
-// }
+        stream
+            .write_all(error_response.as_slice())
+            .expect("Failed to write to stream")
+    }
+}
 
 #[cfg(test)]
 mod tests {

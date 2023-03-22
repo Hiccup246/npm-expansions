@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 pub use crate::request::Request;
 
 #[derive(Debug)]
@@ -49,7 +50,7 @@ impl Router {
     /// let response = router.route_request(request);
     /// assert!(response.is_err())
     /// ```
-    pub fn route_request(&self, request: Request) -> Result<Vec<u8>, HandleRouteError> {
+    pub fn route_request(&self, request: Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let status_line = request.status_line();
         let controller_function = self.routes_config.get(status_line);
 
@@ -60,7 +61,7 @@ impl Router {
         if let Some(not_found_route) = self.routes_config.get("404") {
             return Ok(not_found_route(&request));
         } else {
-            Err(HandleRouteError)
+            Err(NpmExpansionsError::new(NpmErrorKind::InternalServerError))
         }
     }
 }

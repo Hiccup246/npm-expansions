@@ -11,6 +11,7 @@ pub enum NpmErrorKind {
     TooManyHeaders,
     RequestParseError,
     SupportedMimeTypeError,
+    InternalServerError,
 }
 
 impl NpmExpansionsError {
