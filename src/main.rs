@@ -87,6 +87,29 @@ fn connection_handler(mut stream: TcpStream, router: &router::Router) {
     }
 }
 
+// Build request, route it, respond and write to stream
+// fn respond_to_request(mut stream: TcpStream, router: &router::Router) -> Result<(), NpmExpansionsError> {
+//     let request = Request::build(&stream)?;
+//     let response = router.route_request(request)?;
+
+//     stream.write_all(response.as_slice()).unwrap();
+// }
+
+// fn new_connection_handler(mut stream: TcpStream, router: &router::Router) {
+//     let response = respond_to_request(stream, router);
+
+//     if let Err(res) = response {
+
+//         // We respond to every kind of issue
+//         let error_response = match res.kind() {
+//             NpmErrorKind::InvalidHeader => ""
+//         };
+
+//         // If writing fails then print message/log issues
+//         stream.write_all(error_response.as_slice()).expect("Failed to write to stream")
+//     }
+// }
+
 #[cfg(test)]
 mod tests {
     // use super::*;
