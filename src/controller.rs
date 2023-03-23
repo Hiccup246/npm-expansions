@@ -9,6 +9,29 @@ use std::fs;
 pub struct Controller {}
 
 impl Controller {
+    /// Returns a vector byte representation of the npm_expansions page including html, css and javascript
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept", "text/html")]))
+    /// let response = Controller::index(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept", "text/")]))
+    /// Controller::index(&request)
+    /// ```
     pub fn index(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let best = accept_header_handler::best_match(
             Vec::from(["text/html", "text/css", "text/javascript"]),
@@ -42,6 +65,29 @@ impl Controller {
         Ok(response)
     }
 
+    /// Returns a vector byte representation of a json object containing a random npm expansion
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept", "application/json")]))
+    /// let response = Controller::random(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept", "text/")]))
+    /// Controller::random(&request)
+    /// ```
     pub fn random(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let best = accept_header_handler::best_match(
             Vec::from(["application/json"]),
@@ -68,6 +114,29 @@ impl Controller {
         Ok(response)
     }
 
+    /// Returns a vector byte representation of the not_found page including html, css and javascript
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept", "application/json")]))
+    /// let response = Controller::not_found(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept", "text/")]))
+    /// Controller::not_found(&request)
+    /// ```
     pub fn not_found(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let best = accept_header_handler::best_match(
             Vec::from(["application/json", "text/html"]),
@@ -92,6 +161,29 @@ impl Controller {
         Ok(response)
     }
 
+    /// Returns a vector byte representation of the internal_server_error page including html, css and javascript
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept", "application/json")]))
+    /// let response = Controller::internal_server_error(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept", "text/")]))
+    /// Controller::internal_server_error(&request)
+    /// ```
     pub fn internal_server_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let best = accept_header_handler::best_match(
             Vec::from(["application/json", "text/html"]),
@@ -121,6 +213,29 @@ impl Controller {
         Ok(response)
     }
 
+    /// Returns a vector byte representation of the client_error page including html, css and javascript
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept", "application/json")]))
+    /// let response = Controller::client_error(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept", "text/")]))
+    /// Controller::client_error(&request)
+    /// ```
     pub fn client_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let best = accept_header_handler::best_match(
             Vec::from(["application/json", "text/html"]),
@@ -145,6 +260,29 @@ impl Controller {
         Ok(response)
     }
 
+    /// Returns a vector byte representation of a static asset located within this projects static directory
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept", "application/json")]))
+    /// let response = Controller::static_file(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept", "text/")]))
+    /// Controller::static_file(&request)
+    /// ```
     pub fn static_file(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let split_status_line: Vec<&str> = request.status_line().split(" ").collect();
         let file_name = split_status_line.get(1).ok_or(NpmExpansionsError::new(
