@@ -23,7 +23,7 @@
 .footer {
     padding: 10px;
     height: fit-content;
-    grid-template-columns: repeat(3,minmax(0,1fr));
+    grid-template-columns: 1fr 3fr 1fr;
     display: grid;
 }
 
@@ -31,6 +31,7 @@
     margin: 0 auto;
     width: fit-content;
     text-align: center;
+    align-self: center;
 }
 
 .rust-icon {
@@ -45,11 +46,13 @@
 
 .rust-icon-text {
     align-self: center;
-    width: fit-content;
+    position: absolute;
+    width: 125px;
     transition-timing-function: cubic-bezier(.4,0,.2,1);
     transition-duration: 0.5s;
     opacity: 0;
     z-index: 0;
+    left: 50px;
     transform: translate(-20px, 0px);
 
 }
@@ -63,6 +66,7 @@ a.rust-icon-group:hover ~ .rust-icon-text {
 
 .rust-icon-group {
     z-index: 1;
+    align-self: center;
 }
 
 .color-bar {
@@ -72,6 +76,7 @@ a.rust-icon-group:hover ~ .rust-icon-text {
 
 james-watt-calling-card:hover {
     text-decoration: underline;
+    cursor: pointer;
 }
 
 @media (max-width: 425px) {
@@ -86,7 +91,9 @@ james-watt-calling-card:hover {
         position: absolute;
         opacity: 0;
     }
+}
 
+@media (max-width: 625px) {
     a.rust-icon-group:hover ~ .rust-icon-text {
         opacity: 0;
     }
