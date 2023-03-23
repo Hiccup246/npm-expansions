@@ -17,6 +17,7 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 # 📋 Short Term ToDo
 1. ### Website Functionality
     1. Implement figma designs using current boilerplate html, css and js files
+    2. Optimise SEO for index page
 2. ### Infrastructure
     1. Implement husky pre-commit actions with testing and formatting
     2. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
