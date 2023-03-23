@@ -69,3 +69,7 @@ a.rust-icon-group:hover ~ .rust-icon-text {
     padding: 5px;
     background-image: linear-gradient(139deg, #fb8817, #ff4b01, #c12127, #e02aff);
 }
+
+james-watt-calling-card:hover {
+    text-decoration: underline;
+}

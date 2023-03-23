@@ -72,6 +72,8 @@
     />
     
     <script defer type="text/javascript" src="/"></script>
+    <!-- James Watt Calling Card Web Component -->
+		<script type="module" src="https://unpkg.com/james-watt-calling-card/index.js"></script>
   </head>
   <body>
     <div class="app">
@@ -93,7 +95,10 @@
         </div>
 
         <div class="author">
-          <p>Designed & Built by James Watt</p>
+          <james-watt-calling-card modal-bg-color="#FFFFFF">
+            <p>Designed & Built by James Watt</p>
+          </james-watt-calling-card>
+
           <p>(No affiliation with NPM)</p>
         </div>
       </div>
