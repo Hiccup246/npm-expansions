@@ -73,3 +73,21 @@ a.rust-icon-group:hover ~ .rust-icon-text {
 james-watt-calling-card:hover {
     text-decoration: underline;
 }
+
+@media (max-width: 425px) {
+    .footer {
+        display: flex;
+        grid-template-columns: repeat(1,minmax(0,1fr));
+        flex-direction: column-reverse;
+        align-items: center;
+    }
+
+    .rust-icon-text {
+        position: absolute;
+        opacity: 0;
+    }
+
+    a.rust-icon-group:hover ~ .rust-icon-text {
+        opacity: 0;
+    }
+}
