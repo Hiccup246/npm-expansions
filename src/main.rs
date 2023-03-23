@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     io::{Read, Write},
-    net::{TcpListener, TcpStream},
+    net::TcpListener,
 };
 
 mod accept_header_handler;
@@ -27,11 +27,15 @@ fn main() {
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
 
-        handle_connection(&mut stream, &router);
+        handle_connection(&mut stream, &router, http_response_error_handler);
     }
 }
 
-fn handle_connection(stream: &mut (impl Read + Write), router: &router::Router) {
+fn handle_connection(
+    stream: &mut (impl Read + Write),
+    router: &router::Router,
+    error_handler: fn(&NpmExpansionsError, &Request) -> Result<Vec<u8>, NpmExpansionsError>,
+) {
     let response = respond_to_request(stream, router);
 
     if let Err(res) = response {
@@ -43,16 +47,7 @@ fn handle_connection(stream: &mut (impl Read + Write), router: &router::Router) 
             )]),
         );
 
-        let error_response = match res.kind() {
-            NpmErrorKind::InvalidHeader => Controller::client_error(&error_request),
-            NpmErrorKind::TooManyHeaders => Controller::client_error(&error_request),
-            NpmErrorKind::InvalidRequestStatusLine => Controller::client_error(&error_request),
-            NpmErrorKind::InternalServerError => Controller::internal_server_error(&error_request),
-            NpmErrorKind::RequestParseError => Controller::internal_server_error(&error_request),
-            NpmErrorKind::SupportedMimeTypeError => {
-                Controller::internal_server_error(&error_request)
-            }
-        };
+        let error_response = error_handler(&res, &error_request);
 
         if let Ok(error_res) = error_response {
             return stream.write_all(error_res.as_slice()).unwrap();
@@ -60,6 +55,22 @@ fn handle_connection(stream: &mut (impl Read + Write), router: &router::Router) 
 
         panic!("Unconditional server failure. This is a server bug!")
     }
+}
+
+fn http_response_error_handler(
+    error: &NpmExpansionsError,
+    error_request: &Request,
+) -> Result<Vec<u8>, NpmExpansionsError> {
+    let error_response = match error.kind() {
+        NpmErrorKind::InvalidHeader => Controller::client_error(&error_request),
+        NpmErrorKind::TooManyHeaders => Controller::client_error(&error_request),
+        NpmErrorKind::InvalidRequestStatusLine => Controller::client_error(&error_request),
+        NpmErrorKind::InternalServerError => Controller::internal_server_error(&error_request),
+        NpmErrorKind::RequestParseError => Controller::internal_server_error(&error_request),
+        NpmErrorKind::SupportedMimeTypeError => Controller::internal_server_error(&error_request),
+    };
+
+    error_response
 }
 
 fn respond_to_request(
@@ -154,6 +165,20 @@ mod tests {
     mod connection_handler {
         use super::*;
 
+        fn valid_error_response(
+            _error: &NpmExpansionsError,
+            error_request: &Request,
+        ) -> Result<Vec<u8>, NpmExpansionsError> {
+            return Controller::client_error(&error_request);
+        }
+
+        fn invalid_error_response(
+            _error: &NpmExpansionsError,
+            _error_request: &Request,
+        ) -> Result<Vec<u8>, NpmExpansionsError> {
+            return Err(NpmExpansionsError::new(NpmErrorKind::InternalServerError));
+        }
+
         #[test]
         fn valid_http_stream() {
             let input_bytes = b"GET / HTTP/1.1\r\nAccept: text/html\r\n\r\n";
@@ -171,7 +196,7 @@ mod tests {
                 Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
-            let response = handle_connection(&mut stream, &router);
+            let response = handle_connection(&mut stream, &router, valid_error_response);
 
             assert_eq!(response, ());
         }
@@ -193,92 +218,30 @@ mod tests {
                 Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
-            let response = handle_connection(&mut stream, &router);
+            let response = handle_connection(&mut stream, &router, valid_error_response);
 
             assert_eq!(response, ());
         }
 
-        // #[test]
-        // fn invalid_http_stream_with_error_response() {
-        //     let input_bytes = b"";
-        //     let mut contents = vec![0u8; 1024];
+        #[test]
+        #[should_panic(expected = "Unconditional server failure. This is a server bug!")]
+        fn invalid_http_stream_with_error_response() {
+            let input_bytes = b"";
+            let mut contents = vec![0u8; 1024];
 
-        //     contents[..input_bytes.len()].clone_from_slice(input_bytes);
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
 
-        //     let mut stream = MockTcpStream {
-        //         read_data: contents,
-        //         write_data: Vec::new(),
-        //     };
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
 
-        //     fn panic_controller_method(request: &Request) -> Result<Vec<u8>, NpmExpansionsError>{
+            let router = router::Router::new(HashMap::from([(
+                "GET / HTTP/1.1".to_string(),
+                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            )]));
 
-        //     }
-
-        //     let router = router::Router::new(
-        //         HashMap::from([
-        //             (
-        //                 "GET / HTTP/1.1".to_string(),
-        //                 Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
-        //             )
-        //         ])
-        //     );
-
-        //     let response = handle_connection(&mut stream, &router);
-
-        //     assert_eq!(response, ());
-        // }
+            handle_connection(&mut stream, &router, invalid_error_response);
+        }
     }
-    // fn setup_server_and_connection() -> (TcpListener, TcpStream) {
-    //     (
-    //         TcpListener::bind("127.0.0.1:7878").unwrap(),
-    //         TcpStream::connect("127.0.0.1:7878").unwrap(),
-    //     )
-    // }
-
-    // #[test]
-    // fn handle_connection_get_root() {
-    //     let (mut listener, mut connection) = setup_server_and_connection();
-    //     let incoming_stream = listener.incoming().next().unwrap().unwrap();
-    //     connection.write("GET \n \r".as_bytes()).unwrap();
-
-    //     handle_connection(incoming_stream);
-
-    //     let buf_reader = BufReader::new(&mut connection);
-    //     let http_request: Vec<String> = buf_reader
-    //         .lines()
-    //         .filter(|line| line.is_ok())
-    //         .map(|result| result.unwrap())
-    //         .collect();
-
-    //     assert_eq!(format!("{:?}", http_request), "[\"HTTP/1.1 200 OK\", \"Content-Length: 26\", \"\", \"{\\\"npm-expansion\\\": \\\"hello\\\"}\"]");
-
-    //     connection.flush().unwrap();
-    //     connection.shutdown(std::net::Shutdown::Both).unwrap();
-    // }
-
-    // #[test]
-    // fn handle_connection_non_real_route() {
-    //     let (mut listener, mut connection) = setup_server_and_connection();
-    //     let incoming_stream = listener.incoming().next().unwrap().unwrap();
-    //     connection
-    //         .write("GET /example-route HTTP/1.1 \n \r".as_bytes())
-    //         .unwrap();
-
-    //     handle_connection(incoming_stream);
-
-    //     let buf_reader = BufReader::new(&mut connection);
-    //     let http_request: Vec<String> = buf_reader
-    //         .lines()
-    //         .filter(|line| line.is_ok())
-    //         .map(|result| result.unwrap())
-    //         .collect();
-
-    //     assert_eq!(
-    //         format!("{:?}", http_request),
-    //         "[\"HTTP/1.1 404 NOT FOUND\", \"\"]"
-    //     );
-
-    //     connection.flush().unwrap();
-    //     connection.shutdown(std::net::Shutdown::Both).unwrap();
-    // }
 }
