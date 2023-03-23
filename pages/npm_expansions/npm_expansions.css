@@ -23,6 +23,8 @@
 .footer {
     padding: 10px;
     height: fit-content;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    display: grid;
 }
 
 .author {
@@ -37,16 +39,30 @@
     height: fit-content;
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
+    margin: auto 0;
 }
 
 .rust-icon-text {
     align-self: center;
     width: fit-content;
+    transition-timing-function: cubic-bezier(.4,0,.2,1);
+    transition-duration: 0.5s;
     opacity: 0;
+    z-index: 0;
+    transform: translate(-20px, 0px);
+
 }
 
 a.rust-icon-group:hover ~ .rust-icon-text {
     opacity: 1;
+    transition-timing-function: cubic-bezier(.4,0,.2,1);
+    transition-duration: 0.5s;
+    transform: None;
+}
+
+.rust-icon-group {
+    z-index: 1;
 }
 
 .color-bar {
