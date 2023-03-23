@@ -99,7 +99,7 @@ impl Controller {
                 "200 OK",
                 "Content-Type: application/json",
                 format!(
-                    "{{\"npm-expansion\": \"{}\"}}",
+                    "{{\"npmExpansion\": \"{}\"}}",
                     NpmExpansions::random_expansion()
                 ),
             ),
