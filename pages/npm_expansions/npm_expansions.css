@@ -25,12 +25,16 @@
     position: relative;
     width: fit-content;
     height: fit-content;
+    display: flex;
+    flex-direction: row;
 }
 
 .rust-icon-text {
-    margin: 0 auto;
-    position: absolute;
-    width: 125px;
-    top: 0;
-    left: 0;
+    align-self: center;
+    width: fit-content;
+    opacity: 0;
+}
+
+a.rust-icon-group:hover ~ .rust-icon-text {
+    opacity: 1;
 }
