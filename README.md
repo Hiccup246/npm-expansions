@@ -16,13 +16,13 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 
 # 📋 Short Term ToDo
 1. ### Website Functionality
-    1. Implement figma designs using current boilerplate html, css and js files
-    2. Optimise SEO for index page
+    1. Implement search all expansions functionality
+    2. Implement copy all expansions to clipboard and view all expansions functionality
+    1. Implement OG and Twitter SEO tags
 2. ### Infrastructure
-    1. Implement husky pre-commit actions with testing and formatting
-    2. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
-    3. Get project deployment working locally with docker and maybe nginx reverse proxy
-    4. Implement CICD with github actions which does testing, maybe building
+    1. Get project deployment working locally with docker and nginx reverse proxy
+    2. Work on SSL certificates
+    3. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
 2. ### Tests
     1. Add function specific functionality tests for controller functions i.e. checking stream response
     2. Add integration tests for server
@@ -32,8 +32,9 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
     2. Consider adding documentation comments for structs and crate as a whole
 5. ### Refactoring
-    1. Read up about rust coding styles and idiomatic rust and refactor code to fit this style
-    2. Consider replacing a lot of `if let Ok(x) = y`, `if let Err(x) = y`, `if let Some(x) = y` and `if let None = y` patterns
+    1. Fix all Clippy style warnings
+    2. Read up about rust coding styles and idiomatic rust and refactor code to fit this style
+    3. Consider replacing a lot of `if let Ok(x) = y`, `if let Err(x) = y`, `if let Some(x) = y` and `if let None = y` patterns
     with bubble up patterns like `?` 
 <br>
 
