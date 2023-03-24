@@ -57,11 +57,11 @@ impl Router {
         let controller_function = self.routes_config.get(status_line);
 
         if let Some(controller_function) = controller_function {
-            return Ok(controller_function(&request)?);
+            return controller_function(&request);
         }
 
         if let Some(not_found_route) = self.routes_config.get("404") {
-            return Ok(not_found_route(&request)?);
+            not_found_route(&request)
         } else {
             Err(NpmExpansionsError::new(NpmErrorKind::InternalServerError))
         }

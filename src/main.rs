@@ -62,12 +62,12 @@ fn http_response_error_handler(
     error_request: &Request,
 ) -> Result<Vec<u8>, NpmExpansionsError> {
     let error_response = match error.kind() {
-        NpmErrorKind::InvalidHeader => Controller::client_error(&error_request),
-        NpmErrorKind::TooManyHeaders => Controller::client_error(&error_request),
-        NpmErrorKind::InvalidRequestStatusLine => Controller::client_error(&error_request),
-        NpmErrorKind::InternalServerError => Controller::internal_server_error(&error_request),
-        NpmErrorKind::RequestParseError => Controller::internal_server_error(&error_request),
-        NpmErrorKind::SupportedMimeTypeError => Controller::internal_server_error(&error_request),
+        NpmErrorKind::InvalidHeader => Controller::client_error(error_request),
+        NpmErrorKind::TooManyHeaders => Controller::client_error(error_request),
+        NpmErrorKind::InvalidRequestStatusLine => Controller::client_error(error_request),
+        NpmErrorKind::InternalServerError => Controller::internal_server_error(error_request),
+        NpmErrorKind::RequestParseError => Controller::internal_server_error(error_request),
+        NpmErrorKind::SupportedMimeTypeError => Controller::internal_server_error(error_request),
     };
 
     error_response

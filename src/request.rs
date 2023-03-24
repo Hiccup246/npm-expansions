@@ -73,7 +73,7 @@ impl Request {
                         headers,
                     });
                 } else {
-                    let colon_position = current_line.find(":");
+                    let colon_position = current_line.find(':');
 
                     if let Some(colon_position) = colon_position {
                         let (key, value) = current_line.split_at(colon_position);
@@ -96,7 +96,7 @@ impl Request {
     pub fn new(status_line: &str, headers: HashMap<String, String>) -> Request {
         Request {
             status_line: status_line.to_string(),
-            headers: headers.clone(),
+            headers,
         }
     }
 

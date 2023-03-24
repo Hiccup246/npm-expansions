@@ -45,14 +45,14 @@ impl fmt::Display for MimeTypeParseError {
 pub fn parse_mime_type<'a>(
     mime_type: &'a str,
 ) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
-    let parts: Vec<&str> = mime_type.trim().split(";").collect();
+    let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
     let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> =
         if let Some(parameter_values) = parts.get(1..) {
             let split_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values
-                .into_iter()
+                .iter()
                 .map(|val| {
-                    val.split_once("=")
+                    val.split_once('=')
                         .ok_or(MimeTypeParseError::new(mime_type.to_string()))
                 })
                 .collect();
@@ -70,20 +70,18 @@ pub fn parse_mime_type<'a>(
             Ok(None)
         };
 
-    let parsed_mime_type = match parts.get(0) {
-        Some(mime_type_value) => mime_type_value.split_once("/"),
+    let parsed_mime_type = match parts.first() {
+        Some(mime_type_value) => mime_type_value.split_once('/'),
         _ => None,
     };
 
     if let Some(parsed_mime_type) = parsed_mime_type {
         if parameters.is_err() {
             Err(parameters.err().unwrap())
+        } else if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
+            Err(MimeTypeParseError::new(mime_type.to_string()))
         } else {
-            if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
-                Err(MimeTypeParseError::new(mime_type.to_string()))
-            } else {
-                Ok((parsed_mime_type.0, parsed_mime_type.1, parameters.unwrap()))
-            }
+            Ok((parsed_mime_type.0, parsed_mime_type.1, parameters.unwrap()))
         }
     } else {
         Err(MimeTypeParseError::new(mime_type.to_string()))

@@ -36,8 +36,8 @@ pub fn best_match(
         Vec<(&str, &str, f32)>,
         mime_type_parser::MimeTypeParseError,
     > = accept_header
-        .split(",")
-        .map(|header_str| ensure_quality_value(header_str))
+        .split(',')
+        .map(ensure_quality_value)
         .collect();
 
     if let Ok(parsed_accept_headers) = parsed_accept_headers {
@@ -45,8 +45,7 @@ pub fn best_match(
             supported_mime_types
                 .iter()
                 .map(|mime_type| {
-                    fitness_of_mime_type(mime_type, &parsed_accept_headers)
-                        .and_then(|val| Ok((val, *mime_type)))
+                    fitness_of_mime_type(mime_type, &parsed_accept_headers).map(|val| (val, *mime_type))
                 })
                 .collect();
 
@@ -65,12 +64,12 @@ pub fn best_match(
                 Ok("".to_string())
             }
         } else {
-            return Err(NpmExpansionsError::new(
+            Err(NpmExpansionsError::new(
                 NpmErrorKind::SupportedMimeTypeError,
-            ));
+            ))
         }
     } else {
-        return Err(NpmExpansionsError::new(NpmErrorKind::InvalidHeader));
+        Err(NpmExpansionsError::new(NpmErrorKind::InvalidHeader))
     }
 }
 
@@ -107,7 +106,7 @@ pub fn ensure_quality_value(
             .parse()
             .unwrap_or(1.0);
 
-        if parsed_quality >= 0.0 && parsed_quality <= 1.0 {
+        if (0.0..=1.0).contains(&parsed_quality) {
             quality = parsed_quality;
         }
     }
@@ -146,24 +145,22 @@ pub fn fitness_of_mime_type(
     let mut best_mime_type_quality = 0.0;
 
     for (range_type, range_subtype, range_quality) in mime_range {
-        if *range_type == mime_type || *range_type == "*" {
-            if *range_subtype == mime_subtype || *range_subtype == "*" {
-                let mut fitness = 0.0;
+        if (*range_type == mime_type || *range_type == "*") && (*range_subtype == mime_subtype || *range_subtype == "*") {
+            let mut fitness = 0.0;
 
-                if *range_type == mime_type {
-                    fitness += 100.0
-                }
+            if *range_type == mime_type {
+                fitness += 100.0
+            }
 
-                if *range_subtype == mime_subtype {
-                    fitness += 10.0
-                }
+            if *range_subtype == mime_subtype {
+                fitness += 10.0
+            }
 
-                fitness += range_quality;
+            fitness += range_quality;
 
-                if fitness > best_fitness {
-                    best_fitness = fitness;
-                    best_mime_type_quality = *range_quality;
-                }
+            if fitness > best_fitness {
+                best_fitness = fitness;
+                best_mime_type_quality = *range_quality;
             }
         }
     }

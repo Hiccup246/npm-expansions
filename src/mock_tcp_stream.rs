@@ -9,7 +9,7 @@ pub struct MockTcpStream {
 }
 
 impl Read for MockTcpStream {
-    fn read(self: &mut Self, buf: &mut [u8]) -> Result<usize, Error> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
         let size: usize = min(self.read_data.len(), buf.len());
         buf[..size].copy_from_slice(&self.read_data[..size]);
         Ok(size)
@@ -23,7 +23,7 @@ impl Write for MockTcpStream {
         Ok(buf.len())
     }
 
-    fn flush(self: &mut Self) -> Result<(), Error> {
+    fn flush(&mut self) -> Result<(), Error> {
         Ok(())
     }
 }

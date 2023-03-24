@@ -57,7 +57,7 @@ impl Controller {
             _ => Response::new(
                 "406 Not Acceptable",
                 "",
-                format!("Please accept text/html, text/css or text/javascript"),
+                "Please accept text/html, text/css or text/javascript".to_string(),
             ),
         }
         .into_http_response();
@@ -106,7 +106,7 @@ impl Controller {
             _ => Response::new(
                 "406 NOT ACCEPTABLE",
                 "",
-                format!("Please accept application/json"),
+                "Please accept application/json".to_string(),
             ),
         }
         .into_http_response();
@@ -144,7 +144,7 @@ impl Controller {
         )?;
 
         let response = match best.as_str() {
-            "application/json" => Response::new("404 NOT FOUND", "", format!("NOT FOUND")),
+            "application/json" => Response::new("404 NOT FOUND", "", "NOT FOUND".to_string()),
             "text/html" => Response::new(
                 "404 NOT FOUND",
                 "",
@@ -153,7 +153,7 @@ impl Controller {
             _ => Response::new(
                 "406 NOT ACCEPTABLE",
                 "",
-                format!("Please accept application/json or text/html"),
+                "Please accept application/json or text/html".to_string(),
             ),
         }
         .into_http_response();
@@ -194,7 +194,7 @@ impl Controller {
             "application/json" => Response::new(
                 "500 INTERNAL SERVER ERROR",
                 "",
-                format!("INTERNAL SERVER ERROR"),
+                "INTERNAL SERVER ERROR".to_string(),
             ),
             "text/html" => Response::new(
                 "500 INTERNAL SERVER ERROR",
@@ -205,7 +205,7 @@ impl Controller {
             _ => Response::new(
                 "406 NOT ACCEPTABLE",
                 "",
-                format!("Please accept application/json or text/html"),
+                "Please accept application/json or text/html".to_string(),
             ),
         }
         .into_http_response();
@@ -243,7 +243,7 @@ impl Controller {
         )?;
 
         let response = match best.as_str() {
-            "application/json" => Response::new("400 BAD REQUEST", "", format!("BAD REQUEST")),
+            "application/json" => Response::new("400 BAD REQUEST", "", "BAD REQUEST".to_string()),
             "text/html" => Response::new(
                 "400 BAD REQUEST",
                 "Content-Type: text/html",
@@ -252,7 +252,7 @@ impl Controller {
             _ => Response::new(
                 "406 NOT ACCEPTABLE",
                 "",
-                format!("Please accept application/json or text/html"),
+                "Please accept application/json or text/html".to_string(),
             ),
         }
         .into_http_response();
@@ -284,11 +284,11 @@ impl Controller {
     /// Controller::static_file(&request)
     /// ```
     pub fn static_file(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
-        let split_status_line: Vec<&str> = request.status_line().split(" ").collect();
+        let split_status_line: Vec<&str> = request.status_line().split(' ').collect();
         let file_name = split_status_line.get(1).ok_or(NpmExpansionsError::new(
             NpmErrorKind::InvalidRequestStatusLine,
         ))?;
-        let extension = file_name.split(".").last().unwrap_or("");
+        let extension = file_name.split('.').last().unwrap_or("");
 
         let content_type = match extension {
             "png" => "\r\nContent-Type: image/png",
