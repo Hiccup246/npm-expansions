@@ -35,17 +35,15 @@ pub fn best_match(
     let parsed_accept_headers: Result<
         Vec<(&str, &str, f32)>,
         mime_type_parser::MimeTypeParseError,
-    > = accept_header
-        .split(',')
-        .map(ensure_quality_value)
-        .collect();
+    > = accept_header.split(',').map(ensure_quality_value).collect();
 
     if let Ok(parsed_accept_headers) = parsed_accept_headers {
         let weighted_matches: Result<Vec<(f32, &str)>, mime_type_parser::MimeTypeParseError> =
             supported_mime_types
                 .iter()
                 .map(|mime_type| {
-                    fitness_of_mime_type(mime_type, &parsed_accept_headers).map(|val| (val, *mime_type))
+                    fitness_of_mime_type(mime_type, &parsed_accept_headers)
+                        .map(|val| (val, *mime_type))
                 })
                 .collect();
 
@@ -145,7 +143,9 @@ pub fn fitness_of_mime_type(
     let mut best_mime_type_quality = 0.0;
 
     for (range_type, range_subtype, range_quality) in mime_range {
-        if (*range_type == mime_type || *range_type == "*") && (*range_subtype == mime_subtype || *range_subtype == "*") {
+        if (*range_type == mime_type || *range_type == "*")
+            && (*range_subtype == mime_subtype || *range_subtype == "*")
+        {
             let mut fitness = 0.0;
 
             if *range_type == mime_type {
