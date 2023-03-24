@@ -1,0 +1,18 @@
+# Network to run web server
+# Ability to reverse proxy with Nginx
+
+# Example Dockerfiles
+# https://github.com/jacob-pro/calpol/blob/master/Dockerfile
+# https://github.com/ghotiphud/rust-web-starter/blob/master/api_server/Dockerfile
+
+# Example docker-compose file
+# https://github.com/jacob-pro/calpol/blob/master/config/docker-compose-example.yml
+
+version: "3.9"
+services:
+  webserver:
+    build: ./api_server
+    ports: 
+      - "3001:3001"
+    volumes:
+      - ./api_server:/usr/src/app
