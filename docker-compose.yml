@@ -8,6 +8,11 @@
 # Example docker-compose file
 # https://github.com/jacob-pro/calpol/blob/master/config/docker-compose-example.yml
 
+# Nginx Reverse proxy information
+# https://www.freecodecamp.org/news/docker-nginx-letsencrypt-easy-secure-reverse-proxy-40165ba3aee2/
+# https://hackernoon.com/how-to-nginx-reverse-proxy-with-docker-compose-ul7b3y40
+# https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/Docker-Nginx-reverse-proxy-setup-example
+
 version: "3.9"
 services:
   webserver:
