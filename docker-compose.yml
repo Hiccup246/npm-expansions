@@ -15,9 +15,20 @@
 
 version: "3.9"
 services:
-  webserver:
-    build: ./api_server
-    ports: 
-      - "3001:3001"
+  # webserver:
+  #   build: ./api_server
+  #   ports: 
+  #     - "3001:3001"
+  #   volumes:
+  #     - ./api_server:/usr/src/app
+  reverse:
+    container_name: reverse
+    hostname: reverse
+    image: nginx:1.23.3
+    ports:
+    # 80 is http and 443 is https
+      - 80:80
+      - 443:443
     volumes:
-      - ./api_server:/usr/src/app
+      - /:/etc/nginx
+      - /:/etc/ssl/private
