@@ -10,10 +10,10 @@ FROM rust:1.67.1 as builder
 USER root
 
 # Create a new rust binary package called rust-docker-web
-RUN cargo new --bin rust-docker-web
+RUN cargo new --bin npm-expansions
 
 # Set working directory to root of new rust project
-WORKDIR /rust-docker-web
+WORKDIR /npm-expansions
 
 # Copy Projects Cargo.toml file to a new Cargo.toml file in filesystem of the container
 COPY ./Cargo.toml ./Cargo.toml
@@ -25,10 +25,13 @@ RUN cargo build --release
 RUN rm src/*.rs
 
 # Copy all project files into the filesystem of the container
-ADD . ./
+ADD ./src ./src
+ADD ./pages ./pages
+ADD ./rsc ./rsc
+ADD ./static ./static
 
 # Remove binary built from the inital cargo build --release command
-RUN rm ./target/release/deps/rust_docker_web*
+RUN rm ./target/release/deps/npm_expansions*
 
 # Re build the project for release using all the new project files
 RUN cargo build --release
@@ -56,15 +59,19 @@ ENV APP_GROUP=appgroup \
 # Create a Unix group called appuser
 # Add a new user called dave and add them to Unix group appgroup using -g
 # Make a new directory and add parent directories if required. In this case /usr/src/app is created
-RUN groupadd $APP_USER \
+RUN groupadd $APP_GROUP \
     && useradd -g $APP_GROUP $APP_USER \
     && mkdir -p ${APP}
 
 # Copy binary executable from builder step into new directory namely /usr/src/app/rust-docker-web
-COPY --from=builder /rust-docker-web/target/release/rust-docker-web ${APP}/rust-docker-web
+COPY --from=builder /npm-expansions/target/release/npm-expansions ${APP}/npm-expansions
+
+# If we uglify html, css and js we can simply copy the uglified reasources into here
+COPY --from=builder /npm-expansions/static ${APP}/static
+COPY --from=builder /npm-expansions/pages ${APP}/pages
 
 # Change ownership of /usr/src/app to our dave user in the appgroup Unix group
-RUN chown -R $APP_USER:$APP_USER ${APP}
+RUN chown -R $APP_USER:$APP_GROUP ${APP}
 
 # Sets the username to dace
 USER $APP_USER
@@ -73,4 +80,4 @@ USER $APP_USER
 WORKDIR ${APP}
 
 # Execute our web application binary
-CMD ["./rust-docker-web"]
+CMD ["./npm-expansions"]
