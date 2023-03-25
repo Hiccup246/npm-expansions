@@ -122,6 +122,17 @@ mod tests {
     }
 
     #[test]
+    fn mime_with_multiple_params() {
+        let parsed_mime = parse_mime_type("application/signed-exchange;v=b3;q=0.7").unwrap();
+        let full_unwrapped = (parsed_mime.0, parsed_mime.1, parsed_mime.2.unwrap());
+
+        assert_eq!(
+            full_unwrapped,
+            ("application", "signed-exchange", HashMap::from([("v", "b3"), ("q", "0.7")]))
+        );
+    }
+
+    #[test]
     fn no_type_mime() {
         println!("{}", parse_mime_type("/plain").is_err());
         assert!(parse_mime_type("/plain").is_err());
