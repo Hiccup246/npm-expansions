@@ -33,9 +33,11 @@ impl Controller {
     /// Controller::index(&request)
     /// ```
     pub fn index(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+        let headers = request.headers();
+        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
             Vec::from(["text/html", "text/css", "text/javascript"]),
-            request.headers().get("Accept").unwrap(),
+            accept_header.unwrap_or(&"".to_string()),
         )?;
 
         let response = match best.as_str() {
@@ -89,9 +91,11 @@ impl Controller {
     /// Controller::random(&request)
     /// ```
     pub fn random(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+        let headers = request.headers();
+        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
             Vec::from(["application/json"]),
-            request.headers().get("Accept").unwrap(),
+            accept_header.unwrap_or(&"".to_string()),
         )?;
 
         let response = match best.as_str() {
@@ -138,9 +142,11 @@ impl Controller {
     /// Controller::not_found(&request)
     /// ```
     pub fn not_found(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+        let headers = request.headers();
+        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
             Vec::from(["application/json", "text/html"]),
-            request.headers().get("Accept").unwrap(),
+            accept_header.unwrap_or(&"".to_string()),
         )?;
 
         let response = match best.as_str() {
@@ -185,9 +191,11 @@ impl Controller {
     /// Controller::internal_server_error(&request)
     /// ```
     pub fn internal_server_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+        let headers = request.headers();
+        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
             Vec::from(["application/json", "text/html"]),
-            request.headers().get("Accept").unwrap(),
+            accept_header.unwrap_or(&"".to_string()),
         )?;
 
         let response = match best.as_str() {
@@ -237,9 +245,11 @@ impl Controller {
     /// Controller::client_error(&request)
     /// ```
     pub fn client_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+        let headers = request.headers();
+        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
             Vec::from(["application/json", "text/html"]),
-            request.headers().get("Accept").unwrap(),
+            accept_header.unwrap_or(&"".to_string()),
         )?;
 
         let response = match best.as_str() {
@@ -348,6 +358,36 @@ mod tests {
         );
 
         assert!(controller_function(&request).is_err())
+    }
+
+    #[test_case(Controller::index; "index")]
+    #[test_case(Controller::random; "random")]
+    #[test_case(Controller::not_found; "not_found")]
+    #[test_case(Controller::internal_server_error; "internal_server_error")]
+    #[test_case(Controller::client_error; "client_error")]
+
+    fn lower_case_accept_header(controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>) {
+        let request = Request::new(
+            "GET / HTTP/1.1",
+            HashMap::from([("accept".to_string(), "text/html".to_string())]),
+        );
+
+        assert!(controller_function(&request).is_ok())
+    }
+
+    #[test_case(Controller::index; "index")]
+    #[test_case(Controller::random; "random")]
+    #[test_case(Controller::not_found; "not_found")]
+    #[test_case(Controller::internal_server_error; "internal_server_error")]
+    #[test_case(Controller::client_error; "client_error")]
+
+    fn no_accept_header(controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>) {
+        let request = Request::new(
+            "GET / HTTP/1.1",
+            HashMap::new(),
+        );
+
+        assert!(controller_function(&request).is_ok())
     }
 
     mod static_file_tests {
