@@ -15,6 +15,9 @@
 
 version: "3.9"
 
+# Default network of myapp_default is created
+# Container webserver joins the myapp_default network as npm-expansions-web-server
+# Container reverse-proxy joins the myapp_default network as npm-expansions-reverse-proxy
 services:
   webserver:
     container_name: npm-expansions-web-server
