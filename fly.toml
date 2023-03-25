@@ -1,0 +1,26 @@
+# fly.toml file generated for npm-expansions on 2023-03-25T17:20:28Z
+
+app = "npm-expansions"
+kill_signal = "SIGINT"
+kill_timeout = 5
+mounts = []
+primary_region = "lhr"
+processes = []
+
+[[services]]
+  internal_port = 8080
+  processes = ["app"]
+  protocol = "tcp"
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
+
+  [[services.ports]]
+    force_https = false
+    handlers = ["http"]
+    port = 80
+
+  # [[services.ports]]
+  #   handlers = ["tls", "http"]
+  #   port = 443
