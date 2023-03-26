@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Navigate to server
-        run: cd npm-expansions-server
+        run: cd npm-expansions
 
       - name: Cargo Test
         run: cd npm-expansions-server && cargo test
