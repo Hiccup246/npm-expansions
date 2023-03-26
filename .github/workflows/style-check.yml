@@ -5,11 +5,11 @@ on:
 jobs:
   style_check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./npm-expansions
     steps:
       - uses: actions/checkout@v3
-
-      - name: Navigate to server
-        run: cd npm-expansions
 
       - name: Cargo Format Check
         run: cargo fmt -- --check
