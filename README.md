@@ -27,11 +27,6 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     1. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
     2. Update cargo to have dev and prod configs
     3. Update nginx to have dev and prod configs
-    4. Fix git hooks and vscode config to correctly read Cargo.toml
-    5. Make all names for "npm-expansions-server" and "nginx-reverse-proxy" consistent
-        - Cargo project name
-        - Directory names
-        - Fly.io app names
 2. ### Tests
     1. Add function specific functionality tests for controller functions i.e. checking stream response
     2. Add integration tests for server
