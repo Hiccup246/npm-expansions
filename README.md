@@ -20,9 +20,14 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     2. Implement copy all expansions to clipboard and view all expansions functionality
     1. Implement OG and Twitter SEO tags
 2. ### Infrastructure
-    1. Get project deployment working locally with docker and nginx reverse proxy
-    2. Work on SSL certificates
-    3. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
+    1. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
+    2. Update cargo to have dev and prod configs
+    3. Update nginx to have dev and prod configs
+    4. Fix git hooks and vscode config to correctly read Cargo.toml
+    5. Make all names for "npm-expansions-server" and "nginx-reverse-proxy" consistent
+        - Cargo project name
+        - Directory names
+        - Fly.io app names
 2. ### Tests
     1. Add function specific functionality tests for controller functions i.e. checking stream response
     2. Add integration tests for server
@@ -41,7 +46,6 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 # 🗺️ Long Term ToDo
 1. Polished readme which outlines the goal of the project, contains a screenshot of the website and a description of the API with sections on usage, development and installation
 2. Implement PostGres database with docker for npm expansions
-3. Do a production deployment using either AWS or Fly.io or some other platform
 4. Update jameswatt.io with this project
 - Handle incoming requests in an optimised way e.g. threads or asynchronous events
 - Polished readme which outlines the goal of the project, contains a screenshot of the website and a description of the API with sections on usage, development and installation
