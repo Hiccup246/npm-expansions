@@ -18,7 +18,11 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 1. ### Website Functionality
     1. Implement search all expansions functionality
     2. Implement copy all expansions to clipboard and view all expansions functionality
-    1. Implement OG and Twitter SEO tags
+    3. Implement OG and Twitter SEO tags
+    4. Fix FIFO of assets and fonts
+    5. See if background image looks just as good in webp format
+    6. Add fade in amination for button hover
+    7. Maybe add squeeze or enlarge animation for button click
 2. ### Infrastructure
     1. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
     2. Update cargo to have dev and prod configs
