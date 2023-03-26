@@ -1,8 +1,3 @@
-# Questions
-# - What do we do about our static directory and reasources which need to be available to
-#   our runner build stage
-# - Why have a folder directory of /usr/src/app in the runner build stage
-
 # Creates a new build stage using rust:1.67.1 as the base image and names it to builder
 FROM rust:1.67.1 as builder
 
