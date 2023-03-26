@@ -1,37 +1,16 @@
-# Network to run web server
-# Ability to reverse proxy with Nginx
-
-# Example Dockerfiles
-# https://github.com/jacob-pro/calpol/blob/master/Dockerfile
-# https://github.com/ghotiphud/rust-web-starter/blob/master/api_server/Dockerfile
-
-# Example docker-compose file
-# https://github.com/jacob-pro/calpol/blob/master/config/docker-compose-example.yml
-
-# Nginx Reverse proxy information
-# https://www.freecodecamp.org/news/docker-nginx-letsencrypt-easy-secure-reverse-proxy-40165ba3aee2/
-# https://hackernoon.com/how-to-nginx-reverse-proxy-with-docker-compose-ul7b3y40
-# https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/Docker-Nginx-reverse-proxy-setup-example
-
 version: "3.9"
 
-# Default network of myapp_default is created
-# Container webserver joins the myapp_default network as npm-expansions-web-server
-# Container reverse-proxy joins the myapp_default network as npm-expansions-reverse-proxy
 services:
   webserver:
     container_name: npm-expansions-web-server
     hostname: npm-expansions
-    build: .
+    build: ./npm-expansions-server
     expose:
       - "8000"
   reverse-proxy:
     container_name: npm-expansions-reverse-proxy
     hostname: reverse
-    build: ./nginx
-    # links:
-    #   - "webserver:npm-expansions"
+    build: ./nginx-reverse-proxy
     ports:
-    # 80 is http and 443 is https
       - 80:80
       - 443:443
