@@ -46,7 +46,7 @@ ARG APP=/usr/src/app
 #    && rm -rf /var/lib/apt/lists/*
 
 # Tells docker that the container listens on port 8000 using TCP by defualt (my web server should listen to this port)
-EXPOSE 8000
+EXPOSE 8080
 
 # Set TimeZone
 # ENV TZ=Etc/UTC \

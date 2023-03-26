@@ -22,7 +22,7 @@ pub use request::Request;
 
 fn main() {
     let router = router::Router::new(routes_config::route_config("static"));
-    let listener = TcpListener::bind("0.0.0.0:8000").unwrap();
+    let listener = TcpListener::bind("[::]:8080").unwrap();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();

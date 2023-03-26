@@ -1,0 +1,27 @@
+# fly.toml file generated for npm-expansions-reverse-proxy on 2023-03-26T12:31:20+01:00
+
+app = "npm-expansions-reverse-proxy"
+kill_signal = "SIGINT"
+kill_timeout = 5
+mounts = []
+primary_region = "lhr"
+processes = []
+
+[[services]]
+  internal_port = 8080
+  processes = ["app"]
+  protocol = "tcp"
+  
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
