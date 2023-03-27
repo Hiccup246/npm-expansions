@@ -42,9 +42,9 @@ impl fmt::Display for MimeTypeParseError {
 /// // fails if given a malformed mime type
 /// parse_mime_type("text/")
 /// ```
-pub fn parse_mime_type<'a>(
-    mime_type: &'a str,
-) -> Result<(&'a str, &'a str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
+pub fn parse_mime_type(
+    mime_type: &str,
+) -> Result<(&str, &str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
     let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> =
