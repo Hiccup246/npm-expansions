@@ -2,6 +2,7 @@ use crate::request::Request;
 use crate::Controller;
 use crate::NpmExpansionsError;
 use std::{collections::HashMap, fs};
+use crate::router::Route;
 
 /// Returns the http routes supported by this projects server
 ///
@@ -24,8 +25,8 @@ use std::{collections::HashMap, fs};
 ///
 pub fn route_config(
     static_directory: &str,
-) -> HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>> {
-    let mut config: HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>> =
+) -> Route {
+    let mut config: Route =
         HashMap::from([
             (
                 "GET / HTTP/1.1".to_string(),
@@ -50,7 +51,7 @@ pub fn route_config(
 }
 
 fn insert_static_routes(
-    routes_config: &mut HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>>,
+    routes_config: &mut Route,
     static_file_route_names: Vec<String>,
 ) {
     for static_file in static_file_route_names {

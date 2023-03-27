@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 pub use crate::request::Request;
 
-type Route = HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>>;
+pub type Route = HashMap<String, fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>>;
 
 #[derive(Debug)]
 pub struct HandleRouteError;
