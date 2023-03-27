@@ -13,7 +13,7 @@ pub struct Router {
 }
 
 impl Router {
-    pub fn new<'a>(
+    pub fn new(
         routes_config: Route,
     ) -> Router {
         Router { routes_config }
