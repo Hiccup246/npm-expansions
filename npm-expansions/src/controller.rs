@@ -366,7 +366,9 @@ mod tests {
     #[test_case(Controller::internal_server_error; "internal_server_error")]
     #[test_case(Controller::client_error; "client_error")]
 
-    fn lower_case_accept_header(controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>) {
+    fn lower_case_accept_header(
+        controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+    ) {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("accept".to_string(), "text/html".to_string())]),
@@ -382,10 +384,7 @@ mod tests {
     #[test_case(Controller::client_error; "client_error")]
 
     fn no_accept_header(controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>) {
-        let request = Request::new(
-            "GET / HTTP/1.1",
-            HashMap::new(),
-        );
+        let request = Request::new("GET / HTTP/1.1", HashMap::new());
 
         assert!(controller_function(&request).is_ok())
     }

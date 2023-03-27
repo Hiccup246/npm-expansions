@@ -1,8 +1,8 @@
 use crate::request::Request;
+use crate::router::Route;
 use crate::Controller;
 use crate::NpmExpansionsError;
 use std::{collections::HashMap, fs};
-use crate::router::Route;
 
 /// Returns the http routes supported by this projects server
 ///
@@ -23,24 +23,21 @@ use crate::router::Route;
 /// The function panics if the given static_directory does not exist or if it
 /// contains files whoose names cannot become strings
 ///
-pub fn route_config(
-    static_directory: &str,
-) -> Route {
-    let mut config: Route =
-        HashMap::from([
-            (
-                "GET / HTTP/1.1".to_string(),
-                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
-            ),
-            (
-                "GET /random HTTP/1.1".to_string(),
-                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
-            ),
-            (
-                "404".to_string(),
-                Controller::not_found as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
-            ),
-        ]);
+pub fn route_config(static_directory: &str) -> Route {
+    let mut config: Route = HashMap::from([
+        (
+            "GET / HTTP/1.1".to_string(),
+            Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+        ),
+        (
+            "GET /random HTTP/1.1".to_string(),
+            Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+        ),
+        (
+            "404".to_string(),
+            Controller::not_found as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+        ),
+    ]);
 
     insert_static_routes(
         &mut config,
@@ -50,10 +47,7 @@ pub fn route_config(
     config
 }
 
-fn insert_static_routes(
-    routes_config: &mut Route,
-    static_file_route_names: Vec<String>,
-) {
+fn insert_static_routes(routes_config: &mut Route, static_file_route_names: Vec<String>) {
     for static_file in static_file_route_names {
         routes_config.insert(
             static_file,

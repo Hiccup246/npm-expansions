@@ -44,9 +44,7 @@ impl fmt::Display for MimeTypeParseError {
 /// // fails if given a malformed mime type
 /// parse_mime_type("text/")
 /// ```
-pub fn parse_mime_type(
-    mime_type: &str,
-) -> Result<MimeType, MimeTypeParseError> {
+pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
     let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> =
@@ -77,7 +75,7 @@ pub fn parse_mime_type(
         _ => None,
     };
 
-    if let Some(parsed_mime_type) = parsed_mime_type {        
+    if let Some(parsed_mime_type) = parsed_mime_type {
         if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
             Err(MimeTypeParseError::new(mime_type.to_string()))
         } else {
@@ -128,7 +126,11 @@ mod tests {
 
         assert_eq!(
             full_unwrapped,
-            ("application", "signed-exchange", HashMap::from([("v", "b3"), ("q", "0.7")]))
+            (
+                "application",
+                "signed-exchange",
+                HashMap::from([("v", "b3"), ("q", "0.7")])
+            )
         );
     }
 

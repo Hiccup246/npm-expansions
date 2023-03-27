@@ -13,9 +13,7 @@ pub struct Router {
 }
 
 impl Router {
-    pub fn new(
-        routes_config: Route,
-    ) -> Router {
+    pub fn new(routes_config: Route) -> Router {
         Router { routes_config }
     }
 
@@ -78,8 +76,7 @@ mod tests {
     fn route_response() {
         let actual_route: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError> =
             |_| Ok("actual_route".as_bytes().to_vec());
-        let route_config: Route =
-            HashMap::from([("GET / HTTP/1.1".to_string(), actual_route)]);
+        let route_config: Route = HashMap::from([("GET / HTTP/1.1".to_string(), actual_route)]);
         let router = Router::new(route_config);
         let request = Request::new("GET / HTTP/1.1", HashMap::new());
         let response = router.route_request(request);
@@ -91,8 +88,7 @@ mod tests {
     fn route_not_found() {
         let not_found: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError> =
             |_| Ok("not_found".as_bytes().to_vec());
-        let route_config: Route =
-            HashMap::from([("404".to_string(), not_found)]);
+        let route_config: Route = HashMap::from([("404".to_string(), not_found)]);
         let router = Router::new(route_config);
         let request = Request::new("GET /fake_route HTTP/1.1", HashMap::new());
         let response = router.route_request(request);
