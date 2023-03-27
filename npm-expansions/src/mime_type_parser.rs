@@ -77,13 +77,11 @@ pub fn parse_mime_type(
         _ => None,
     };
 
-    if let Some(parsed_mime_type) = parsed_mime_type {
-        if parameters.is_err() {
-            Err(parameters.err().unwrap())
-        } else if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
+    if let Some(parsed_mime_type) = parsed_mime_type {        
+        if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
             Err(MimeTypeParseError::new(mime_type.to_string()))
         } else {
-            Ok((parsed_mime_type.0, parsed_mime_type.1, parameters.unwrap()))
+            Ok((parsed_mime_type.0, parsed_mime_type.1, parameters?))
         }
     } else {
         Err(MimeTypeParseError::new(mime_type.to_string()))
