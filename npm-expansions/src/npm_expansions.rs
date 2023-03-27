@@ -865,12 +865,9 @@ impl NpmExpansions {
 
     pub fn random_expansion() -> String {
         let random_index: usize = rand::thread_rng().gen_range(0..Self::EXPANSIONS.len());
-
-        Self::EXPANSIONS
-            .get(random_index)
-            .unwrap()
-            .clone()
-            .to_string()
+        let expansion = *Self::EXPANSIONS.get(random_index).unwrap();
+            
+        expansion.to_string()
     }
 }
 
