@@ -4,6 +4,7 @@ use crate::npm_expansion_error::NpmExpansionsError;
 use crate::response::Response;
 use crate::NpmExpansions;
 use crate::Request;
+use levenshtein::levenshtein;
 use std::fs;
 
 pub struct Controller {}
@@ -159,6 +160,67 @@ impl Controller {
                 "200 OK",
                 "Content-Type: application/json",
                 format!("[{}]", string_expansions.join(",")),
+            ),
+            _ => Response::new(
+                "406 NOT ACCEPTABLE",
+                "",
+                "Please accept application/json".to_string(),
+            ),
+        }
+        .into_http_response();
+
+        Ok(response)
+    }
+
+    /// Returns a vector byte representation of a json array containing the top ten matches of npm expansions given
+    /// a request with a search_query query param
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// let response = Controller::search(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
+    /// Controller::search(&request)
+    /// ```
+    pub fn search(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+        let headers = request.headers();
+        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
+        let best = accept_header_handler::best_match(
+            Vec::from(["application/json"]),
+            accept_header.unwrap_or(&"".to_string()),
+        )?;
+
+        let mut weighted_matched: Vec<(usize, &str)> = NpmExpansions::expansions()
+            .iter()
+            .map(|expansion| (levenshtein(expansion, "Neo post manager"), *expansion))
+            .collect();
+
+        weighted_matched.sort_by(|a, b| a.0.cmp(&b.0));
+
+        let top_ten: Vec<String> = weighted_matched[0..10]
+            .iter()
+            .map(|expansions| format!("\"{}\"", expansions.1))
+            .collect();
+
+        let response = match best.as_str() {
+            "application/json" => Response::new(
+                "200 OK",
+                "Content-Type: application/json",
+                format!("[{}]", top_ten.join(",")),
             ),
             _ => Response::new(
                 "406 NOT ACCEPTABLE",
@@ -385,6 +447,7 @@ mod tests {
     #[test_case(Controller::index; "index")]
     #[test_case(Controller::random; "random")]
     #[test_case(Controller::all; "all")]
+    #[test_case(Controller::search; "search")]
     #[test_case(Controller::not_found; "not_found")]
     #[test_case(Controller::internal_server_error; "internal_server_error")]
     #[test_case(Controller::client_error; "client_error")]
@@ -401,6 +464,7 @@ mod tests {
     #[test_case(Controller::index; "index")]
     #[test_case(Controller::random; "random")]
     #[test_case(Controller::all; "all")]
+    #[test_case(Controller::search; "search")]
     #[test_case(Controller::not_found; "not_found")]
     #[test_case(Controller::internal_server_error; "internal_server_error")]
     #[test_case(Controller::client_error; "client_error")]

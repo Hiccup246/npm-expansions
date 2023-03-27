@@ -38,6 +38,10 @@ pub fn route_config(static_directory: &str) -> Route {
             Controller::all as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
         ),
         (
+            "GET /search HTTP/1.1".to_string(),
+            Controller::search as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+        ),
+        (
             "404".to_string(),
             Controller::not_found as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
         ),
