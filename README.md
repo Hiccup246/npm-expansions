@@ -26,14 +26,13 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     6. Add fade in amination for button hover
     7. Maybe add squeeze or enlarge animation for button click
 2. ### Infrastructure
-    1. Before server starts minify/uglify all javascript code (https://crates.io/crates/minifier)
-    2. Update cargo to have dev and prod configs
-    3. Update nginx to have dev and prod configs
+    1. Update cargo to have dev and prod configs
+    2. Update nginx to have dev and prod configs
 2. ### Tests
     1. Add function specific functionality tests for controller functions i.e. checking stream response
     2. Add integration tests for server
 3. ### Benchmarks
-    1. Read up about the benchmarks directory in rust and whether I should utilise it
+    1. Implement benchmarks for process intensive functions or functions whoose performance I am curious about
 4. ### Documentation
     1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
     2. Consider adding documentation comments for structs and crate as a whole
