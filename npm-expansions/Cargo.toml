@@ -15,3 +15,7 @@ test-case = "3.0.0"
 version = "1"
 default-features = false # Disable features which are enabled by default
 features = ["precommit-hook", "run-cargo-fmt", "run-cargo-clippy"]
+
+[build-dependencies]
+minifier = "0.2.2"
+minify-html = "0.10.8"

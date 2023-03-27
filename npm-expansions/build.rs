@@ -1,7 +1,10 @@
-use std::fs::{DirEntry, ReadDir};
+use std::fs::{DirEntry, ReadDir, File};
 // Example custom build script.
 use std::fs;
 use std::path::{Path, PathBuf};
+use minify_html::{Cfg, minify};
+use minifier::css::minify as css_mimifier;
+use minifier::js::minify as js_mimifier;
 
 fn main() {
     // Tell Cargo that if the given file changes, to rerun this build script.
@@ -62,7 +65,8 @@ fn copy_pages_directory(dir: ReadDir, output_dir: &PathBuf) {
         if let Ok(dir) = dir_entry {
             if dir.file_type().unwrap().is_file() {
                 let new_file_name = output_dir.as_path().join(dir.file_name());
-                fs::copy(dir.path(), new_file_name).unwrap();
+                copy_file(&dir.path(), &new_file_name);
+                // fs::copy(dir.path(), new_file_name).unwrap();
             } else if dir.file_type().unwrap().is_dir() {
                 if !output_dir.as_path().join(dir.file_name()).exists() {
                     fs::create_dir(output_dir.as_path().join(dir.file_name())).unwrap();
@@ -74,4 +78,32 @@ fn copy_pages_directory(dir: ReadDir, output_dir: &PathBuf) {
             }
         }
     }
+}
+
+fn copy_file(from: &Path, to: &Path) {
+    File::create(to).unwrap();
+
+    if from.extension().unwrap() == "html" {
+        let file = fs::read(from).unwrap();
+        let config = Cfg::new();
+        let minified = minify(&file, &config);
+        File::create(to).unwrap();
+        fs::write(to, minified).unwrap();
+    } else if from.extension().unwrap() == "css" {
+        let file = fs::read_to_string(from).unwrap();
+        let minified = css_mimifier(&file).unwrap();
+        File::create(to).unwrap();
+        fs::write(to, minified.to_string().as_bytes()).unwrap();
+    } else if from.extension().unwrap() == "js" {
+        let file = fs::read_to_string(from).unwrap();
+        let minified = js_mimifier(&file).to_string();
+        File::create(to).unwrap();
+        fs::write(to, minified.as_bytes()).unwrap();
+    } else {
+        fs::copy(from, to).unwrap();
+    }
+}
+
+fn minify_css() {
+
 }
