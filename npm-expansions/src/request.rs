@@ -53,12 +53,8 @@ impl Request {
 
         let status_line;
 
-        if let Some(line) = buffer.next() {
-            if let Ok(current_line) = line {
-                status_line = current_line;
-            } else {
-                return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
-            }
+        if let Some(Ok(line)) = buffer.next() {
+            status_line = line;
         } else {
             return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
         }
