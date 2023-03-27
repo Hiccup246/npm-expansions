@@ -1,6 +1,8 @@
 // Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
 use std::{collections::HashMap, fmt};
 
+type MimeType<'a> = (&'a str, &'a str, Option<HashMap<&'a str, &'a str>>);
+
 #[derive(Debug)]
 pub struct MimeTypeParseError {
     pub failed_mime_type: String,
@@ -44,7 +46,7 @@ impl fmt::Display for MimeTypeParseError {
 /// ```
 pub fn parse_mime_type(
     mime_type: &str,
-) -> Result<(&str, &str, Option<HashMap<&str, &str>>), MimeTypeParseError> {
+) -> Result<MimeType, MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
     let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> =
