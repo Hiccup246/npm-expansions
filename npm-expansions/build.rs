@@ -50,60 +50,66 @@ fn main() {
 }
 
 fn copy_static_directory(input_dir: fs::ReadDir, output_dir: &PathBuf) {
-    for dir_entry in input_dir {
-        if let Ok(dir) = dir_entry {
-            if dir.file_type().unwrap().is_file() {
-                let new_file_name = output_dir.as_path().join(dir.file_name());
-                fs::copy(dir.path(), new_file_name).unwrap();
+    input_dir
+        .map(|dir_entry| dir_entry.unwrap())
+        .for_each(|dir_entry| {
+            if dir_entry.file_type().unwrap().is_file() {
+                let new_file_name = output_dir.as_path().join(dir_entry.file_name());
+                copy_file(&dir_entry.path(), &new_file_name);
             }
-        }
-    }
+        });
 }
 
 fn copy_pages_directory(dir: ReadDir, output_dir: &PathBuf) {
-    for dir_entry in dir {
-        if let Ok(dir) = dir_entry {
-            if dir.file_type().unwrap().is_file() {
-                let new_file_name = output_dir.as_path().join(dir.file_name());
-                copy_file(&dir.path(), &new_file_name);
-                // fs::copy(dir.path(), new_file_name).unwrap();
-            } else if dir.file_type().unwrap().is_dir() {
-                if !output_dir.as_path().join(dir.file_name()).exists() {
-                    fs::create_dir(output_dir.as_path().join(dir.file_name())).unwrap();
-                }
-                copy_pages_directory(
-                    fs::read_dir(dir.path()).unwrap(),
-                    &output_dir.as_path().join(dir.file_name()),
-                )
+    let entries:Vec<DirEntry> = dir.map(|dir_entry| dir_entry.unwrap()).collect();
+
+    for dir_entry in entries {
+        let file_type = dir_entry.file_type().unwrap();
+
+        if file_type.is_file() {
+            let new_file_name = output_dir.as_path().join(dir_entry.file_name());
+            copy_file(&dir_entry.path(), &new_file_name);
+        } else if file_type.is_dir() {
+            if !output_dir.as_path().join(dir_entry.file_name()).exists() {
+                fs::create_dir(output_dir.as_path().join(dir_entry.file_name())).unwrap();
             }
+
+            copy_pages_directory(
+                fs::read_dir(dir_entry.path()).unwrap(),
+                &output_dir.as_path().join(dir_entry.file_name()),
+            )
         }
     }
 }
 
 fn copy_file(from: &Path, to: &Path) {
-    File::create(to).unwrap();
+    let extension = from.extension().unwrap();
 
-    if from.extension().unwrap() == "html" {
-        let file = fs::read(from).unwrap();
-        let config = Cfg::new();
-        let minified = minify(&file, &config);
-        File::create(to).unwrap();
-        fs::write(to, minified).unwrap();
-    } else if from.extension().unwrap() == "css" {
-        let file = fs::read_to_string(from).unwrap();
-        let minified = css_mimifier(&file).unwrap();
-        File::create(to).unwrap();
-        fs::write(to, minified.to_string().as_bytes()).unwrap();
-    } else if from.extension().unwrap() == "js" {
-        let file = fs::read_to_string(from).unwrap();
-        let minified = js_mimifier(&file).to_string();
-        File::create(to).unwrap();
-        fs::write(to, minified.as_bytes()).unwrap();
-    } else {
-        fs::copy(from, to).unwrap();
-    }
-}
+    match extension.to_str().unwrap() {
+        "html" => {
+            let file = fs::read(from).unwrap();
+            let minified = minify(&file, &Cfg::new());
 
-fn minify_css() {
+            File::create(to).unwrap();
+            fs::write(to, minified).unwrap();
+        },
+        "css" => {
+            let file = fs::read_to_string(from).unwrap();
+            let minified = css_mimifier(&file).unwrap();
 
+            File::create(to).unwrap();
+            fs::write(to, minified.to_string().as_bytes()).unwrap();
+        }
+        "js" => {
+            let file = fs::read_to_string(from).unwrap();
+            let minified = js_mimifier(&file).to_string();
+
+            File::create(to).unwrap();
+            fs::write(to, minified.as_bytes()).unwrap();
+        }
+        _ => {
+            File::create(to).unwrap();
+            fs::copy(from, to).unwrap();
+        }
+    };
 }
