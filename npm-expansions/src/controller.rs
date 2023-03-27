@@ -118,6 +118,59 @@ impl Controller {
         Ok(response)
     }
 
+    /// Returns a vector byte representation of a json array containing all npm expansions
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - An incoming HTTP request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// let response = Controller::all(&request);
+    /// assert!(response.is_ok());
+    /// ```
+    ///
+    /// # Failures
+    ///
+    /// The function fails if the given request has invalid headers
+    ///
+    /// ```rust,should_error
+    /// // fails if the given request has invalid headers
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
+    /// Controller::all(&request)
+    /// ```
+    pub fn all(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+        let headers = request.headers();
+        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
+        let best = accept_header_handler::best_match(
+            Vec::from(["application/json"]),
+            accept_header.unwrap_or(&"".to_string()),
+        )?;
+
+        let string_expansions: Vec<String> = NpmExpansions::expansions()
+            .iter()
+            .map(|expansions| format!("\"{expansions}\""))
+            .collect();
+
+        let response = match best.as_str() {
+            "application/json" => Response::new(
+                "200 OK",
+                "Content-Type: application/json",
+                format!("[{}]", string_expansions.join(",")),
+            ),
+            _ => Response::new(
+                "406 NOT ACCEPTABLE",
+                "",
+                "Please accept application/json".to_string(),
+            ),
+        }
+        .into_http_response();
+
+        Ok(response)
+    }
+
     /// Returns a vector byte representation of the not_found page including html, css and javascript
     ///
     /// # Arguments
@@ -331,6 +384,7 @@ mod tests {
 
     #[test_case(Controller::index; "index")]
     #[test_case(Controller::random; "random")]
+    #[test_case(Controller::all; "all")]
     #[test_case(Controller::not_found; "not_found")]
     #[test_case(Controller::internal_server_error; "internal_server_error")]
     #[test_case(Controller::client_error; "client_error")]
@@ -346,6 +400,7 @@ mod tests {
 
     #[test_case(Controller::index; "index")]
     #[test_case(Controller::random; "random")]
+    #[test_case(Controller::all; "all")]
     #[test_case(Controller::not_found; "not_found")]
     #[test_case(Controller::internal_server_error; "internal_server_error")]
     #[test_case(Controller::client_error; "client_error")]
