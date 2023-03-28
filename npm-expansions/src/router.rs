@@ -53,8 +53,8 @@ impl Router {
     /// assert!(response.is_err())
     /// ```
     pub fn route_request(&self, request: Request) -> Result<Vec<u8>, NpmExpansionsError> {
-        let status_line = request.status_line();
-        let controller_function = self.routes_config.get(status_line);
+        let status_line = request.status_line_stripped();
+        let controller_function = self.routes_config.get(status_line.as_str());
 
         if let Some(controller_function) = controller_function {
             return controller_function(&request);

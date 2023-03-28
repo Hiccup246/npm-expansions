@@ -164,6 +164,22 @@ impl Request {
         self.status_line.as_str()
     }
 
+    pub fn status_line_stripped(&self) -> String {
+        let split_line: Vec<&str> = self.status_line.split(' ').collect();
+
+        let method = *split_line.first().unwrap_or(&"");
+        let mut route = *split_line.get(1).unwrap_or(&"");
+        let version = *split_line.get(2).unwrap_or(&"");
+
+        route = if let Some(split) = route.split_once('?') {
+            split.0
+        } else {
+            route
+        };
+
+        format!("{method} {route} {version}")
+    }
+
     pub fn headers(&self) -> &HashMap<String, String> {
         &self.headers
     }

@@ -19,10 +19,18 @@ pub use crate::npm_expansions::NpmExpansions;
 pub use controller::Controller;
 use npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 pub use request::Request;
+use std::env;
 
 fn main() {
-    let router = router::Router::new(routes_config::route_config("static"));
-    let listener = TcpListener::bind("[::]:8080").unwrap();
+    let development_env = env::var("DEV").is_ok();
+    let addr = if development_env {
+        "0.0.0.0:8080"
+    } else {
+        "[::]:8080"
+    };
+
+    let router = router::Router::new(routes_config::route_config());
+    let listener = TcpListener::bind(addr).unwrap();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
@@ -110,7 +118,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = respond_to_request(&mut stream, &router);
@@ -132,7 +140,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = respond_to_request(&mut stream, &router);
@@ -154,7 +162,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = respond_to_request(&mut stream, &router);
@@ -194,7 +202,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = handle_connection(&mut stream, &router, valid_error_response);
@@ -216,7 +224,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = handle_connection(&mut stream, &router, valid_error_response);
@@ -239,7 +247,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::index as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             handle_connection(&mut stream, &router, invalid_error_response);
