@@ -17,7 +17,9 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 <br>
 
 # 📋 Short Term ToDo
-1. ### Website Functionality
+1. ### Server Features
+    1. Update request object to process query params
+2. ### Website Functionality
     1. Implement search all expansions functionality
     2. Implement copy all expansions to clipboard and view all expansions functionality
     3. Implement OG and Twitter SEO tags
@@ -25,18 +27,19 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     5. See if background image looks just as good in webp format
     6. Add fade in amination for button hover
     7. Maybe add squeeze or enlarge animation for button click
-2. ### Infrastructure
-    1. Update cargo to have dev and prod configs
-    2. Update nginx to have dev and prod configs
-2. ### Tests
+3. ### Infrastructure
+    1. Serve minified files
+    2. Update cargo to have dev and prod configs
+    3. Update nginx to have dev and prod configs
+4. ### Tests
     1. Add function specific functionality tests for controller functions i.e. checking stream response
     2. Add integration tests for server
-3. ### Benchmarks
+5. ### Benchmarks
     1. Implement benchmarks for process intensive functions or functions whoose performance I am curious about
-4. ### Documentation
+6. ### Documentation
     1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
     2. Consider adding documentation comments for structs and crate as a whole
-5. ### Refactoring
+7. ### Refactoring
     1. Read up about rust coding styles and idiomatic rust and refactor code to fit this style
     2. Consider replacing a lot of `if let Ok(x) = y`, `if let Err(x) = y`, `if let Some(x) = y` and `if let None = y` patterns
     with bubble up patterns like `?` 
