@@ -204,9 +204,12 @@ impl Controller {
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
+        let default = String::from(" ");
+        let search_string = request.query_params().get("query").unwrap_or(&default);
+
         let mut weighted_matched: Vec<(usize, &str)> = NpmExpansions::expansions()
             .iter()
-            .map(|expansion| (levenshtein(expansion, "Neo post manager"), *expansion))
+            .map(|expansion| (levenshtein(search_string, search_string), *expansion))
             .collect();
 
         weighted_matched.sort_by(|a, b| a.0.cmp(&b.0));
