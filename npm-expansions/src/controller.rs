@@ -456,6 +456,7 @@ mod tests {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/html".to_string())]),
+            HashMap::new(),
         );
 
         assert!(controller_function(&request).is_ok())
@@ -474,6 +475,7 @@ mod tests {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/".to_string())]),
+            HashMap::new(),
         );
 
         assert!(controller_function(&request).is_err())
@@ -491,6 +493,7 @@ mod tests {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("accept".to_string(), "text/html".to_string())]),
+            HashMap::new(),
         );
 
         assert!(controller_function(&request).is_ok())
@@ -503,7 +506,7 @@ mod tests {
     #[test_case(Controller::client_error; "client_error")]
 
     fn no_accept_header(controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>) {
-        let request = Request::new("GET / HTTP/1.1", HashMap::new());
+        let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
 
         assert!(controller_function(&request).is_ok())
     }
@@ -516,6 +519,7 @@ mod tests {
             let request = Request::new(
                 "GET /robots.txt HTTP/1.1",
                 HashMap::from([("Accept".to_string(), "text/plain".to_string())]),
+                HashMap::new(),
             );
 
             assert!(Controller::static_file(&request).is_ok())
@@ -526,6 +530,7 @@ mod tests {
             let request = Request::new(
                 "GET",
                 HashMap::from([("Accept".to_string(), "text/plain".to_string())]),
+                HashMap::new(),
             );
 
             assert!(Controller::static_file(&request).is_err())
@@ -537,6 +542,7 @@ mod tests {
             let request = Request::new(
                 "GET /nothing HTTP/1.1",
                 HashMap::from([("Accept".to_string(), "text/plain".to_string())]),
+                HashMap::new(),
             );
 
             assert!(Controller::static_file(&request).is_err())

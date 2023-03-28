@@ -45,6 +45,7 @@ fn handle_connection(
                 "Accept".to_string(),
                 "text/html,application/json".to_string(),
             )]),
+            HashMap::new(),
         );
 
         let error_response = error_handler(&res, &error_request);

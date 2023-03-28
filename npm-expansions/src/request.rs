@@ -7,6 +7,7 @@ use std::{
 pub struct Request {
     status_line: String,
     headers: HashMap<String, String>,
+    query_params: HashMap<String, String>,
 }
 
 impl Request {
@@ -59,6 +60,8 @@ impl Request {
             return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
         }
 
+        let query_params = Self::build_query_params(&status_line)?;
+
         let mut headers: HashMap<String, String> = HashMap::new();
 
         for line in buffer {
@@ -67,6 +70,7 @@ impl Request {
                     return Ok(Request {
                         status_line,
                         headers,
+                        query_params,
                     });
                 } else {
                     let colon_position = current_line.find(':');
@@ -89,10 +93,70 @@ impl Request {
         Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError))
     }
 
-    pub fn new(status_line: &str, headers: HashMap<String, String>) -> Request {
+    fn build_query_params(
+        status_line: &str,
+    ) -> Result<HashMap<String, String>, NpmExpansionsError> {
+        // GET /random?query=123&search=abc HTTP/1.1
+        let split_line: Vec<&str> = status_line.split(' ').collect();
+
+        if split_line.len() != 3 {
+            return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
+        }
+
+        let uri = split_line
+            .get(1)
+            .ok_or(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
+
+        let query_params = uri?.split_once('?');
+
+        if let Some(query_params) = query_params {
+            let mut params = query_params.1;
+
+            if params.is_empty() {
+                return Ok(HashMap::new());
+            }
+
+            if let Some(param) = params.split_once('#') {
+                params = param.0
+            }
+
+            let single: Vec<&str> = params.split('&').filter(|a| !a.is_empty()).collect();
+            let vec_params: Result<Vec<(&str, &str)>, NpmExpansionsError> = single
+                .iter()
+                .map(|param| {
+                    param
+                        .split_once('=')
+                        .ok_or(NpmExpansionsError::new(NpmErrorKind::RequestParseError))
+                })
+                .collect();
+
+            let final_hashmap = vec_params?.iter().fold(HashMap::new(), |mut acc, param| {
+                acc.insert(param.0.to_string(), param.1.to_string());
+                acc
+            });
+
+            Ok(final_hashmap)
+        } else {
+            Ok(HashMap::new())
+        }
+
+        // Split into three parts
+        // Get second part
+        // Get ? onward
+        // Split by & symbol
+        // Split by = symbol
+        // Put into Hashmap
+    }
+
+    pub fn new(
+        status_line: &str,
+        headers: HashMap<String, String>,
+        query_params: HashMap<String, String>,
+    ) -> Request {
         Request {
             status_line: status_line.to_string(),
             headers,
+            query_params,
         }
     }
 
@@ -102,6 +166,10 @@ impl Request {
 
     pub fn headers(&self) -> &HashMap<String, String> {
         &self.headers
+    }
+
+    pub fn query_params(&self) -> &HashMap<String, String> {
+        &self.query_params
     }
 }
 
@@ -127,6 +195,184 @@ mod tests {
             let request = Request::build(&mut stream).unwrap();
 
             assert_eq!(request.status_line(), "GET / HTTP/1.1")
+        }
+
+        #[test]
+        fn parses_query_params() {
+            let input_bytes = b"GET /random?query=123&search=hello HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(
+                request.query_params(),
+                &HashMap::from([
+                    ("query".to_string(), "123".to_string()),
+                    ("search".to_string(), "hello".to_string())
+                ])
+            )
+        }
+
+        #[test]
+        fn no_query_params() {
+            let input_bytes = b"GET /random HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(request.query_params(), &HashMap::new())
+        }
+
+        #[test]
+        fn empty_query_params() {
+            let input_bytes = b"GET /random? HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(request.query_params(), &HashMap::new())
+        }
+
+        #[test]
+        fn single_query_param() {
+            let input_bytes = b"GET /random?search=123 HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(
+                request.query_params(),
+                &HashMap::from([("search".to_string(), "123".to_string())])
+            )
+        }
+
+        #[test]
+        fn malformed_single_query_param() {
+            let input_bytes = b"GET /random?search HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream);
+
+            assert!(request.is_err())
+        }
+
+        #[test]
+        fn malformed_two_single_query_param() {
+            let input_bytes = b"GET /random?search& HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream);
+
+            assert!(request.is_err())
+        }
+
+        #[test]
+        fn multi_malformed_query_param() {
+            let input_bytes = b"GET /random?search=123& HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(
+                request.query_params(),
+                &HashMap::from([("search".to_string(), "123".to_string())])
+            )
+        }
+
+        #[test]
+        fn blank_query_param() {
+            let input_bytes = b"GET /random?search= HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(
+                request.query_params(),
+                &HashMap::from([("search".to_string(), "".to_string())])
+            )
+        }
+
+        #[test]
+        fn malformedmulti_query_param() {
+            let input_bytes = b"GET /random?&&&&& HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(request.query_params(), &HashMap::new())
+        }
+
+        #[test]
+        fn includes_hashtag() {
+            let input_bytes = b"GET /random?search=123#test HTTP/1.1\r\n\r\n";
+            let mut contents = vec![0u8; 1024];
+
+            contents[..input_bytes.len()].clone_from_slice(input_bytes);
+
+            let mut stream = MockTcpStream {
+                read_data: contents,
+                write_data: Vec::new(),
+            };
+            let request = Request::build(&mut stream).unwrap();
+
+            assert_eq!(
+                request.query_params(),
+                &HashMap::from([("search".to_string(), "123".to_string())])
+            )
         }
 
         #[test]
