@@ -4,7 +4,7 @@ services:
   webserver:
     container_name: npm-expansions-web-server
     hostname: npm-expansions
-    build: ./npm-expansions-server
+    build: ./npm-expansions
     expose:
       - "8000"
   reverse-proxy:

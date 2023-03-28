@@ -16,7 +16,7 @@ RUN cargo build --release
 
 FROM nginx:1.23.3 as reverse-proxy
 
-COPY --from=builder /npm-expansions/target/static /static
-COPY --from=builder /npm-expansions/target/pages /pages
+COPY --from=builder /npm-expansions/target/static /etc/nginx/static
+COPY --from=builder /npm-expansions/target/pages /etc/nginx/pages
 
 COPY npm-expansions.conf /etc/nginx/nginx.conf

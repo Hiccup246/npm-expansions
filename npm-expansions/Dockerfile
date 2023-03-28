@@ -20,10 +20,7 @@ RUN cargo build --release
 RUN rm src/*.rs
 
 # Copy all project files into the filesystem of the container
-ADD ./src ./src
-ADD ./pages ./pages
 ADD ./rsc ./rsc
-ADD ./static ./static
 
 # Remove binary built from the inital cargo build --release command
 RUN rm ./target/release/deps/npm_expansions*
@@ -60,10 +57,6 @@ RUN groupadd $APP_GROUP \
 
 # Copy binary executable from builder step into new directory namely /usr/src/app/rust-docker-web
 COPY --from=builder /npm-expansions/target/release/npm-expansions ${APP}/npm-expansions
-
-# If we uglify html, css and js we can simply copy the uglified reasources into here
-COPY --from=builder /npm-expansions/static ${APP}/static
-COPY --from=builder /npm-expansions/pages ${APP}/pages
 
 # Change ownership of /usr/src/app to our dave user in the appgroup Unix group
 RUN chown -R $APP_USER:$APP_GROUP ${APP}
