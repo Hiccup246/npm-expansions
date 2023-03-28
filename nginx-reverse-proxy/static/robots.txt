@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://npm-expansions.com/sitemap.xml
+Host: https://npm-expansions.com

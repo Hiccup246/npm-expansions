@@ -1,7 +1,22 @@
+FROM rust:1.67.1 as builder
+
+USER root
+
+RUN cargo new --lib npm-expansions
+
+WORKDIR /npm-expansions
+
+COPY ./Cargo.toml ./Cargo.toml
+
+ADD ./build.rs ./build.rs
+ADD ./pages ./pages
+ADD ./static ./static
+
+RUN cargo build --release
+
 FROM nginx:1.23.3 as reverse-proxy
 
-COPY npm-expansions.conf /etc/nginx/nginx.conf
+COPY --from=builder /npm-expansions/target/static /static
+COPY --from=builder /npm-expansions/target/pages /pages
 
-# We only need to compile rust build dependancies
-# We only need static and pages directory
-# We only need the build.rs file and can ignore created binaries
+COPY npm-expansions.conf /etc/nginx/nginx.conf
