@@ -11,6 +11,14 @@ services:
     container_name: npm-expansions-reverse-proxy
     hostname: reverse
     build: ./nginx-reverse-proxy
+    volumes:
+      - type: bind
+        source: ./nginx-reverse-proxy/pages
+        target: /etc/nginx/pages
+      - type: bind
+        source: ./nginx-reverse-proxy/static
+        target: /etc/nginx/static
     ports:
       - 80:80
+      - 8080:8080
       - 443:443
