@@ -320,6 +320,25 @@ mod tests {
     #[test_case(NpmController::not_found; "not_found")]
     #[test_case(NpmController::internal_server_error; "internal_server_error")]
     #[test_case(NpmController::client_error; "client_error")]
+
+    fn valid_request_returns_content(
+        controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+    ) {
+        let request = Request::new(
+            "GET / HTTP/1.1",
+            HashMap::from([("Accept".to_string(), "text/html".to_string())]),
+            HashMap::new(),
+        );
+
+        assert!(controller_function(&request).unwrap().len() > 0)
+    }
+
+    #[test_case(NpmController::random; "random")]
+    #[test_case(NpmController::all; "all")]
+    #[test_case(NpmController::search; "search")]
+    #[test_case(NpmController::not_found; "not_found")]
+    #[test_case(NpmController::internal_server_error; "internal_server_error")]
+    #[test_case(NpmController::client_error; "client_error")]
     fn invalid_request_headers(
         controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
     ) {
