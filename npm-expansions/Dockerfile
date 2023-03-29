@@ -21,6 +21,7 @@ RUN rm src/*.rs
 
 # Copy all project files into the filesystem of the container
 ADD ./rsc ./rsc
+ADD ./src ./src
 
 # Remove binary built from the inital cargo build --release command
 RUN rm ./target/release/deps/npm_expansions*
