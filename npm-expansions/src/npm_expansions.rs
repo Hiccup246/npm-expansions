@@ -864,6 +864,13 @@ impl NpmExpansions {
         Self::EXPANSIONS
     }
 
+    pub fn new_expansions() -> Vec<&'static str> {
+        include_str!("../rsc/expansions.txt")
+            .lines()
+            .filter(|a| !a.starts_with('*') && !a.starts_with('#'))
+            .collect()
+    }
+
     pub fn random_expansion() -> String {
         let random_index: usize = rand::thread_rng().gen_range(0..Self::EXPANSIONS.len());
         let expansion = *Self::EXPANSIONS.get(random_index).unwrap();
@@ -881,6 +888,13 @@ mod tests {
         let expansion_one = NpmExpansions::random_expansion();
 
         assert!(!expansion_one.is_empty())
+    }
+
+    #[test]
+    fn returns_valid_new_expansion() {
+        let expansion_one = NpmExpansions::new_expansions();
+
+        assert_eq!(expansion_one.get(0).unwrap(), &"N00b Pwn M3")
     }
 
     #[test]

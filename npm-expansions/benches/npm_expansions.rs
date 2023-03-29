@@ -17,4 +17,9 @@ mod tests {
     fn generating_all_expansions(b: &mut Bencher) {
         b.iter(|| NpmExpansions::expansions());
     }
+
+    #[bench]
+    fn generating_all_new_expansions(b: &mut Bencher) {
+        b.iter(|| NpmExpansions::new_expansions());
+    }
 }
