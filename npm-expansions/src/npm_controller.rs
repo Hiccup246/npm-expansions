@@ -48,11 +48,7 @@ impl NpmController {
                     NpmExpansions::random_expansion()
                 ),
             ),
-            _ => Response::new(
-                "406 NOT ACCEPTABLE",
-                "",
-                "Please accept application/json".to_string(),
-            ),
+            _ => not_acceptable_response(),
         }
         .into_http_response();
 
@@ -101,11 +97,7 @@ impl NpmController {
                 "Content-Type: application/json",
                 format!("[{}]", string_expansions.join(",")),
             ),
-            _ => Response::new(
-                "406 NOT ACCEPTABLE",
-                "",
-                "Please accept application/json".to_string(),
-            ),
+            _ => not_acceptable_response(),
         }
         .into_http_response();
 
@@ -165,11 +157,7 @@ impl NpmController {
                 "Content-Type: application/json",
                 format!("[{}]", top_ten.join(",")),
             ),
-            _ => Response::new(
-                "406 NOT ACCEPTABLE",
-                "",
-                "Please accept application/json".to_string(),
-            ),
+            _ => not_acceptable_response(),
         }
         .into_http_response();
 
@@ -209,11 +197,7 @@ impl NpmController {
 
         let response = match best.as_str() {
             "application/json" => Response::new("404 NOT FOUND", "", "NOT FOUND".to_string()),
-            _ => Response::new(
-                "406 NOT ACCEPTABLE",
-                "",
-                "Please accept application/json or text/html".to_string(),
-            ),
+            _ => not_acceptable_response(),
         }
         .into_http_response();
 
@@ -257,11 +241,7 @@ impl NpmController {
                 "",
                 "INTERNAL SERVER ERROR".to_string(),
             ),
-            _ => Response::new(
-                "406 NOT ACCEPTABLE",
-                "",
-                "Please accept application/json or text/html".to_string(),
-            ),
+            _ => not_acceptable_response(),
         }
         .into_http_response();
 
@@ -301,16 +281,20 @@ impl NpmController {
 
         let response = match best.as_str() {
             "application/json" => Response::new("400 BAD REQUEST", "", "BAD REQUEST".to_string()),
-            _ => Response::new(
-                "406 NOT ACCEPTABLE",
-                "",
-                "Please accept application/json or text/html".to_string(),
-            ),
+            _ => not_acceptable_response(),
         }
         .into_http_response();
 
         Ok(response)
     }
+}
+
+fn not_acceptable_response() -> Response {
+    Response::new(
+        "406 NOT ACCEPTABLE",
+        "",
+        "Please accept application/json".to_string(),
+    )
 }
 
 #[cfg(test)]
