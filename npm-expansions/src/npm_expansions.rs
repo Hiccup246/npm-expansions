@@ -1,6 +1,8 @@
 use rand::Rng;
 
-pub struct NpmExpansions {}
+pub struct NpmExpansions {
+    _expansions: Vec<&'static str>,
+}
 
 impl NpmExpansions {
     const EXPANSIONS: [&str; 841] = [
@@ -847,17 +849,16 @@ impl NpmExpansions {
         "Nylon Pendulum Movement",
     ];
 
-    // TODO Determine method of self updating loaded expansions list
-    // pub fn print_expansions_file(path: String) {
-    //     let expansions_file = fs::read(path).unwrap();
-    //     let expansions: Vec<String> = expansions_file
-    //         .lines()
-    //         .map(|line| line.unwrap())
-    //         .filter(|line| !line.starts_with("#") && !line.starts_with("*"))
-    //         .collect();
+    pub fn new(expansions_string: &'static str) -> NpmExpansions {
+        let expansions: Vec<&str> = expansions_string
+            .lines()
+            .filter(|a| !a.starts_with('*') && !a.starts_with('#'))
+            .collect();
 
-    //     println!("{:?}", expansions);
-    // }
+        NpmExpansions {
+            _expansions: expansions,
+        }
+    }
 
     pub fn expansions() -> [&'static str; 841] {
         Self::EXPANSIONS
