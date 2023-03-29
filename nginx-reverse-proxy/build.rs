@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 use npm_expansions_static::builder_utilities;
 
