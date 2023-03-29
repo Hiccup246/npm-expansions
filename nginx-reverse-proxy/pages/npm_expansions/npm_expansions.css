@@ -208,4 +208,56 @@ james-watt-calling-card:hover {
     font-weight: bold;
     border: none;
     padding: 10px 20px;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    opacity: 0.7;
+}
+
+.results {
+    background-color: #F2F2F2;
+    margin-top: 20px;
+    padding: 10px;
+    display: flex;
+    justify-content: flex-start;
+    max-height: 500px;
+    width: 100%;
+}
+
+.copy-icon {
+    color: #777777;
+    cursor: pointer;
+    height: 24px;
+}
+
+.copy-icon:hover {
+    opacity: 0.7;
+}
+
+.results-expansions-list {
+    resize: vertical;
+    width: 100%;
+    background-color: #F2F2F2;
+    border: none;
+    padding-left: 20px;
+    padding-top: 1px;
+    max-height: 480px;
+    color: #777777;
+    overflow: hidden;
+    outline: none;
+    height: 24px;
+    min-height: 24px;
+    font-family: "Fira Mono", "Andale Mono", "Consolas", monospace;    
+}
+
+.results-expansions-list li {
+    list-style: none;
+    color: #777777;
+    padding-bottom: 5px;
+}
+
+.divider {
+    height: 100px;
+    background-color: white;
 }
