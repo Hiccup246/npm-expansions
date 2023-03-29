@@ -25,8 +25,6 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     5. See if background image looks just as good in webp format
     6. Add fade in amination for button hover
     7. Maybe add squeeze or enlarge animation for button click
-4. ### Tests
-    1. Add integration tests for server
 6. ### Documentation
     1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
     2. Consider adding documentation comments for structs and crate as a whole
@@ -36,6 +34,7 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     with bubble up patterns like `?`
     3. Refactor NpmExpansions to be instantiated once in the main and then passed around. This will increase performance
        and allow the dynamic updating of the expansions.txt file in a separate thread.
+    4. Consider my binary crates and whether they should have libraries for their modules
 <br>
 
 # 🗺️ Long Term ToDo
