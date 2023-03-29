@@ -4,21 +4,11 @@ use std::{
     net::TcpListener,
 };
 
-mod accept_header_handler;
-mod mime_type_parser;
-mod mock_tcp_stream;
-mod npm_controller;
-mod npm_expansion_error;
-mod npm_expansions;
-mod request;
-mod response;
-mod router;
-mod routes_config;
-
-pub use crate::npm_expansions::NpmExpansions;
-pub use npm_controller::NpmController;
-use npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
-pub use request::Request;
+use npm_expansions::npm_controller::NpmController;
+use npm_expansions::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
+use npm_expansions::request::Request;
+use npm_expansions::router;
+use npm_expansions::routes_config;
 use std::env;
 
 fn main() {
@@ -99,7 +89,7 @@ mod tests {
     extern crate tempdir;
 
     use super::*;
-    use crate::mock_tcp_stream::MockTcpStream;
+    use npm_expansions::mock_tcp_stream::MockTcpStream;
 
     mod respond_to_request {
         use super::*;

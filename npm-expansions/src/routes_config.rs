@@ -1,7 +1,7 @@
+use crate::npm_controller::NpmController;
+use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
 use crate::router::Route;
-use crate::NpmController;
-use crate::NpmExpansionsError;
 use std::collections::HashMap;
 
 /// Returns the http routes supported by this projects server

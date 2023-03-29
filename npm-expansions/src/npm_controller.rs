@@ -1,8 +1,8 @@
 use crate::accept_header_handler;
 use crate::npm_expansion_error::NpmExpansionsError;
+use crate::npm_expansions::NpmExpansions;
+use crate::request::Request;
 use crate::response::Response;
-use crate::NpmExpansions;
-use crate::Request;
 use levenshtein::levenshtein;
 
 pub struct NpmController {}
