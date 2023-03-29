@@ -17,8 +17,6 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 <br>
 
 # 📋 Short Term ToDo
-1. ### Server Features
-    1. Update request object to process query params
 2. ### Website Functionality
     1. Implement search all expansions functionality
     2. Implement copy all expansions to clipboard and view all expansions functionality
@@ -28,9 +26,7 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     6. Add fade in amination for button hover
     7. Maybe add squeeze or enlarge animation for button click
 3. ### Infrastructure
-    1. Serve minified files
-    2. Update cargo to have dev and prod configs
-    3. Update nginx to have dev and prod configs
+    1. Test and deploy new infrastructure of static nginx site and rust api server
 4. ### Tests
     1. Add function specific functionality tests for controller functions i.e. checking stream response
     2. Add integration tests for server
