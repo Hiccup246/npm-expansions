@@ -11,3 +11,7 @@
 
 # Ignore MacOS config files
 .DS_Store
+
+# Ignore output generated from nginx-reverse-proxy
+**/minified_static
+**/minified_pages
