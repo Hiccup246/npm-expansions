@@ -27,6 +27,7 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     7. Maybe add squeeze or enlarge animation for button click
 3. ### Infrastructure
     1. Test and deploy new infrastructure of static nginx site and rust api server
+    2. Update nginx rust project to have build functions in lib
 4. ### Tests
     1. Add integration tests for server
 5. ### Benchmarks
