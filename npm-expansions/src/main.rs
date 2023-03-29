@@ -5,9 +5,9 @@ use std::{
 };
 
 mod accept_header_handler;
-mod controller;
 mod mime_type_parser;
 mod mock_tcp_stream;
+mod npm_controller;
 mod npm_expansion_error;
 mod npm_expansions;
 mod request;
@@ -16,7 +16,7 @@ mod router;
 mod routes_config;
 
 pub use crate::npm_expansions::NpmExpansions;
-pub use controller::Controller;
+pub use npm_controller::NpmController;
 use npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 pub use request::Request;
 use std::env;
@@ -71,12 +71,12 @@ fn http_response_error_handler(
     error_request: &Request,
 ) -> Result<Vec<u8>, NpmExpansionsError> {
     let error_response = match error.kind() {
-        NpmErrorKind::InvalidHeader => Controller::client_error(error_request),
-        NpmErrorKind::TooManyHeaders => Controller::client_error(error_request),
-        NpmErrorKind::InvalidRequestStatusLine => Controller::client_error(error_request),
-        NpmErrorKind::InternalServerError => Controller::internal_server_error(error_request),
-        NpmErrorKind::RequestParseError => Controller::internal_server_error(error_request),
-        NpmErrorKind::SupportedMimeTypeError => Controller::internal_server_error(error_request),
+        NpmErrorKind::InvalidHeader => NpmController::client_error(error_request),
+        NpmErrorKind::TooManyHeaders => NpmController::client_error(error_request),
+        NpmErrorKind::InvalidRequestStatusLine => NpmController::client_error(error_request),
+        NpmErrorKind::InternalServerError => NpmController::internal_server_error(error_request),
+        NpmErrorKind::RequestParseError => NpmController::internal_server_error(error_request),
+        NpmErrorKind::SupportedMimeTypeError => NpmController::internal_server_error(error_request),
     };
 
     error_response
@@ -118,7 +118,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = respond_to_request(&mut stream, &router);
@@ -140,7 +140,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = respond_to_request(&mut stream, &router);
@@ -162,7 +162,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = respond_to_request(&mut stream, &router);
@@ -178,7 +178,7 @@ mod tests {
             _error: &NpmExpansionsError,
             error_request: &Request,
         ) -> Result<Vec<u8>, NpmExpansionsError> {
-            return Controller::client_error(&error_request);
+            return NpmController::client_error(&error_request);
         }
 
         fn invalid_error_response(
@@ -202,7 +202,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = handle_connection(&mut stream, &router, valid_error_response);
@@ -224,7 +224,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             let response = handle_connection(&mut stream, &router, valid_error_response);
@@ -247,7 +247,7 @@ mod tests {
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1".to_string(),
-                Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
             )]));
 
             handle_connection(&mut stream, &router, invalid_error_response);

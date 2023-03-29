@@ -1,6 +1,6 @@
 use crate::request::Request;
 use crate::router::Route;
-use crate::Controller;
+use crate::NpmController;
 use crate::NpmExpansionsError;
 use std::collections::HashMap;
 
@@ -27,19 +27,19 @@ pub fn route_config() -> Route {
     let config: Route = HashMap::from([
         (
             "GET /api/random HTTP/1.1".to_string(),
-            Controller::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
         ),
         (
             "GET /api/all HTTP/1.1".to_string(),
-            Controller::all as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            NpmController::all as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
         ),
         (
             "GET /api/search HTTP/1.1".to_string(),
-            Controller::search as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            NpmController::search as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
         ),
         (
             "404".to_string(),
-            Controller::not_found as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+            NpmController::not_found as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
         ),
     ]);
 
