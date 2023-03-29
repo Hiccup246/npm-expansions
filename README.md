@@ -27,12 +27,11 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
     7. Maybe add squeeze or enlarge animation for button click
 3. ### Infrastructure
     1. Test and deploy new infrastructure of static nginx site and rust api server
-    2. After benchmark tests, refactor controller to compile expansions list at run time and see how efficient it is
 4. ### Tests
-    1. Add function specific functionality tests for controller functions i.e. checking stream response
-    2. Add integration tests for server
+    1. Add integration tests for server
 5. ### Benchmarks
     1. Implement benchmarks for process intensive functions or functions whoose performance I am curious about
+    2. After benchmark tests, refactor controller to compile expansions list at run time and see how efficient it is
 6. ### Documentation
     1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
     2. Consider adding documentation comments for structs and crate as a whole
