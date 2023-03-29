@@ -5,11 +5,11 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn new(status_line: &str, headers: &str, contents: String) -> Response {
+    pub fn new(status_line: &str, headers: &str, contents: &str) -> Response {
         Response {
             status_line: status_line.to_string(),
             headers: headers.to_string(),
-            contents,
+            contents: contents.to_string(),
         }
     }
 
@@ -78,7 +78,7 @@ mod tests {
             let response = Response::new(
                 "200",
                 "Content-Type: application/json;q=0.5",
-                "Hello World!".to_string(),
+                "Hello World!",
             );
 
             assert_eq!(response.into_http_response(), "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec())
@@ -86,7 +86,7 @@ mod tests {
 
         #[test]
         fn correctly_reponse_without_headers() {
-            let response = Response::new("200", "", "Hello World!".to_string());
+            let response = Response::new("200", "", "Hello World!");
 
             assert_eq!(
                 response.into_http_response(),
