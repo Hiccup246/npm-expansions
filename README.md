@@ -25,6 +25,7 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 # 📋 Short Term ToDo
 1. ### Website Functionality
     1. Implement OG and Twitter SEO tags
+    2. Style 404, 400 and 500 pages
 2. ### Documentation
     1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
     2. Adding documentation comments for all public structs, enums and functions and the crate as a whole
