@@ -16,6 +16,12 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 
 <br>
 
+# Development
+1. Start web server with `cargo run`
+2. Start proxy with `docker-compose up --build`
+
+<br>
+
 # 📋 Short Term ToDo
 1. ### Website Functionality
     1. Implement search all expansions functionality
