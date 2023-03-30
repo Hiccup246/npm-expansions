@@ -1,16 +1,13 @@
 version: "3.9"
 
 services:
-  webserver:
-    container_name: npm-expansions-web-server
-    hostname: npm-expansions
-    build: ./npm-expansions
-    expose:
-      - "8000"
   reverse-proxy:
     container_name: npm-expansions-reverse-proxy
     hostname: reverse
-    build: ./nginx-reverse-proxy
+    build: 
+      context: ./nginx-reverse-proxy
+      args:
+        nginx_config: npm-expansions.dev.conf
     volumes:
       - type: bind
         source: ./nginx-reverse-proxy/pages
@@ -19,6 +16,4 @@ services:
         source: ./nginx-reverse-proxy/static
         target: /etc/nginx/static
     ports:
-      - 80:80
       - 8080:8080
-      - 443:443
