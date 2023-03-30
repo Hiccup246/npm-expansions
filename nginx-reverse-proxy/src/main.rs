@@ -1,9 +1,6 @@
-extern crate minifier;
-extern crate minify_html;
-mod asset_minifier;
-
 use std::fs;
 use std::path::PathBuf;
+use npm_expansions_static::asset_minifier;
 
 fn main() {
     let pages_dir_input = fs::read_dir("pages").unwrap();
