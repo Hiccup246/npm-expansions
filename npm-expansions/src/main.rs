@@ -14,7 +14,7 @@ use std::env;
 fn main() {
     let development_env = env::var("DEV").is_ok();
     let addr = if development_env {
-        "0.0.0.0:8080"
+        "0.0.0.0:8000"
     } else {
         "[::]:8080"
     };
