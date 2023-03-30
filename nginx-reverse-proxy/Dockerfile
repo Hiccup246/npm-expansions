@@ -9,10 +9,11 @@ WORKDIR /npm-expansions
 COPY ./Cargo.toml ./Cargo.toml
 
 ADD ./src ./src
-ADD ./pages ./pages
-ADD ./static ./static
 
 RUN cargo build --release
+
+ADD ./pages ./pages
+ADD ./static ./static
 
 RUN cargo run
 
