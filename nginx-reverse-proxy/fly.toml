@@ -25,3 +25,6 @@ processes = []
   [[services.ports]]
     handlers = ["tls", "http"]
     port = 443
+
+[build.args]
+  nginx_config="npm-expansions.conf"
