@@ -16,16 +16,18 @@ async function searchExpansions(query) {
     const searchExpansionResponse = await fetch(`/api/search?query=${query.target.value}`);
     const searchExpansionJSONResponse = await searchExpansionResponse.json();
     
-    const textareaString = searchExpansionJSONResponse.reduce("", (acc, expansion) => acc + (expansion + "\n"));
+    const textareaString = searchExpansionJSONResponse.reduce((acc, expansion) => acc + (expansion + "\n"), "");
     document.querySelector(".results-expansions-list").innerHTML = textareaString;
+    document.querySelector(".results-expansions-list").setAttribute("rows", searchExpansionJSONResponse.length);
 }
 
 async function loadAllExpansions() {
     const allExpansionResponse = await fetch("/api/all");
     const allExpansionJSONResponse = await allExpansionResponse.json();
 
-    const textareaString = allExpansionJSONResponse.reduce("", (acc, expansion) => acc + (expansion + "\n"));
+    const textareaString = allExpansionJSONResponse.reduce((acc, expansion) => acc + (expansion + "\n"), "");
     document.querySelector(".results-expansions-list").innerHTML = textareaString;
+    document.querySelector(".results-expansions-list").setAttribute("rows", allExpansionJSONResponse.length);
 }
 
 function copyExpansionsToClipboard() {
@@ -49,12 +51,12 @@ function debounce (context, func, delay) {
 
 const debouncedSearchState = debounce(
     this,
-    searchTerm => searchExpansions(searchTerm), // an expensive function
-    100
+    searchTerm => searchExpansions(searchTerm),
+    500
 );
 
 generateRandomExpansion();
 loadExpansionIntoTextArea();
 
-const input = document.querySelector(".results-expansions-list");
+const input = document.querySelector(".search-input");
 input.addEventListener("input", debouncedSearchState);
