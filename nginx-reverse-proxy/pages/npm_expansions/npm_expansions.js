@@ -9,23 +9,28 @@ async function loadExpansionIntoTextArea() {
     const randomExpansionResponse = await fetch("/api/random");
     const randomExpansionJSONResponse = await randomExpansionResponse.json();
 
-    document.querySelector(".results-expansions-list").innerHTML = randomExpansionJSONResponse;
+    document.querySelector(".results-expansions-list").innerHTML = randomExpansionJSONResponse["npmExpansion"];
 }
 
 async function searchExpansions(query) {
     const searchExpansionResponse = await fetch(`/api/search?query=${query.target.value}`);
     const searchExpansionJSONResponse = await searchExpansionResponse.json();
     
-    const singleString = searchExpansionJSONResponse.reduce("", (acc, expansion) => acc + (expansion + "\n"));
-    document.querySelector(".results-expansions-list").innerHTML = singleString;
+    const textareaString = searchExpansionJSONResponse.reduce("", (acc, expansion) => acc + (expansion + "\n"));
+    document.querySelector(".results-expansions-list").innerHTML = textareaString;
 }
 
 async function loadAllExpansions() {
     const allExpansionResponse = await fetch("/api/all");
     const allExpansionJSONResponse = await allExpansionResponse.json();
 
-    const singleString = allExpansionJSONResponse.reduce("", (acc, expansion) => acc + (expansion + "\n"));
-    document.querySelector(".results-expansions-list").innerHTML = singleString;
+    const textareaString = allExpansionJSONResponse.reduce("", (acc, expansion) => acc + (expansion + "\n"));
+    document.querySelector(".results-expansions-list").innerHTML = textareaString;
+}
+
+function copyExpansionsToClipboard() {
+    const expansions = document.querySelector(".results-expansions-list").innerHTML;
+    navigator.clipboard.writeText(expansions);
 }
 
 function debounce (context, func, delay) {
