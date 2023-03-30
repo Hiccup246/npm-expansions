@@ -26,16 +26,17 @@ impl Router {
     /// # Examples
     ///
     /// ```
-    /// let actual_route: fn(&Request) -> Vec<u8> = |_| "actual_route".as_bytes().to_vec();
-    /// let route_config: HashMap<&str, fn(&Request) -> Vec<u8>> =
-    ///     HashMap::from([("GET / HTTP/1.1", actual_route)]);
+    /// use npm_expansions::router::{Router, Route};
+    /// use npm_expansions::request::Request;
+    /// use npm_expansions::npm_expansion_error::NpmExpansionsError;
+    /// use std::collections::HashMap;
+    /// let actual_route: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError> = |_| Ok("actual_route".as_bytes().to_vec());
+    /// let route_config: Route =
+    ///     HashMap::from([("GET / HTTP/1.1".to_string(), actual_route)]);
     /// let router = Router::new(route_config);
-    /// let request = Request {
-    ///     status_line: "GET / HTTP/1.1".to_string(),
-    ///     headers: HashMap::new(),
-    /// };
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::new(),  HashMap::new());
     /// let response = router.route_request(request);
-    /// assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec())
+    /// assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec());
     /// ```
     ///
     /// # Failures
@@ -44,13 +45,13 @@ impl Router {
     ///
     /// ```rust,should_error
     /// // fails if no 404 route exists and a unknown route is given
+    /// use npm_expansions::router::Router;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
     /// let router = Router::new(HashMap::new());
-    /// let request = Request {
-    ///     status_line: "GET / HTTP/1.1".to_string(),
-    ///     headers: HashMap::new(),
-    /// };
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
     /// let response = router.route_request(request);
-    /// assert!(response.is_err())
+    /// assert!(response.is_err());
     /// ```
     pub fn route_request(&self, request: Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let status_line = request.status_line_stripped();

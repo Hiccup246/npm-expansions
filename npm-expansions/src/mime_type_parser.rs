@@ -32,8 +32,9 @@ impl fmt::Display for MimeTypeParseError {
 /// # Examples
 ///
 /// ```
+/// use npm_expansions::mime_type_parser::parse_mime_type;
 /// let parsed_mime_type = parse_mime_type("text/html");
-/// assert_eq!(parsed_mime_type.unwrap(), ("text", "html", Option<HashMap::new()>));
+/// assert_eq!(parsed_mime_type.unwrap(), ("text", "html", None));
 /// ```
 ///
 /// # Failures
@@ -42,7 +43,8 @@ impl fmt::Display for MimeTypeParseError {
 ///
 /// ```rust,should_error
 /// // fails if given a malformed mime type
-/// parse_mime_type("text/")
+/// use npm_expansions::mime_type_parser::parse_mime_type;
+/// parse_mime_type("text/");
 /// ```
 pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();

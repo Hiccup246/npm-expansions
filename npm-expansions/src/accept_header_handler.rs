@@ -12,7 +12,8 @@ use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 /// # Examples
 ///
 /// ```
-/// let best_mime_match = best_match(Vec::from(["application/json"], "text/plain, application/json"));
+/// use npm_expansions::accept_header_handler::best_match;
+/// let best_mime_match = best_match(Vec::from(["application/json"]), "text/plain, application/json");
 /// assert_eq!(best_mime_match.unwrap(), "application/json".to_string());
 /// ```
 ///
@@ -22,7 +23,8 @@ use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 ///
 /// ```rust,should_error
 /// // fails if given malformed supported mime types or the accept header
-/// best_match(Vec::from(["application/"], "/plain"))
+/// use npm_expansions::accept_header_handler::best_match;
+/// best_match(Vec::from(["application/"]), "/plain");
 /// ```
 pub fn best_match(
     supported_mime_types: Vec<&str>,
@@ -80,6 +82,7 @@ pub fn best_match(
 /// # Examples
 ///
 /// ```
+/// use npm_expansions::accept_header_handler::ensure_quality_value;
 /// assert_eq!(ensure_quality_value("application/json").unwrap(), ("application", "json", 1.0));
 /// ```
 ///
@@ -89,7 +92,8 @@ pub fn best_match(
 ///
 /// ```rust,should_error
 /// // fails if given mime type is invalid
-/// ensure_quality_value("application/;q=0.5")
+/// use npm_expansions::accept_header_handler::ensure_quality_value;
+/// ensure_quality_value("application/;q=0.5");
 /// ```
 pub fn ensure_quality_value(
     mime_type: &str,
@@ -122,6 +126,7 @@ pub fn ensure_quality_value(
 /// # Examples
 ///
 /// ```
+/// use npm_expansions::accept_header_handler::fitness_of_mime_type;
 /// let fitness = fitness_of_mime_type("text/plain", &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)]));
 /// assert_eq!(fitness.unwrap(), 1.0);
 /// ```
@@ -132,7 +137,8 @@ pub fn ensure_quality_value(
 ///
 /// ```rust,should_error
 /// // fails if the given mime type is invalid
-/// fitness_of_mime_type("text/", &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)]))
+/// use npm_expansions::accept_header_handler::fitness_of_mime_type;
+/// fitness_of_mime_type("text/", &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)]));
 /// ```
 pub fn fitness_of_mime_type(
     mime_type: &str,

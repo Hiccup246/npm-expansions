@@ -14,8 +14,9 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```
+/// use npm_expansions::routes_config::route_config;
 /// let config = route_config();
-/// assert!(config);
+/// assert!(config.len() > 0);
 /// ```
 ///
 /// # Panics

@@ -17,7 +17,10 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::random(&request);
     /// assert!(response.is_ok());
     /// ```
@@ -28,8 +31,11 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
-    /// NpmController::random(&request)
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// NpmController::random(&request);
     /// ```
     pub fn random(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
@@ -64,7 +70,10 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::all(&request);
     /// assert!(response.is_ok());
     /// ```
@@ -75,8 +84,11 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
-    /// NpmController::all(&request)
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// NpmController::all(&request);
     /// ```
     pub fn all(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
@@ -114,7 +126,10 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
     /// let response = NpmController::search(&request);
     /// assert!(response.is_ok());
     /// ```
@@ -125,8 +140,11 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
-    /// NpmController::search(&request)
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// NpmController::search(&request);
     /// ```
     pub fn search(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
@@ -173,7 +191,10 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::not_found(&request);
     /// assert!(response.is_ok());
     /// ```
@@ -184,8 +205,11 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
-    /// NpmController::not_found(&request)
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// NpmController::not_found(&request);
     /// ```
     pub fn not_found(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
@@ -213,7 +237,10 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::internal_server_error(&request);
     /// assert!(response.is_ok());
     /// ```
@@ -224,8 +251,11 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
-    /// NpmController::internal_server_error(&request)
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// NpmController::internal_server_error(&request);
     /// ```
     pub fn internal_server_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
@@ -255,7 +285,10 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]))
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::client_error(&request);
     /// assert!(response.is_ok());
     /// ```
@@ -266,8 +299,11 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]))
-    /// NpmController::client_error(&request)
+    /// use npm_expansions::npm_controller::NpmController;
+    /// use npm_expansions::request::Request;
+    /// use std::collections::HashMap;
+    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// NpmController::client_error(&request);
     /// ```
     pub fn client_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();

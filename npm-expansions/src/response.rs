@@ -34,14 +34,15 @@ impl Response {
     /// # Examples
     ///
     /// ```
+    /// use npm_expansions::response::Response;
     /// let response = Response::new(
     ///     "200",
     ///     "Content-Type: application/json;q=0.5",
-    ///     "Hello World!".to_string(),
+    ///     "Hello World!",
     /// ).into_http_response();
     /// let example_response = "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec();
     ///
-    /// assert_eq!(response, example_response)
+    /// assert_eq!(response, example_response);
     /// ```
     ///
     /// # Panics
