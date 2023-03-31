@@ -8,3 +8,4 @@ pub mod request;
 pub mod response;
 pub mod router;
 pub mod routes_config;
+pub mod stream_handler;
