@@ -64,18 +64,18 @@ This project is configured to be deployed to [fly.io](https://fly.io/). To deplo
 1. ### Documentation
     1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
     2. Adding documentation comments for all public structs, enums, and functions and the crate as a whole
-2. ### Readme
-    1. Polished readme which outlines the goal of the project, contains a screenshot of the website and a description of the API with sections on usage, development, and installation
 3. ### Refactoring
     1. Read up about rust coding styles and idiomatic rust and refactor code to fit this style
     2. Consider replacing a lot of `if let Ok(x) = y`, `if let Err(x) = y`, `if let Some(x) = y` and `if let None = y` patterns
     with bubble-up patterns like `?`
 4. ### Long term todo
-1. Update jameswatt.io with this project
-2. Implement PostGres database with docker for npm expansions
-3. Handle incoming requests in an optimized way e.g. threads or asynchronous events
-4. Background routine to check if the official npm expansions repo has updated its `expansions.txt` file and to update this project's equivalent file with any changes. Note that the last change to the expansions text file occurred two years ago.
-5. Add server logs for each request and failure
-6. Refactor NpmExpansions to be instantiated once in the main and then passed around. This will increase performance
+- Review readme and decide if any upgrades are needed
+- Add project to google search console
+- Update jameswatt.io with this project
+- Implement PostGres database with docker for npm expansions
+- Handle incoming requests in an optimized way e.g. threads or asynchronous events
+- Background routine to check if the official npm expansions repo has updated its `expansions.txt` file and to update this project's equivalent file with any changes. Note that the last change to the expansions text file occurred two years ago.
+- Add server logs for each request and failure
+- Refactor NpmExpansions to be instantiated once in the main and then passed around. This will increase performance
   and allow the dynamic updating of the expansions.txt file in a separate thread.
-7. Routinely updating expansions.txt could be done at startup and during execution using a second thread with message parsing
+- Routinely updating expansions.txt could be done at startup and during execution using a second thread with message parsing
