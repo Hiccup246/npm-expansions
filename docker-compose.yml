@@ -7,7 +7,7 @@ services:
     build: 
       context: ./nginx-reverse-proxy
       args:
-        nginx_config: npm-expansions.dev.conf
+        NGINX_CONFIG: npm-expansions.dev.conf
     volumes:
       - type: bind
         source: ./nginx-reverse-proxy/pages

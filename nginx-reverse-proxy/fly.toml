@@ -27,4 +27,4 @@ processes = []
     port = 443
 
 [build.args]
-  nginx_config="npm-expansions.conf"
+  NGINX_CONFIG="npm-expansions.conf"
