@@ -1,7 +1,9 @@
 # 💬 npm-expansions
 
 <!-- ![](https://img.shields.io/github/license/Hiccup246/npm-expansions)
-![](https://img.shields.io/github/languages/code-size/Hiccup246/npm-expansions) -->
+![](https://img.shields.io/github/languages/code-size/Hiccup246/npm-expansions)
+![](https://img.shields.io/github/actions/workflow/status/hiccup246/npm-expansions/unit-tests.yml?branch=main&label=Unit%20Tests)
+![](https://img.shields.io/github/actions/workflow/status/hiccup246/npm-expansions/style-check.yml?branch=main&label=Style%20Check) -->
 
 <!-- ![site-screenshot](https://raw.githubusercontent.com/Hiccup246/npm-expansions/main/nginx-reverse-proxy/static/site-screenshot.webp) -->
 
