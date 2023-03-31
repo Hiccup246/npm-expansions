@@ -50,7 +50,7 @@ impl NpmController {
                 "200 OK",
                 "Content-Type: application/json",
                 &format!(
-                    "{{\"npmExpansion\": \"{}\"}}",
+                    "{{\"npm-expansion\": \"{}\"}}",
                     NpmExpansions::random_expansion()
                 ),
             ),

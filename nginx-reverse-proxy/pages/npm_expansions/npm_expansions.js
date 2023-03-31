@@ -2,14 +2,14 @@ async function generateRandomExpansion() {
     const randomExpansionResponse = await fetch("/api/random");
     const randomExpansionJSONResponse = await randomExpansionResponse.json();
 
-    document.querySelector(".npm-expansion").innerHTML = randomExpansionJSONResponse["npmExpansion"];
+    document.querySelector(".npm-expansion").innerHTML = randomExpansionJSONResponse["npm-expansion"];
 }
 
 async function loadExpansionIntoTextArea() {
     const randomExpansionResponse = await fetch("/api/random");
     const randomExpansionJSONResponse = await randomExpansionResponse.json();
 
-    document.querySelector(".results-expansions-list").innerHTML = randomExpansionJSONResponse["npmExpansion"];
+    document.querySelector(".results-expansions-list").innerHTML = randomExpansionJSONResponse["npm-expansion"];
 }
 
 async function searchExpansions(query) {
