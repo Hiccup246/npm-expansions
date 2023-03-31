@@ -20,7 +20,7 @@ The website is written in vanilla HTML, CSS, and JS, built using rust, and serve
 <br>
 
 # 🗺️ Understanding the project
-The project is made up of a JSON web server built in rust and a static website built with rust and hosted using nginx.
+The project is made up of a JSON web server built in [rust](https://www.rust-lang.org/) and a static website built with rust and hosted using [nginx](https://www.nginx.com/).
 
 ## NPM Expansions
 The JSON web server is located within the `npm-expansions` directory and is responsible for serving JSON responses via TCP to routes with the prefix `/api`.
