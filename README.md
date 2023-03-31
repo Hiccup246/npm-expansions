@@ -44,9 +44,4 @@ A simple JSON rest API providing random expansions of the NPM acronym with an as
 - Add server logs for each request and failure
 - Refactor NpmExpansions to be instantiated once in the main and then passed around. This will increase performance
   and allow the dynamic updating of the expansions.txt file in a separate thread.
-
-<br>
-
-# 💭 Reminders
-- Remember some issues could be client caused. If they parse incorrect headers thats 400 not 500
 - Routinely updating expansions.txt could be done at startup and during execution using a second thread with message parsing
