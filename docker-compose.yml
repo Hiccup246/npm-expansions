@@ -3,6 +3,8 @@ version: "3.9"
 services:
   reverse-proxy:
     container_name: npm-expansions-reverse-proxy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     hostname: reverse
     build: 
       context: ./nginx-reverse-proxy
