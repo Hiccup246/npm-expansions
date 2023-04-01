@@ -9,7 +9,7 @@
 
 A website and JSON API that allows npm expansions to be generated and searched. An NPM expansion represents the words with make up the NPM acronym e.g. "Nice People Meet".
 
-The website is written in vanilla HTML, CSS, and JS, built using rust, and served via NGINX. The JSON API is built using rust. Both the JSON API and NGINX server are deployed using docker and the infrastructure service [fly.io](https://fly.io/).
+The website is written in vanilla HTML, CSS, and JS, built using [rust]((https://www.rust-lang.org/)), and served via [NGINX]((https://www.nginx.com/)). The JSON API is built using rust. Both the JSON API and NGINX server are deployed using docker and the infrastructure service [fly.io](https://fly.io/).
 
 <br>
 
@@ -22,7 +22,7 @@ The website is written in vanilla HTML, CSS, and JS, built using rust, and serve
 <br>
 
 # 🗺️ Understanding the project
-The project is made up of a JSON web server built in [rust](https://www.rust-lang.org/) and a static website built with rust and hosted using [nginx](https://www.nginx.com/).
+The project is made up of a JSON web server built in rust and a static website built with rust and hosted using nginx.
 
 ## NPM Expansions
 The JSON web server is located within the `npm-expansions` directory and is responsible for serving JSON responses via TCP to routes with the prefix `/api`.
@@ -46,7 +46,8 @@ The static website can be accessed at `https://www.npm-expansions.com` and reque
 This project contains two applications, an npm-expansions JSON web server, and an nginx reverse proxy server. To develop this project first ensure you have the following programs installed:
 - A rust nightly build
 - Docker
-Then follow the steps below to begin developing
+
+Then follow the steps below:
 1. Navigate to the `npm-expansions` directory and start the web server with the command `DEV=true cargo run`
 2. Start docker and start the reverse proxy by navigating to the `nginx-reverse-proxy` directory and running the command `docker-compose up --build`
 
