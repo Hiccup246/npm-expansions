@@ -3,12 +3,25 @@ on:
   push:
     branches: [main]
 jobs:
-  style_check:
+  style_check_web_server:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./npm-expansions
     steps:
+      - uses: actions/checkout@v3
+
+      - name: Cargo Format Check
+        run: cargo fmt -- --check
+
+      - name: Cargo Clippy Check
+        run: cargo clippy
+  style_check_reverse_proxy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./nginx-reverse-proxy
+      steps:
       - uses: actions/checkout@v3
 
       - name: Cargo Format Check

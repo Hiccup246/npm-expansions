@@ -3,11 +3,21 @@ on:
   push:
     branches: [main]
 jobs:
-  unit_tests:
+  web_server_unit_tests:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./npm-expansions
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cargo Test
+        run: cargo test
+  reverse_proxy_unit_tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./nginx-reverse-proxy
     steps:
       - uses: actions/checkout@v3
 
