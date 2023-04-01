@@ -1,4 +1,4 @@
-use std::{fs, path::Path, io::Error, io::ErrorKind, path::PathBuf};
+use std::{fs, io::Error, io::ErrorKind, path::Path, path::PathBuf};
 extern crate minifier;
 extern crate minify_html;
 
@@ -37,28 +37,27 @@ pub fn minify_file_contents(input_file: PathBuf) -> Result<Vec<u8>, std::io::Err
     match extension.to_str().unwrap() {
         "html" => {
             let file = fs::read(input_file)?;
-            
+
             return Ok(minify_html::minify(&file, &minify_html::Cfg::new()));
         }
         "css" => {
             let file = fs::read_to_string(input_file)?;
-            let minified = minifier::css::minify(&file).map_err(|_| Error::from(ErrorKind::InvalidInput))?;
-            
+            let minified =
+                minifier::css::minify(&file).map_err(|_| Error::from(ErrorKind::InvalidInput))?;
+
             return Ok(minified.to_string().as_bytes().to_vec());
         }
         "js" => {
             let file = fs::read_to_string(input_file)?;
             let minified = minifier::js::minify(&file);
-            
-            return Ok(minified.to_string().as_bytes().to_vec())
+
+            return Ok(minified.to_string().as_bytes().to_vec());
         }
         _ => {
             return Ok(fs::read(input_file).unwrap());
         }
     };
 }
-
-
 
 pub fn copy_pages_directory(directory: fs::ReadDir, output_dir: &Path) {
     directory
@@ -136,14 +135,16 @@ mod tests {
         #[test]
         fn minifies_a_css_file() {
             let named_tempfile = Builder::new()
-            .prefix("example")
-            .suffix(".css")
-            .tempfile().unwrap();
+                .prefix("example")
+                .suffix(".css")
+                .tempfile()
+                .unwrap();
 
             write!(&named_tempfile, ".class {{ color: red; }}").unwrap();
 
             let pre_minification_length = fs::read(&named_tempfile).unwrap().len();
-            let minified_contents = minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
+            let minified_contents =
+                minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
 
             assert!(pre_minification_length > minified_contents.len());
         }
@@ -151,14 +152,16 @@ mod tests {
         #[test]
         fn minifies_a_html_file() {
             let named_tempfile = Builder::new()
-            .prefix("example")
-            .suffix(".html")
-            .tempfile().unwrap();
+                .prefix("example")
+                .suffix(".html")
+                .tempfile()
+                .unwrap();
 
             write!(&named_tempfile, "<a>Hello</a>   <div>World!</div>").unwrap();
 
             let pre_minification_length = fs::read(&named_tempfile).unwrap().len();
-            let minified_contents = minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
+            let minified_contents =
+                minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
 
             assert!(pre_minification_length > minified_contents.len());
         }
@@ -166,14 +169,16 @@ mod tests {
         #[test]
         fn minifies_a_js_file() {
             let named_tempfile = Builder::new()
-            .prefix("example")
-            .suffix(".js")
-            .tempfile().unwrap();
+                .prefix("example")
+                .suffix(".js")
+                .tempfile()
+                .unwrap();
 
             write!(&named_tempfile, "const a = \"hello\"   const b = \"world\"").unwrap();
 
             let pre_minification_length = fs::read(&named_tempfile).unwrap().len();
-            let minified_contents = minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
+            let minified_contents =
+                minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
 
             assert!(pre_minification_length > minified_contents.len());
         }
@@ -181,14 +186,16 @@ mod tests {
         #[test]
         fn does_not_minify_txt_file() {
             let named_tempfile = Builder::new()
-            .prefix("example")
-            .suffix(".txt")
-            .tempfile().unwrap();
+                .prefix("example")
+                .suffix(".txt")
+                .tempfile()
+                .unwrap();
 
             write!(&named_tempfile, "hello   this is a text file").unwrap();
 
             let pre_minification_length = fs::read(&named_tempfile).unwrap().len();
-            let minified_contents = minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
+            let minified_contents =
+                minify_file_contents(named_tempfile.path().to_path_buf()).unwrap();
 
             assert!(pre_minification_length == minified_contents.len());
         }
