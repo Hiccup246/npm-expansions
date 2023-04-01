@@ -38,25 +38,23 @@ pub fn minify_file_contents(input_file: PathBuf) -> Result<Vec<u8>, std::io::Err
         "html" => {
             let file = fs::read(input_file)?;
 
-            return Ok(minify_html::minify(&file, &minify_html::Cfg::new()));
+            Ok(minify_html::minify(&file, &minify_html::Cfg::new()))
         }
         "css" => {
             let file = fs::read_to_string(input_file)?;
             let minified =
                 minifier::css::minify(&file).map_err(|_| Error::from(ErrorKind::InvalidInput))?;
 
-            return Ok(minified.to_string().as_bytes().to_vec());
+            Ok(minified.to_string().as_bytes().to_vec())
         }
         "js" => {
             let file = fs::read_to_string(input_file)?;
             let minified = minifier::js::minify(&file);
 
-            return Ok(minified.to_string().as_bytes().to_vec());
+            Ok(minified.to_string().as_bytes().to_vec())
         }
-        _ => {
-            return Ok(fs::read(input_file).unwrap());
-        }
-    };
+        _ => Ok(fs::read(input_file).unwrap()),
+    }
 }
 
 pub fn copy_pages_directory(directory: fs::ReadDir, output_dir: &Path) {
