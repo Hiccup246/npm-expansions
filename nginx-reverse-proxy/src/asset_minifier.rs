@@ -6,6 +6,19 @@ use std::{
 extern crate minifier;
 extern crate minify_html;
 
+/// Performs minifcation on all html, css and js files within a directory tree and copies them
+/// to output directoy
+///
+/// # Arguments
+///
+/// * `input_path` - A directory whoose contents will be minified
+/// * `output_path` - A directory who will contain the produced minified content
+///
+/// # Panics
+///
+/// The function panics if any of the input directories or files cannot be copied to the output
+/// directory or minified
+///
 pub fn minify_drectory(input_path: PathBuf, output_path: PathBuf) -> Result<(), std::io::Error> {
     if !output_path.exists() {
         fs::create_dir(&output_path).unwrap();
@@ -28,6 +41,17 @@ pub fn minify_drectory(input_path: PathBuf, output_path: PathBuf) -> Result<(), 
     Ok(())
 }
 
+/// Performs minifcation of a files content if the file is html, css or js and returns the minified
+/// content as a vector of bytes
+///
+/// # Arguments
+///
+/// * `input_file` - A file to be minified
+///
+/// # Panics
+///
+/// The function panics if the file cannot be read or contains html, css or js that cannot be minified
+///
 pub fn minify_file_contents(input_file: PathBuf) -> Result<Vec<u8>, std::io::Error> {
     let extension = input_file.extension().unwrap();
 
