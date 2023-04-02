@@ -20,3 +20,21 @@ fn main() {
         stream_handler::handle_connection(&mut stream, &router);
     }
 }
+
+// The library i am creating should allow users i.e. developers to:
+// Define a route config which references ther own controllers which use a trait
+// i have defined.
+// My library should provide errors and mock structs for testing
+// My library should expose the response struct but not the request one
+
+// Things I think should be public - based on this being a basic library framework
+// Route config type
+// Router init
+// stream handler
+// controller trait
+// response struct
+// mock tcp stream
+// npm expansions error
+// mime type best match function
+
+// I could choose to make this a complete utility framework where everything is public
