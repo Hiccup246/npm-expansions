@@ -1,7 +1,7 @@
 use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 use std::{
     collections::HashMap,
-    io::{prelude::*, BufReader, Read, Write},
+    io::{prelude::*, BufReader, Lines, Read, Take, Write},
 };
 
 pub struct Request {
@@ -9,6 +9,8 @@ pub struct Request {
     headers: HashMap<String, String>,
     query_params: HashMap<String, String>,
 }
+
+const HEADER_SIZE_LIMIT: u64 = 8000;
 
 impl Request {
     /// Builds a request object from a given http request stream
@@ -54,7 +56,7 @@ impl Request {
     /// ```
     pub fn build(stream: &mut (impl Read + Write)) -> Result<Request, NpmExpansionsError> {
         let buf_reader = BufReader::new(stream);
-        let mut buffer = buf_reader.take(8000).lines();
+        let mut buffer = buf_reader.take(HEADER_SIZE_LIMIT).lines();
 
         let status_line;
 
@@ -65,36 +67,45 @@ impl Request {
         }
 
         let query_params = Self::build_query_params(&status_line)?;
+        let headers = Self::build_headers(&mut buffer)?;
 
+        Ok(Request {
+            status_line,
+            headers,
+            query_params,
+        })
+    }
+
+    fn build_headers(
+        header_buffer: &mut Lines<Take<BufReader<&mut (impl Read + Write)>>>,
+    ) -> Result<HashMap<String, String>, NpmExpansionsError> {
         let mut headers: HashMap<String, String> = HashMap::new();
 
-        for line in buffer {
-            if let Ok(current_line) = line {
-                if current_line.is_empty() {
-                    return Ok(Request {
-                        status_line,
-                        headers,
-                        query_params,
-                    });
-                } else {
-                    let colon_position = current_line.find(':');
+        for line in header_buffer {
+            let current_line =
+                line.map_err(|_| NpmExpansionsError::from(NpmErrorKind::RequestParseError))?;
 
-                    if let Some(colon_position) = colon_position {
-                        let (key, value) = current_line.split_at(colon_position);
-                        let (_colon, header_value) = value.split_at(1);
-
-                        headers.insert(key.trim().to_string(), header_value.trim().to_string());
-                    } else {
-                        return Err(NpmExpansionsError::from(NpmErrorKind::InvalidHeader));
-                    }
-                }
+            if current_line.is_empty() {
+                return Ok(headers);
             } else {
-                return Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
+                let (key, value) = Self::header_key_value(current_line)?;
+                headers.insert(key, value);
             }
         }
 
         // TODO Make this error more specific. This error could be too many headers or no blank line to mark end of headers.
         Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError))
+    }
+
+    fn header_key_value(header_line: String) -> Result<(String, String), NpmExpansionsError> {
+        let colon_position = header_line
+            .find(':')
+            .ok_or(NpmExpansionsError::from(NpmErrorKind::InvalidHeader))?;
+
+        let (key, value) = header_line.split_at(colon_position);
+        let (_colon, header_value) = value.split_at(1);
+
+        Ok((key.trim().to_string(), header_value.trim().to_string()))
     }
 
     fn build_query_params(
