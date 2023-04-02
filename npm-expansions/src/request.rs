@@ -111,56 +111,44 @@ impl Request {
     fn build_query_params(
         status_line: &str,
     ) -> Result<HashMap<String, String>, NpmExpansionsError> {
-        // GET /random?query=123&search=abc HTTP/1.1
         let split_line: Vec<&str> = status_line.split(' ').collect();
-
-        if split_line.len() != 3 {
-            return Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
-        }
 
         let uri = split_line
             .get(1)
             .ok_or(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
 
-        let query_params = uri?.split_once('?');
+        let query_params = uri?.split_once('?').unwrap_or(("", ""));
 
-        if let Some(query_params) = query_params {
-            let mut params = query_params.1;
-
-            if params.is_empty() {
-                return Ok(HashMap::new());
-            }
-
-            if let Some(param) = params.split_once('#') {
-                params = param.0
-            }
-
-            let single: Vec<&str> = params.split('&').filter(|a| !a.is_empty()).collect();
-            let vec_params: Result<Vec<(&str, &str)>, NpmExpansionsError> = single
-                .iter()
-                .map(|param| {
-                    param
-                        .split_once('=')
-                        .ok_or(NpmExpansionsError::from(NpmErrorKind::RequestParseError))
-                })
-                .collect();
-
-            let final_hashmap = vec_params?.iter().fold(HashMap::new(), |mut acc, param| {
-                acc.insert(param.0.to_string(), param.1.to_string());
-                acc
-            });
-
-            Ok(final_hashmap)
-        } else {
-            Ok(HashMap::new())
+        if query_params.1.is_empty() {
+            return Ok(HashMap::new());
         }
 
-        // Split into three parts
-        // Get second part
-        // Get ? onward
-        // Split by & symbol
-        // Split by = symbol
-        // Put into Hashmap
+        Self::process_query_string(query_params.1)
+    }
+
+    fn process_query_string(
+        query_string: &str,
+    ) -> Result<HashMap<String, String>, NpmExpansionsError> {
+        let query_parameters: Result<Vec<(&str, &str)>, NpmExpansionsError> = query_string
+            .split('&')
+            .filter(|a| !a.is_empty())
+            .map(|param| {
+                param
+                    .split_once('=')
+                    .ok_or(NpmExpansionsError::from(NpmErrorKind::RequestParseError))
+            })
+            .collect();
+
+        let query_hash_map: HashMap<String, String> =
+            query_parameters?
+                .into_iter()
+                .fold(HashMap::new(), |mut acc, param| {
+                    let (key, value) = param;
+                    acc.insert(key.to_string(), value.to_string());
+                    acc
+                });
+
+        Ok(query_hash_map)
     }
 
     pub fn new(
@@ -402,7 +390,7 @@ mod tests {
 
             assert_eq!(
                 request.query_params(),
-                &HashMap::from([("search".to_string(), "123".to_string())])
+                &HashMap::from([("search".to_string(), "123#test".to_string())])
             )
         }
 
