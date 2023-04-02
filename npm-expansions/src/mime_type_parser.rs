@@ -49,28 +49,10 @@ impl fmt::Display for MimeTypeParseError {
 pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
-    let parameters: Result<Option<HashMap<&str, &str>>, MimeTypeParseError> =
-        if let Some(parameter_values) = parts.get(1..) {
-            let split_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameter_values
-                .iter()
-                .map(|val| {
-                    val.split_once('=')
-                        .ok_or(MimeTypeParseError::new(mime_type.to_string()))
-                })
-                .collect();
-
-            if let Ok(split_parameters) = split_parameters {
-                if split_parameters.is_empty() {
-                    Ok(None)
-                } else {
-                    Ok(Some(HashMap::from_iter(split_parameters)))
-                }
-            } else {
-                Err(split_parameters.err().unwrap())
-            }
-        } else {
-            Ok(None)
-        };
+    let parameters = match parts.get(1..) {
+        Some(params) => parse_mime_parameters(params.to_vec()),
+        _ => Ok(None),
+    }?;
 
     let parsed_mime_type = match parts.first() {
         Some(mime_type_value) => mime_type_value.split_once('/'),
@@ -81,10 +63,27 @@ pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> 
         if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
             Err(MimeTypeParseError::new(mime_type.to_string()))
         } else {
-            Ok((parsed_mime_type.0, parsed_mime_type.1, parameters?))
+            Ok((parsed_mime_type.0, parsed_mime_type.1, parameters))
         }
     } else {
         Err(MimeTypeParseError::new(mime_type.to_string()))
+    }
+}
+
+fn parse_mime_parameters(
+    parameters: Vec<&str>,
+) -> Result<Option<HashMap<&str, &str>>, MimeTypeParseError> {
+    let key_value_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameters
+        .iter()
+        .map(|val| {
+            val.split_once('=')
+                .ok_or(MimeTypeParseError::new(val.to_string()))
+        })
+        .collect();
+
+    match key_value_parameters? {
+        params if !params.is_empty() => Ok(Some(HashMap::from_iter(params))),
+        _ => Ok(None),
     }
 }
 
