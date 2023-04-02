@@ -64,7 +64,7 @@ impl Router {
         if let Some(not_found_route) = self.routes_config.get("404") {
             not_found_route(&request)
         } else {
-            Err(NpmExpansionsError::new(NpmErrorKind::InternalServerError))
+            Err(NpmExpansionsError::from(NpmErrorKind::InternalServerError))
         }
     }
 }

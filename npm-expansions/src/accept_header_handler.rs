@@ -34,20 +34,16 @@ pub fn best_match(
         return Ok("".to_string());
     };
 
-    let parsed_accept_headers: Result<
-        Vec<(&str, &str, f32)>,
-        mime_type_parser::MimeTypeParseError,
-    > = accept_header.split(',').map(ensure_quality_value).collect();
+    let parsed_accept_headers: Result<Vec<(&str, &str, f32)>, NpmExpansionsError> =
+        accept_header.split(',').map(ensure_quality_value).collect();
 
     if let Ok(parsed_accept_headers) = parsed_accept_headers {
-        let weighted_matches: Result<Vec<(f32, &str)>, mime_type_parser::MimeTypeParseError> =
-            supported_mime_types
-                .iter()
-                .map(|mime_type| {
-                    fitness_of_mime_type(mime_type, &parsed_accept_headers)
-                        .map(|val| (val, *mime_type))
-                })
-                .collect();
+        let weighted_matches: Result<Vec<(f32, &str)>, NpmExpansionsError> = supported_mime_types
+            .iter()
+            .map(|mime_type| {
+                fitness_of_mime_type(mime_type, &parsed_accept_headers).map(|val| (val, *mime_type))
+            })
+            .collect();
 
         if let Ok(mut ok_weighted_matches) = weighted_matches {
             ok_weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
@@ -64,12 +60,12 @@ pub fn best_match(
                 Ok("".to_string())
             }
         } else {
-            Err(NpmExpansionsError::new(
+            Err(NpmExpansionsError::from(
                 NpmErrorKind::SupportedMimeTypeError,
             ))
         }
     } else {
-        Err(NpmExpansionsError::new(NpmErrorKind::InvalidHeader))
+        Err(NpmExpansionsError::from(NpmErrorKind::InvalidHeader))
     }
 }
 
@@ -95,9 +91,7 @@ pub fn best_match(
 /// use npm_expansions::accept_header_handler::ensure_quality_value;
 /// ensure_quality_value("application/;q=0.5");
 /// ```
-pub fn ensure_quality_value(
-    mime_type: &str,
-) -> Result<(&str, &str, f32), mime_type_parser::MimeTypeParseError> {
+pub fn ensure_quality_value(mime_type: &str) -> Result<(&str, &str, f32), NpmExpansionsError> {
     let (mime_type, subtype, parameter) = mime_type_parser::parse_mime_type(mime_type)?;
     let mut quality = 1.0;
 
@@ -143,7 +137,7 @@ pub fn ensure_quality_value(
 pub fn fitness_of_mime_type(
     mime_type: &str,
     mime_range: &Vec<(&str, &str, f32)>,
-) -> Result<f32, mime_type_parser::MimeTypeParseError> {
+) -> Result<f32, NpmExpansionsError> {
     let (mime_type, mime_subtype, _mime_quality) = ensure_quality_value(mime_type)?;
     let mut best_fitness = -1.0;
     let mut best_mime_type_quality = 0.0;

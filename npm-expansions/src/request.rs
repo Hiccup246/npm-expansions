@@ -61,7 +61,7 @@ impl Request {
         if let Some(Ok(line)) = buffer.next() {
             status_line = line;
         } else {
-            return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
+            return Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
         }
 
         let query_params = Self::build_query_params(&status_line)?;
@@ -85,16 +85,16 @@ impl Request {
 
                         headers.insert(key.trim().to_string(), header_value.trim().to_string());
                     } else {
-                        return Err(NpmExpansionsError::new(NpmErrorKind::InvalidHeader));
+                        return Err(NpmExpansionsError::from(NpmErrorKind::InvalidHeader));
                     }
                 }
             } else {
-                return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
+                return Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
             }
         }
 
         // TODO Make this error more specific. This error could be too many headers or no blank line to mark end of headers.
-        Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError))
+        Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError))
     }
 
     fn build_query_params(
@@ -104,12 +104,12 @@ impl Request {
         let split_line: Vec<&str> = status_line.split(' ').collect();
 
         if split_line.len() != 3 {
-            return Err(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
+            return Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
         }
 
         let uri = split_line
             .get(1)
-            .ok_or(NpmExpansionsError::new(NpmErrorKind::RequestParseError));
+            .ok_or(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
 
         let query_params = uri?.split_once('?');
 
@@ -130,7 +130,7 @@ impl Request {
                 .map(|param| {
                     param
                         .split_once('=')
-                        .ok_or(NpmExpansionsError::new(NpmErrorKind::RequestParseError))
+                        .ok_or(NpmExpansionsError::from(NpmErrorKind::RequestParseError))
                 })
                 .collect();
 

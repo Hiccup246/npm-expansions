@@ -42,6 +42,7 @@ fn http_response_error_handler(
         NpmErrorKind::InternalServerError => NpmController::internal_server_error(error_request),
         NpmErrorKind::RequestParseError => NpmController::internal_server_error(error_request),
         NpmErrorKind::SupportedMimeTypeError => NpmController::internal_server_error(error_request),
+        NpmErrorKind::InvalidMimeType => NpmController::client_error(error_request),
     };
 
     error_response

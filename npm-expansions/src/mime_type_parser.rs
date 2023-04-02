@@ -1,27 +1,9 @@
 // Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
-use std::{collections::HashMap, fmt};
+use std::collections::HashMap;
+
+use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 
 type MimeType<'a> = (&'a str, &'a str, Option<HashMap<&'a str, &'a str>>);
-
-#[derive(Debug)]
-pub struct MimeTypeParseError {
-    pub failed_mime_type: String,
-}
-
-impl MimeTypeParseError {
-    fn new(mime_type: String) -> MimeTypeParseError {
-        MimeTypeParseError {
-            failed_mime_type: mime_type,
-        }
-    }
-}
-
-impl fmt::Display for MimeTypeParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let message = format!("{} is an invalid Mime Type", self.failed_mime_type);
-        write!(f, "{message}")
-    }
-}
 
 /// Parses a mime type string slice into a tuple consisting of its type, subtype and parameters
 ///
@@ -46,7 +28,7 @@ impl fmt::Display for MimeTypeParseError {
 /// use npm_expansions::mime_type_parser::parse_mime_type;
 /// parse_mime_type("text/");
 /// ```
-pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> {
+pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, NpmExpansionsError> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
     let parameters = match parts.get(1..) {
@@ -56,12 +38,21 @@ pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> 
 
     let (primary_type, subtype) = parts
         .first()
-        .ok_or(MimeTypeParseError::new(mime_type.to_string()))?
+        .ok_or(NpmExpansionsError::new(
+            NpmErrorKind::InvalidMimeType,
+            mime_type,
+        ))?
         .split_once('/')
-        .ok_or(MimeTypeParseError::new(mime_type.to_string()))?;
+        .ok_or(NpmExpansionsError::new(
+            NpmErrorKind::InvalidMimeType,
+            mime_type,
+        ))?;
 
     if primary_type.is_empty() || subtype.is_empty() {
-        Err(MimeTypeParseError::new(mime_type.to_string()))
+        Err(NpmExpansionsError::new(
+            NpmErrorKind::InvalidMimeType,
+            mime_type,
+        ))
     } else {
         Ok((primary_type, subtype, parameters))
     }
@@ -69,12 +60,12 @@ pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> 
 
 fn parse_mime_parameters(
     parameters: Vec<&str>,
-) -> Result<Option<HashMap<&str, &str>>, MimeTypeParseError> {
-    let key_value_parameters: Result<Vec<(&str, &str)>, MimeTypeParseError> = parameters
+) -> Result<Option<HashMap<&str, &str>>, NpmExpansionsError> {
+    let key_value_parameters: Result<Vec<(&str, &str)>, NpmExpansionsError> = parameters
         .iter()
         .map(|val| {
             val.split_once('=')
-                .ok_or(MimeTypeParseError::new(val.to_string()))
+                .ok_or(NpmExpansionsError::new(NpmErrorKind::InvalidMimeType, val))
         })
         .collect();
 
