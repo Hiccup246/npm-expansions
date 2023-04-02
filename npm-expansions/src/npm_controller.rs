@@ -5,7 +5,9 @@ use crate::request::Request;
 use crate::response::Response;
 use levenshtein::levenshtein;
 
-pub struct NpmController {}
+pub struct NpmController {
+    _npm_expansion_generator: NpmExpansions,
+}
 
 impl NpmController {
     /// Returns a vector byte representation of a json object containing a random npm expansion
@@ -320,6 +322,12 @@ impl NpmController {
         .into_http_response();
 
         Ok(response)
+    }
+
+    pub fn new(npm_expansion_generator: NpmExpansions) -> NpmController {
+        NpmController {
+            _npm_expansion_generator: npm_expansion_generator,
+        }
     }
 }
 
