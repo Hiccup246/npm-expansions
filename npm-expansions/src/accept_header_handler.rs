@@ -1,6 +1,6 @@
 // Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
 use crate::mime_type_parser;
-use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
+use crate::npm_expansion_error::NpmExpansionsError;
 
 /// Returns the most appropriate mime type given a list of desired types and an accept header
 ///
@@ -34,38 +34,26 @@ pub fn best_match(
         return Ok("".to_string());
     };
 
-    let parsed_accept_headers: Result<Vec<(&str, &str, f32)>, NpmExpansionsError> =
-        accept_header.split(',').map(ensure_quality_value).collect();
+    let parsed_accept_headers: Vec<(&str, &str, f32)> = accept_header
+        .split(',')
+        .map(ensure_quality_value)
+        .collect::<Result<Vec<(&str, &str, f32)>, NpmExpansionsError>>()?;
 
-    if let Ok(parsed_accept_headers) = parsed_accept_headers {
-        let weighted_matches: Result<Vec<(f32, &str)>, NpmExpansionsError> = supported_mime_types
-            .iter()
-            .map(|mime_type| {
-                fitness_of_mime_type(mime_type, &parsed_accept_headers).map(|val| (val, *mime_type))
-            })
-            .collect();
+    let mut weighted_matches: Vec<(f32, &str)> = supported_mime_types
+        .iter()
+        .map(|mime_type| {
+            fitness_of_mime_type(mime_type, &parsed_accept_headers).map(|val| (val, *mime_type))
+        })
+        .collect::<Result<Vec<(f32, &str)>, NpmExpansionsError>>()?;
 
-        if let Ok(mut ok_weighted_matches) = weighted_matches {
-            ok_weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-            let final_match = ok_weighted_matches.last();
+    let (quality, mime) = weighted_matches.last().unwrap_or(&(0.0, ""));
 
-            if let Some(final_match) = final_match {
-                if final_match.0 != 0.0 {
-                    Ok(final_match.1.to_string())
-                } else {
-                    Ok("".to_string())
-                }
-            } else {
-                Ok("".to_string())
-            }
-        } else {
-            Err(NpmExpansionsError::from(
-                NpmErrorKind::SupportedMimeTypeError,
-            ))
-        }
+    if *quality != 0.0 {
+        Ok(mime.to_string())
     } else {
-        Err(NpmExpansionsError::from(NpmErrorKind::InvalidHeader))
+        Ok("".to_string())
     }
 }
 
