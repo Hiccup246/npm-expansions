@@ -54,19 +54,16 @@ pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, MimeTypeParseError> 
         _ => Ok(None),
     }?;
 
-    let parsed_mime_type = match parts.first() {
-        Some(mime_type_value) => mime_type_value.split_once('/'),
-        _ => None,
-    };
+    let (primary_type, subtype) = parts
+        .first()
+        .ok_or(MimeTypeParseError::new(mime_type.to_string()))?
+        .split_once('/')
+        .ok_or(MimeTypeParseError::new(mime_type.to_string()))?;
 
-    if let Some(parsed_mime_type) = parsed_mime_type {
-        if parsed_mime_type.0.is_empty() || parsed_mime_type.1.is_empty() {
-            Err(MimeTypeParseError::new(mime_type.to_string()))
-        } else {
-            Ok((parsed_mime_type.0, parsed_mime_type.1, parameters))
-        }
-    } else {
+    if primary_type.is_empty() || subtype.is_empty() {
         Err(MimeTypeParseError::new(mime_type.to_string()))
+    } else {
+        Ok((primary_type, subtype, parameters))
     }
 }
 
