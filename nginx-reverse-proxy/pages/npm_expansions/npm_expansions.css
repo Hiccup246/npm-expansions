@@ -46,6 +46,20 @@
     width: 100%;
 }
 
+@media (max-width: 410px) {
+    .search-controls {
+        flex-wrap: wrap;
+    }
+
+    .search-button {
+        width: 100%;
+    }
+
+    .search-bar {
+        padding: 10px;
+    }
+}
+
 .search-bar {
     width: 100%;
     height: 100%;
