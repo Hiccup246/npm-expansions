@@ -3,7 +3,6 @@ use crate::npm_expansion_error::NpmExpansionsError;
 use crate::npm_expansions::NpmExpansions;
 use crate::request::Request;
 use crate::response::Response;
-use levenshtein::levenshtein;
 
 pub struct NpmController {
     _npm_expansion_generator: NpmExpansions,
@@ -158,18 +157,7 @@ impl NpmController {
 
         let default = String::from(" ");
         let search_string = request.query_params().get("query").unwrap_or(&default);
-
-        let mut weighted_matched: Vec<(usize, &str)> = NpmExpansions::expansions()
-            .iter()
-            .map(|expansion| (levenshtein(expansion, search_string), *expansion))
-            .collect();
-
-        weighted_matched.sort_by(|a, b| a.0.cmp(&b.0));
-
-        let top_ten: Vec<String> = weighted_matched[0..10]
-            .iter()
-            .map(|expansions| format!("\"{}\"", expansions.1))
-            .collect();
+        let top_ten: Vec<&str> = NpmExpansions::levenshtein_search(search_string);
 
         let response = match best.as_str() {
             "application/json" => Response::new(

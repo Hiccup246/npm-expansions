@@ -1,3 +1,4 @@
+use levenshtein::levenshtein;
 use rand::Rng;
 
 pub struct NpmExpansions {
@@ -876,6 +877,20 @@ impl NpmExpansions {
         let expansion = *Self::EXPANSIONS.get(random_index).unwrap();
 
         expansion.to_string()
+    }
+
+    pub fn levenshtein_search(query: &str) -> Vec<&'static str> {
+        let mut scored_matches: Vec<(usize, &str)> = Self::EXPANSIONS
+            .iter()
+            .map(|expansion| (levenshtein(expansion, query), *expansion))
+            .collect();
+
+        scored_matches.sort_by(|a, b| a.0.cmp(&b.0));
+
+        scored_matches[0..10]
+            .iter()
+            .map(|expansions| expansions.1)
+            .collect::<Vec<&'static str>>()
     }
 }
 
