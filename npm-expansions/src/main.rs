@@ -1,8 +1,7 @@
-use std::{env, net::TcpListener};
-
 use npm_expansions::router;
 use npm_expansions::routes_config;
 use npm_expansions::stream_handler;
+use std::{env, net::TcpListener};
 
 fn main() {
     let development_env = env::var("DEV").is_ok();

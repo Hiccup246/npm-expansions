@@ -65,7 +65,6 @@ mod tests {
 
     use super::*;
     use crate::mock_tcp_stream::MockTcpStream;
-
     mod respond_to_request {
         use super::*;
 
