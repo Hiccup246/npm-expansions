@@ -38,7 +38,6 @@ fn http_response_error_handler(
     let error_response = match error.kind() {
         NpmErrorKind::InvalidHeader => NpmController::client_error(error_request),
         NpmErrorKind::TooManyHeaders => NpmController::client_error(error_request),
-        NpmErrorKind::InvalidRequestStatusLine => NpmController::client_error(error_request),
         NpmErrorKind::InternalServerError => NpmController::internal_server_error(error_request),
         NpmErrorKind::RequestParseError => NpmController::internal_server_error(error_request),
         NpmErrorKind::SupportedMimeTypeError => NpmController::internal_server_error(error_request),

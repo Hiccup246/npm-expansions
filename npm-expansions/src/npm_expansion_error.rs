@@ -19,7 +19,6 @@ pub enum NpmErrorKind {
     RequestParseError,
     SupportedMimeTypeError,
     InternalServerError,
-    InvalidRequestStatusLine,
 }
 
 impl NpmExpansionsError {
