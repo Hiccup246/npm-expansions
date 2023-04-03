@@ -22,8 +22,11 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::request::Request;
-    /// use npm_expansions::mock_tcp_stream::MockTcpStream;
+    /// use npm_expansions::{
+    ///     request::Request,
+    ///     mock_tcp_stream::MockTcpStream,
+    /// };
+    ///
     /// let input_bytes = b"GET / HTTP/1.1\r\n\r\n";
     /// let mut contents = vec![0u8; 1024];
     /// contents[..input_bytes.len()].clone_from_slice(input_bytes);
@@ -32,6 +35,7 @@ impl Request {
     ///     write_data: Vec::new(),
     /// };
     /// let request = Request::build(&mut stream).unwrap();
+    ///
     /// assert_eq!(request.status_line(), "GET / HTTP/1.1");
     /// ```
     ///
@@ -43,8 +47,11 @@ impl Request {
     ///
     /// ```rust,should_error
     /// // fails if no http status line is given
-    /// use npm_expansions::request::Request;
-    /// use npm_expansions::mock_tcp_stream::MockTcpStream;
+    /// use npm_expansions::{
+    ///     request::Request,
+    ///     mock_tcp_stream::MockTcpStream,
+    /// };
+    ///
     /// let input_bytes = b"";
     /// let mut contents = vec![0u8; 1024];
     /// contents[..input_bytes.len()].clone_from_slice(input_bytes);
@@ -52,6 +59,7 @@ impl Request {
     ///     read_data: contents,
     ///     write_data: Vec::new(),
     /// };
+    ///
     /// Request::build(&mut stream);
     /// ```
     pub fn build(stream: &mut (impl Read + Write)) -> Result<Request, NpmExpansionsError> {
