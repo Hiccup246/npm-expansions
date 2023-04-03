@@ -1,4 +1,4 @@
-use crate::accept_header_handler;
+use crate::mime_type::matcher;
 use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
 use crate::response::Response;
@@ -46,7 +46,7 @@ impl DefaultController {
     pub fn not_found(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
+        let best = matcher::best_match(
             Vec::from(["application/json", "text/html"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
@@ -100,7 +100,7 @@ impl DefaultController {
     pub fn internal_server_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
+        let best = matcher::best_match(
             Vec::from(["application/json", "text/html"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
@@ -156,7 +156,7 @@ impl DefaultController {
     pub fn client_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
+        let best = matcher::best_match(
             Vec::from(["application/json", "text/html"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;

@@ -1,4 +1,3 @@
-pub mod accept_header_handler;
 pub mod default_controller;
 pub mod expansions_model;
 pub mod mime_type;

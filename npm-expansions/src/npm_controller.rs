@@ -1,5 +1,5 @@
-use crate::accept_header_handler;
 use crate::expansions_model::ExpansionsAccess;
+use crate::mime_type::matcher;
 use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
 use crate::response::Response;
@@ -59,7 +59,7 @@ impl NpmController {
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
+        let best = matcher::best_match(
             Vec::from(["application/json"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
@@ -129,7 +129,7 @@ impl NpmController {
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
+        let best = matcher::best_match(
             Vec::from(["application/json"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
@@ -199,7 +199,7 @@ impl NpmController {
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
+        let best = matcher::best_match(
             Vec::from(["application/json"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
