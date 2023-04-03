@@ -1,7 +1,7 @@
 pub mod accept_header_handler;
 pub mod default_controller;
 pub mod expansions_model;
-pub mod mime_type_parser;
+pub mod mime_type;
 pub mod mock_expansions_model;
 pub mod mock_tcp_stream;
 pub mod npm_controller;

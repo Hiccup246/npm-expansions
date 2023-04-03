@@ -1,5 +1,5 @@
 // Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
-use crate::mime_type_parser;
+use crate::mime_type::parser;
 use crate::npm_expansion_error::NpmExpansionsError;
 
 /// Returns the most appropriate mime type given a list of desired types and an accept header
@@ -85,7 +85,7 @@ pub fn best_match(
 /// ensure_quality_value("application/;q=0.5");
 /// ```
 pub fn ensure_quality_value(mime_type: &str) -> Result<(&str, &str, f32), NpmExpansionsError> {
-    let (mime_type, subtype, parameter) = mime_type_parser::parse_mime_type(mime_type)?;
+    let (mime_type, subtype, parameter) = parser::parse_mime_type(mime_type)?;
     let mut quality = 1.0;
 
     if let Some(parameter_hash) = parameter {

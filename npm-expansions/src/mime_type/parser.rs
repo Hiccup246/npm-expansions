@@ -13,7 +13,7 @@ type MimeType<'a> = (&'a str, &'a str, Option<HashMap<&'a str, &'a str>>);
 /// # Examples
 ///
 /// ```
-/// use npm_expansions::mime_type_parser::parse_mime_type;
+/// use npm_expansions::mime_type::parser::parse_mime_type;
 ///
 /// let parsed_mime_type = parse_mime_type("text/html");
 ///
@@ -26,7 +26,7 @@ type MimeType<'a> = (&'a str, &'a str, Option<HashMap<&'a str, &'a str>>);
 ///
 /// ```rust,should_error
 /// // fails if given a malformed mime type
-/// use npm_expansions::mime_type_parser::parse_mime_type;
+/// use npm_expansions::mime_type::parser::parse_mime_type;
 ///
 /// parse_mime_type("text/");
 /// ```
