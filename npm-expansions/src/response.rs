@@ -35,6 +35,7 @@ impl Response {
     ///
     /// ```
     /// use npm_expansions::response::Response;
+    ///
     /// let response = Response::new(
     ///     "200",
     ///     "Content-Type: application/json;q=0.5",
