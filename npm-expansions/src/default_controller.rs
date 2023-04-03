@@ -20,8 +20,10 @@ impl DefaultController {
     ///     request::Request
     /// };
     /// use std::collections::HashMap;
+    ///
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::not_found(&request);
+    ///
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -36,7 +38,9 @@ impl DefaultController {
     ///     request::Request,
     /// };
     /// use std::collections::HashMap;
+    ///
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    ///
     /// DefaultController::not_found(&request);
     /// ```
     pub fn not_found(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
@@ -70,8 +74,10 @@ impl DefaultController {
     ///     request::Request,
     /// };
     /// use std::collections::HashMap;
+    ///
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::internal_server_error(&request);
+    ///
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -86,7 +92,9 @@ impl DefaultController {
     ///     request::Request,
     /// };
     /// use std::collections::HashMap;
+    ///
     /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    ///
     /// DefaultController::internal_server_error(&request);
     /// ```
     pub fn internal_server_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
@@ -122,8 +130,10 @@ impl DefaultController {
     ///     request::Request,
     /// };
     /// use std::collections::HashMap;
+    ///
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::client_error(&request);
+    ///
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -138,7 +148,9 @@ impl DefaultController {
     ///     request::Request,
     /// };
     /// use std::collections::HashMap;
+    ///
     /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    ///
     /// DefaultController::client_error(&request);
     /// ```
     pub fn client_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
