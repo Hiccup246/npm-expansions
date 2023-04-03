@@ -15,8 +15,10 @@ impl DefaultController {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::default_controller::DefaultController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     default_controller::DefaultController,
+    ///     request::Request
+    /// };
     /// use std::collections::HashMap;
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::not_found(&request);
@@ -29,8 +31,10 @@ impl DefaultController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// use npm_expansions::default_controller::DefaultController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     default_controller::DefaultController,
+    ///     request::Request,
+    /// };
     /// use std::collections::HashMap;
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     /// DefaultController::not_found(&request);
@@ -61,8 +65,10 @@ impl DefaultController {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::default_controller::DefaultController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     default_controller::DefaultController,
+    ///     request::Request,
+    /// };
     /// use std::collections::HashMap;
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::internal_server_error(&request);
@@ -75,8 +81,10 @@ impl DefaultController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// use npm_expansions::default_controller::DefaultController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     default_controller::DefaultController,
+    ///     request::Request,
+    /// };
     /// use std::collections::HashMap;
     /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     /// DefaultController::internal_server_error(&request);
@@ -109,8 +117,10 @@ impl DefaultController {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::default_controller::DefaultController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     default_controller::DefaultController,
+    ///     request::Request,
+    /// };
     /// use std::collections::HashMap;
     /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::client_error(&request);
@@ -123,8 +133,10 @@ impl DefaultController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// use npm_expansions::default_controller::DefaultController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     default_controller::DefaultController,
+    ///     request::Request,
+    /// };
     /// use std::collections::HashMap;
     /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     /// DefaultController::client_error(&request);
