@@ -19,14 +19,18 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     npm_controller::NpmController,
+    ///     request::Request,
+    ///     mock_expansions_model::MockExpansionsModel,
+    ///     expansions_model::ExpansionsAccess,
+    /// };
     /// use std::collections::HashMap;
-    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
-    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    ///
     /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::random(&request, mock_generator);
+    ///
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -36,13 +40,17 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     npm_controller::NpmController,
+    ///     request::Request,
+    ///     mock_expansions_model::MockExpansionsModel,
+    ///     expansions_model::ExpansionsAccess,
+    /// };
     /// use std::collections::HashMap;
-    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
-    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    ///
     /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    ///
     /// NpmController::random(&request, mock_generator);
     /// ```
     pub fn random(
@@ -81,14 +89,18 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     npm_controller::NpmController,
+    ///     request::Request,
+    ///     mock_expansions_model::MockExpansionsModel,
+    ///     expansions_model::ExpansionsAccess,
+    /// };
     /// use std::collections::HashMap;
-    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
-    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    //
     /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::all(&request, mock_generator);
+    ///
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -105,6 +117,7 @@ impl NpmController {
     /// use npm_expansions::expansions_model::ExpansionsAccess;
     /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    ///
     /// NpmController::all(&request, mock_generator);
     /// ```
     pub fn all(
@@ -147,14 +160,18 @@ impl NpmController {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     npm_controller::NpmController,
+    ///     request::Request,
+    ///     mock_expansions_model::MockExpansionsModel,
+    ///     expansions_model::ExpansionsAccess,
+    /// };
     /// use std::collections::HashMap;
-    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
-    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    ///
     /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
     /// let response = NpmController::search(&request, mock_generator);
+    ///
     /// assert!(response.is_ok());
     /// ```
     ///
