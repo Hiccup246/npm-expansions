@@ -30,20 +30,24 @@ impl Router {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::router::{Router, Route};
-    /// use npm_expansions::request::Request;
+    /// use npm_expansions::{
+    ///     router::{Router, Route},
+    ///     request::Request,
+    ///     mock_expansions_model::MockExpansionsModel,
+    ///     npm_expansion_error::NpmExpansionsError,
+    ///     expansions_model::ExpansionsAccess,
+    ///     npm_controller::ControllerFunction,
+    /// };
     /// use std::collections::HashMap;
-    /// use crate::npm_expansions::mock_npm_expansions::MockNpmExpansions;
-    /// use crate::npm_expansions::npm_expansion_error::NpmExpansionsError;
-    /// use crate::npm_expansions::expansions_model::{ExpansionsModel,ExpansionsAccess};
-    /// use crate::npm_expansions::npm_controller::ControllerFunction;
+    ///
     /// let actual_route: ControllerFunction = |_,_| Ok("actual_route".as_bytes().to_vec());
     /// let route_config: Route =
     ///     HashMap::from([("GET / HTTP/1.1", actual_route)]);
     /// let router = Router::new(route_config);
     /// let request = Request::new("GET / HTTP/1.1", HashMap::new(),  HashMap::new());
-    /// let mock_generator = &ExpansionsModel::default();
+    /// let mock_generator = &MockExpansionsModel::default();
     /// let response = router.route_request(request, mock_generator);
+    ///
     /// assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec());
     /// ```
     pub fn route_request(
