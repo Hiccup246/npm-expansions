@@ -3,13 +3,17 @@ use std::{
     io::{Read, Write},
 };
 
-use crate::npm_controller::NpmController;
 use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 use crate::request::Request;
 use crate::router;
+use crate::{default_controller::DefaultController, expansions_model::ExpansionsAccess};
 
-pub fn handle_connection(stream: &mut (impl Read + Write), router: &router::Router) {
-    let response = respond_to_request(stream, router);
+pub fn handle_connection(
+    stream: &mut (impl Read + Write),
+    router: &router::Router,
+    expansions_generator: &dyn ExpansionsAccess,
+) {
+    let response = respond_to_request(stream, router, expansions_generator);
 
     if let Err(res) = response {
         let error_request = Request::new(
@@ -36,12 +40,17 @@ fn http_response_error_handler(
     error_request: &Request,
 ) -> Result<Vec<u8>, NpmExpansionsError> {
     let error_response = match error.kind() {
-        NpmErrorKind::InvalidHeader => NpmController::client_error(error_request),
-        NpmErrorKind::TooManyHeaders => NpmController::client_error(error_request),
-        NpmErrorKind::InternalServerError => NpmController::internal_server_error(error_request),
-        NpmErrorKind::RequestParseError => NpmController::internal_server_error(error_request),
-        NpmErrorKind::SupportedMimeTypeError => NpmController::internal_server_error(error_request),
-        NpmErrorKind::InvalidMimeType => NpmController::client_error(error_request),
+        NpmErrorKind::InvalidHeader => DefaultController::client_error(error_request),
+        NpmErrorKind::TooManyHeaders => DefaultController::client_error(error_request),
+        NpmErrorKind::InternalServerError => {
+            DefaultController::internal_server_error(error_request)
+        }
+        NpmErrorKind::RequestParseError => DefaultController::internal_server_error(error_request),
+        NpmErrorKind::SupportedMimeTypeError => {
+            DefaultController::internal_server_error(error_request)
+        }
+        NpmErrorKind::InvalidMimeType => DefaultController::client_error(error_request),
+        NpmErrorKind::NotFound => DefaultController::not_found(error_request),
     };
 
     error_response
@@ -50,9 +59,10 @@ fn http_response_error_handler(
 fn respond_to_request(
     stream: &mut (impl Read + Write),
     router: &router::Router,
+    expansions_generator: &dyn ExpansionsAccess,
 ) -> Result<(), NpmExpansionsError> {
     let request = Request::build(stream)?;
-    let response = router.route_request(request)?;
+    let response = router.route_request(request, expansions_generator)?;
 
     stream.write_all(response.as_slice()).unwrap();
 
@@ -61,10 +71,12 @@ fn respond_to_request(
 
 #[cfg(test)]
 mod tests {
-    extern crate tempdir;
-
     use super::*;
+    use crate::mock_expansions_model::MockExpansionsModel;
     use crate::mock_tcp_stream::MockTcpStream;
+    use crate::npm_controller::ControllerFunction;
+    use crate::npm_controller::NpmController;
+
     mod respond_to_request {
         use super::*;
 
@@ -80,12 +92,14 @@ mod tests {
                 write_data: Vec::new(),
             };
 
+            let mock_generator = &MockExpansionsModel::default();
+
             let router = router::Router::new(HashMap::from([(
-                "GET / HTTP/1.1".to_string(),
-                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                "GET / HTTP/1.1",
+                NpmController::random as ControllerFunction,
             )]));
 
-            let response = respond_to_request(&mut stream, &router);
+            let response = respond_to_request(&mut stream, &router, mock_generator);
 
             assert!(response.is_ok());
         }
@@ -102,14 +116,16 @@ mod tests {
                 write_data: Vec::new(),
             };
 
+            let mock_generator = &MockExpansionsModel::default();
+
             let router = router::Router::new(HashMap::from([(
-                "GET / HTTP/1.1".to_string(),
-                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                "GET / HTTP/1.1",
+                NpmController::random as ControllerFunction,
             )]));
 
-            let response = respond_to_request(&mut stream, &router);
+            let response = respond_to_request(&mut stream, &router, mock_generator);
 
-            assert!(response.is_err());
+            assert!(response.is_ok());
         }
 
         #[test]
@@ -125,17 +141,21 @@ mod tests {
             };
 
             let router = router::Router::new(HashMap::from([(
-                "GET / HTTP/1.1".to_string(),
-                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                "GET / HTTP/1.1",
+                NpmController::random as ControllerFunction,
             )]));
 
-            let response = respond_to_request(&mut stream, &router);
+            let mock_generator = &MockExpansionsModel::default();
+
+            let response = respond_to_request(&mut stream, &router, mock_generator);
 
             assert!(response.is_err());
         }
     }
 
     mod connection_handler {
+        use crate::npm_controller::ControllerFunction;
+
         use super::*;
 
         #[test]
@@ -151,11 +171,13 @@ mod tests {
             };
 
             let router = router::Router::new(HashMap::from([(
-                "GET / HTTP/1.1".to_string(),
-                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                "GET / HTTP/1.1",
+                NpmController::random as ControllerFunction,
             )]));
 
-            let response = handle_connection(&mut stream, &router);
+            let mock_generator = &MockExpansionsModel::default();
+
+            let response = handle_connection(&mut stream, &router, mock_generator);
 
             assert_eq!(response, ());
         }
@@ -172,12 +194,14 @@ mod tests {
                 write_data: Vec::new(),
             };
 
+            let mock_generator = &MockExpansionsModel::default();
+
             let router = router::Router::new(HashMap::from([(
-                "GET / HTTP/1.1".to_string(),
-                NpmController::random as fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
+                "GET / HTTP/1.1",
+                NpmController::random as ControllerFunction,
             )]));
 
-            let response = handle_connection(&mut stream, &router);
+            let response = handle_connection(&mut stream, &router, mock_generator);
 
             assert_eq!(response, ());
         }

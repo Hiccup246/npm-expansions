@@ -1,6 +1,11 @@
+use npm_expansions::expansions_model::ExpansionsAccess;
+use npm_expansions::expansions_model::ExpansionsModel;
+use npm_expansions::npm_controller::ControllerFunction;
+use npm_expansions::npm_controller::NpmController;
 use npm_expansions::router;
-use npm_expansions::routes_config;
+use npm_expansions::router::Route;
 use npm_expansions::stream_handler;
+use std::collections::HashMap;
 use std::{env, net::TcpListener};
 
 fn main() {
@@ -11,13 +16,31 @@ fn main() {
         "[::]:8080"
     };
 
-    let router = router::Router::new(routes_config::route_config());
+    let expansions_generator =
+        &ExpansionsModel::build("rsc/expansions.txt") as &dyn ExpansionsAccess;
+
+    let config: Route = HashMap::from([
+        (
+            "GET /api/random HTTP/1.1",
+            NpmController::random as ControllerFunction,
+        ),
+        (
+            "GET /api/all HTTP/1.1",
+            NpmController::all as ControllerFunction,
+        ),
+        (
+            "GET /api/search HTTP/1.1",
+            NpmController::search as ControllerFunction,
+        ),
+    ]);
+
+    let router = router::Router::new(config);
     let listener = TcpListener::bind(addr).unwrap();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
 
-        stream_handler::handle_connection(&mut stream, &router);
+        stream_handler::handle_connection(&mut stream, &router, expansions_generator);
     }
 }
 

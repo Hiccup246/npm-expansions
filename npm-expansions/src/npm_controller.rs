@@ -1,12 +1,13 @@
 use crate::accept_header_handler;
+use crate::expansions_model::ExpansionsAccess;
 use crate::npm_expansion_error::NpmExpansionsError;
-use crate::npm_expansions::NpmExpansions;
 use crate::request::Request;
 use crate::response::Response;
 
-pub struct NpmController {
-    _npm_expansion_generator: NpmExpansions,
-}
+pub struct NpmController {}
+
+pub type ControllerFunction =
+    fn(&Request, &dyn ExpansionsAccess) -> Result<Vec<u8>, NpmExpansionsError>;
 
 impl NpmController {
     /// Returns a vector byte representation of a json object containing a random npm expansion
@@ -21,8 +22,11 @@ impl NpmController {
     /// use npm_expansions::npm_controller::NpmController;
     /// use npm_expansions::request::Request;
     /// use std::collections::HashMap;
+    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
+    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
-    /// let response = NpmController::random(&request);
+    /// let response = NpmController::random(&request, mock_generator);
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -35,10 +39,16 @@ impl NpmController {
     /// use npm_expansions::npm_controller::NpmController;
     /// use npm_expansions::request::Request;
     /// use std::collections::HashMap;
+    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
+    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// NpmController::random(&request);
+    /// NpmController::random(&request, mock_generator);
     /// ```
-    pub fn random(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+    pub fn random(
+        request: &Request,
+        expansions_generator: &dyn ExpansionsAccess,
+    ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
@@ -52,7 +62,7 @@ impl NpmController {
                 "Content-Type: application/json",
                 &format!(
                     "{{\"npm-expansion\": \"{}\"}}",
-                    NpmExpansions::random_expansion()
+                    expansions_generator.random_expansion()
                 ),
             ),
             _ => not_acceptable_response(),
@@ -74,8 +84,11 @@ impl NpmController {
     /// use npm_expansions::npm_controller::NpmController;
     /// use npm_expansions::request::Request;
     /// use std::collections::HashMap;
+    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
+    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
-    /// let response = NpmController::all(&request);
+    /// let response = NpmController::all(&request, mock_generator);
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -88,10 +101,16 @@ impl NpmController {
     /// use npm_expansions::npm_controller::NpmController;
     /// use npm_expansions::request::Request;
     /// use std::collections::HashMap;
+    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
+    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// NpmController::all(&request);
+    /// NpmController::all(&request, mock_generator);
     /// ```
-    pub fn all(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+    pub fn all(
+        request: &Request,
+        expansions_generator: &dyn ExpansionsAccess,
+    ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
@@ -99,7 +118,8 @@ impl NpmController {
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
-        let string_expansions: Vec<String> = NpmExpansions::expansions()
+        let string_expansions: Vec<String> = expansions_generator
+            .all()
             .iter()
             .map(|expansions| format!("\"{expansions}\""))
             .collect();
@@ -130,8 +150,11 @@ impl NpmController {
     /// use npm_expansions::npm_controller::NpmController;
     /// use npm_expansions::request::Request;
     /// use std::collections::HashMap;
+    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
+    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    /// let mock_generator = &MockExpansionsModel::default();
     /// let request = Request::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
-    /// let response = NpmController::search(&request);
+    /// let response = NpmController::search(&request, mock_generator);
     /// assert!(response.is_ok());
     /// ```
     ///
@@ -144,10 +167,16 @@ impl NpmController {
     /// use npm_expansions::npm_controller::NpmController;
     /// use npm_expansions::request::Request;
     /// use std::collections::HashMap;
+    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
+    /// use npm_expansions::expansions_model::ExpansionsAccess;
     /// let request = Request::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// NpmController::search(&request);
+    /// let mock_generator = &MockExpansionsModel::default();
+    /// NpmController::search(&request, mock_generator);
     /// ```
-    pub fn search(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
+    pub fn search(
+        request: &Request,
+        expansions_generator: &dyn ExpansionsAccess,
+    ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = accept_header_handler::best_match(
@@ -157,7 +186,7 @@ impl NpmController {
 
         let default = String::from(" ");
         let search_string = request.query_params().get("query").unwrap_or(&default);
-        let top_ten: Vec<&str> = NpmExpansions::levenshtein_search(search_string);
+        let top_ten: Vec<String> = expansions_generator.search(search_string);
 
         let response = match best.as_str() {
             "application/json" => Response::new(
@@ -171,152 +200,6 @@ impl NpmController {
 
         Ok(response)
     }
-
-    /// Returns a vector byte representation of the not_found page including html, css and javascript
-    ///
-    /// # Arguments
-    ///
-    /// * `request` - An incoming HTTP request
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
-    /// use std::collections::HashMap;
-    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
-    /// let response = NpmController::not_found(&request);
-    /// assert!(response.is_ok());
-    /// ```
-    ///
-    /// # Failures
-    ///
-    /// The function fails if the given request has invalid headers
-    ///
-    /// ```rust,should_error
-    /// // fails if the given request has invalid headers
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
-    /// use std::collections::HashMap;
-    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// NpmController::not_found(&request);
-    /// ```
-    pub fn not_found(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
-        let headers = request.headers();
-        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
-            Vec::from(["application/json", "text/html"]),
-            accept_header.unwrap_or(&"".to_string()),
-        )?;
-
-        let response = match best.as_str() {
-            "application/json" => Response::new("404 NOT FOUND", "", "NOT FOUND"),
-            _ => not_acceptable_response(),
-        }
-        .into_http_response();
-
-        Ok(response)
-    }
-
-    /// Returns a vector byte representation of the internal_server_error page including html, css and javascript
-    ///
-    /// # Arguments
-    ///
-    /// * `request` - An incoming HTTP request
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
-    /// use std::collections::HashMap;
-    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
-    /// let response = NpmController::internal_server_error(&request);
-    /// assert!(response.is_ok());
-    /// ```
-    ///
-    /// # Failures
-    ///
-    /// The function fails if the given request has invalid headers
-    ///
-    /// ```rust,should_error
-    /// // fails if the given request has invalid headers
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
-    /// use std::collections::HashMap;
-    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// NpmController::internal_server_error(&request);
-    /// ```
-    pub fn internal_server_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
-        let headers = request.headers();
-        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
-            Vec::from(["application/json", "text/html"]),
-            accept_header.unwrap_or(&"".to_string()),
-        )?;
-
-        let response = match best.as_str() {
-            "application/json" => {
-                Response::new("500 INTERNAL SERVER ERROR", "", "INTERNAL SERVER ERROR")
-            }
-            _ => not_acceptable_response(),
-        }
-        .into_http_response();
-
-        Ok(response)
-    }
-
-    /// Returns a vector byte representation of the client_error page including html, css and javascript
-    ///
-    /// # Arguments
-    ///
-    /// * `request` - An incoming HTTP request
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
-    /// use std::collections::HashMap;
-    /// let request = Request::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
-    /// let response = NpmController::client_error(&request);
-    /// assert!(response.is_ok());
-    /// ```
-    ///
-    /// # Failures
-    ///
-    /// The function fails if the given request has invalid headers
-    ///
-    /// ```rust,should_error
-    /// // fails if the given request has invalid headers
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::request::Request;
-    /// use std::collections::HashMap;
-    /// let request = Request::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// NpmController::client_error(&request);
-    /// ```
-    pub fn client_error(request: &Request) -> Result<Vec<u8>, NpmExpansionsError> {
-        let headers = request.headers();
-        let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
-        let best = accept_header_handler::best_match(
-            Vec::from(["application/json", "text/html"]),
-            accept_header.unwrap_or(&"".to_string()),
-        )?;
-
-        let response = match best.as_str() {
-            "application/json" => Response::new("400 BAD REQUEST", "", "BAD REQUEST"),
-            _ => not_acceptable_response(),
-        }
-        .into_http_response();
-
-        Ok(response)
-    }
-
-    pub fn new(npm_expansion_generator: NpmExpansions) -> NpmController {
-        NpmController {
-            _npm_expansion_generator: npm_expansion_generator,
-        }
-    }
 }
 
 fn not_acceptable_response() -> Response {
@@ -326,88 +209,77 @@ fn not_acceptable_response() -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::mock_expansions_model::MockExpansionsModel;
     use std::collections::HashMap;
     use test_case::test_case;
 
     #[test_case(NpmController::random; "random")]
     #[test_case(NpmController::all; "all")]
     #[test_case(NpmController::search; "search")]
-    #[test_case(NpmController::not_found; "not_found")]
-    #[test_case(NpmController::internal_server_error; "internal_server_error")]
-    #[test_case(NpmController::client_error; "client_error")]
 
-    fn valid_request(controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>) {
+    fn valid_request(controller_function: ControllerFunction) {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
         );
 
-        assert!(controller_function(&request).is_ok())
+        let expansions_generator = &MockExpansionsModel::default();
+        assert!(controller_function(&request, expansions_generator).is_ok())
     }
 
     #[test_case(NpmController::random; "random")]
     #[test_case(NpmController::all; "all")]
     #[test_case(NpmController::search; "search")]
-    #[test_case(NpmController::not_found; "not_found")]
-    #[test_case(NpmController::internal_server_error; "internal_server_error")]
-    #[test_case(NpmController::client_error; "client_error")]
-
-    fn valid_request_returns_content(
-        controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
-    ) {
+    fn valid_request_returns_content(controller_function: ControllerFunction) {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
         );
 
-        assert!(controller_function(&request).unwrap().len() > 0)
+        let expansions_generator = &MockExpansionsModel::default();
+        assert!(
+            controller_function(&request, expansions_generator)
+                .unwrap()
+                .len()
+                > 0
+        )
     }
 
     #[test_case(NpmController::random; "random")]
     #[test_case(NpmController::all; "all")]
     #[test_case(NpmController::search; "search")]
-    #[test_case(NpmController::not_found; "not_found")]
-    #[test_case(NpmController::internal_server_error; "internal_server_error")]
-    #[test_case(NpmController::client_error; "client_error")]
-    fn invalid_request_headers(
-        controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
-    ) {
+    fn invalid_request_headers(controller_function: ControllerFunction) {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/".to_string())]),
             HashMap::new(),
         );
 
-        assert!(controller_function(&request).is_err())
+        let expansions_generator = &MockExpansionsModel::default();
+        assert!(controller_function(&request, expansions_generator).is_err())
     }
 
     #[test_case(NpmController::random; "random")]
-    #[test_case(NpmController::not_found; "not_found")]
-    #[test_case(NpmController::internal_server_error; "internal_server_error")]
-    #[test_case(NpmController::client_error; "client_error")]
 
-    fn lower_case_accept_header(
-        controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>,
-    ) {
+    fn lower_case_accept_header(controller_function: ControllerFunction) {
         let request = Request::new(
             "GET / HTTP/1.1",
             HashMap::from([("accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
         );
 
-        assert!(controller_function(&request).is_ok())
+        let expansions_generator = &MockExpansionsModel::default();
+        assert!(controller_function(&request, expansions_generator).is_ok())
     }
 
     #[test_case(NpmController::random; "random")]
-    #[test_case(NpmController::not_found; "not_found")]
-    #[test_case(NpmController::internal_server_error; "internal_server_error")]
-    #[test_case(NpmController::client_error; "client_error")]
 
-    fn no_accept_header(controller_function: fn(&Request) -> Result<Vec<u8>, NpmExpansionsError>) {
+    fn no_accept_header(controller_function: ControllerFunction) {
         let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
 
-        assert!(controller_function(&request).is_ok())
+        let expansions_generator = &MockExpansionsModel::default();
+        assert!(controller_function(&request, expansions_generator).is_ok())
     }
 }
