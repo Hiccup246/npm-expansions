@@ -1,7 +1,7 @@
 use crate::accept_header_handler;
 use crate::npm_expansion_error::NpmExpansionsError;
+use crate::request::Request;
 use crate::response::Response;
-use crate::router::Request;
 
 pub struct DefaultController {}
 

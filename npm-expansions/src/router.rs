@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
 use crate::default_controller::DefaultController;
-pub use crate::request::Request;
-use crate::{
-    expansions_model::ExpansionsAccess, npm_controller::ControllerFunction,
-    npm_expansion_error::NpmExpansionsError,
-};
+use crate::expansions_model::ExpansionsAccess;
+use crate::npm_controller::ControllerFunction;
+use crate::npm_expansion_error::NpmExpansionsError;
+use crate::request::Request;
+use std::collections::HashMap;
 
 pub type Route = HashMap<&'static str, ControllerFunction>;
 
