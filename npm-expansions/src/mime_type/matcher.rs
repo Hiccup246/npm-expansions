@@ -12,7 +12,7 @@ use crate::npm_expansion_error::NpmExpansionsError;
 /// # Examples
 ///
 /// ```
-/// use npm_expansions::accept_header_handler::best_match;
+/// use npm_expansions::mime_type::matcher::best_match;
 ///
 /// let best_mime_match = best_match(Vec::from(["application/json"]), "text/plain, application/json");
 ///
@@ -25,7 +25,7 @@ use crate::npm_expansion_error::NpmExpansionsError;
 ///
 /// ```rust,should_error
 /// // fails if given malformed supported mime types or the accept header
-/// use npm_expansions::accept_header_handler::best_match;
+/// use npm_expansions::mime_type::matcher::best_match;
 ///
 /// best_match(Vec::from(["application/"]), "/plain");
 /// ```
@@ -69,7 +69,7 @@ pub fn best_match(
 /// # Examples
 ///
 /// ```
-/// use npm_expansions::accept_header_handler::ensure_quality_value;
+/// use npm_expansions::mime_type::matcher::ensure_quality_value;
 ///
 /// assert_eq!(ensure_quality_value("application/json").unwrap(), ("application", "json", 1.0));
 /// ```
@@ -80,7 +80,7 @@ pub fn best_match(
 ///
 /// ```rust,should_error
 /// // fails if given mime type is invalid
-/// use npm_expansions::accept_header_handler::ensure_quality_value;
+/// use npm_expansions::mime_type::matcher::ensure_quality_value;
 ///
 /// ensure_quality_value("application/;q=0.5");
 /// ```
@@ -113,7 +113,7 @@ pub fn ensure_quality_value(mime_type: &str) -> Result<(&str, &str, f32), NpmExp
 /// # Examples
 ///
 /// ```
-/// use npm_expansions::accept_header_handler::fitness_of_mime_type;
+/// use npm_expansions::mime_type::matcher::fitness_of_mime_type;
 ///
 /// let fitness = fitness_of_mime_type("text/plain", &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)]));
 ///
@@ -126,7 +126,7 @@ pub fn ensure_quality_value(mime_type: &str) -> Result<(&str, &str, f32), NpmExp
 ///
 /// ```rust,should_error
 /// // fails if the given mime type is invalid
-/// use npm_expansions::accept_header_handler::fitness_of_mime_type;
+/// use npm_expansions::mime_type::matcher::fitness_of_mime_type;
 ///
 /// fitness_of_mime_type("text/", &Vec::from([("text", "plain", 1.0), ("text", "html", 1.0)]));
 /// ```
