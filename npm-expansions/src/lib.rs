@@ -5,7 +5,6 @@ pub mod mock_expansions_model;
 pub mod mock_tcp_stream;
 pub mod npm_controller;
 pub mod npm_expansion_error;
-pub mod npm_expansions;
 pub mod request;
 pub mod response;
 pub mod router;
