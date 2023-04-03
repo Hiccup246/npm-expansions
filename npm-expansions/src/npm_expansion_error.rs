@@ -19,6 +19,7 @@ pub enum NpmErrorKind {
     RequestParseError,
     SupportedMimeTypeError,
     InternalServerError,
+    NotFound,
 }
 
 impl NpmExpansionsError {
