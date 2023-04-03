@@ -76,7 +76,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn correctly_reponse_with_headers() {
+        fn correct_reponse_with_headers() {
             let response = Response::new(
                 "200",
                 "Content-Type: application/json;q=0.5",
@@ -87,7 +87,7 @@ mod tests {
         }
 
         #[test]
-        fn correctly_reponse_without_headers() {
+        fn correct_reponse_without_headers() {
             let response = Response::new("200", "", "Hello World!");
 
             assert_eq!(
