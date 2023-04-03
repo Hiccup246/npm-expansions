@@ -1,10 +1,9 @@
-use npm_expansions::expansions_model::ExpansionsAccess;
-use npm_expansions::expansions_model::ExpansionsModel;
-use npm_expansions::npm_controller::ControllerFunction;
-use npm_expansions::npm_controller::NpmController;
-use npm_expansions::router;
-use npm_expansions::router::Route;
-use npm_expansions::stream_handler;
+use npm_expansions::{
+    expansions_model::{ExpansionsAccess, ExpansionsModel},
+    npm_controller::{ControllerFunction, NpmController},
+    router::{Route, Router},
+    stream_handler,
+};
 use std::collections::HashMap;
 use std::{env, net::TcpListener};
 
@@ -34,7 +33,7 @@ fn main() {
         ),
     ]);
 
-    let router = router::Router::new(config);
+    let router = Router::new(config);
     let listener = TcpListener::bind(addr).unwrap();
 
     for stream in listener.incoming() {
