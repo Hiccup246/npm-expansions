@@ -29,7 +29,7 @@ The JSON web server is located within the `npm-expansions` directory and is resp
 
 The project roughly adheres to a model, view, controller ([MVC](https://developer.mozilla.org/en-US/docs/Glossary/MVC)) architecture. The project has two controllers (`DefaultController`, `NpmController`), one model (`ExpansionsModel`) and one "view" in the sense that all responses are in JSON format.
 
-The project can understood using a top down approach starting with the `main.rs` file. The following diagram attempts a explanation:
+The project can understood using a top down approach starting with the `main.rs` file. The following diagram attempts an explanation:
 ![project-architecture-diagram](https://raw.githubusercontent.com/hiccup246/npm-expansions/main/project-architecture.webp)
 
 ## Nginx static site and reverse proxy
