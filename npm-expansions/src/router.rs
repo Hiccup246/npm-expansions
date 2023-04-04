@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 /// A type representing a series of http routes and their associated controller functions
 /// # Examples
-/// 
+///
 /// ```
 /// # use crate::npm_expansions::npm_controller::{NpmController, ControllerFunction};
 /// # use std::collections::HashMap;
