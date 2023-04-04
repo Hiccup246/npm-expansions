@@ -1,7 +1,7 @@
 use npm_expansions::{
     expansions_model::{ExpansionsAccess, ExpansionsModel},
     npm_controller::{ControllerFunction, NpmController},
-    router::{Route, Router},
+    router::{Routes, Router},
     stream_handler,
 };
 use std::collections::HashMap;
@@ -18,7 +18,7 @@ fn main() {
     let expansions_generator =
         &ExpansionsModel::build("rsc/expansions.txt") as &dyn ExpansionsAccess;
 
-    let config: Route = HashMap::from([
+    let config: Routes = HashMap::from([
         (
             "GET /api/random HTTP/1.1",
             NpmController::random as ControllerFunction,

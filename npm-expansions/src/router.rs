@@ -5,21 +5,34 @@ use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
 use std::collections::HashMap;
 
-pub type Route = HashMap<&'static str, ControllerFunction>;
+/// A type representing a series of http routes and their associated controller functions
+/// # Examples
+/// 
+/// ```
+/// # use crate::npm_expansions::npm_controller::{NpmController, ControllerFunction};
+/// # use std::collections::HashMap;
+/// HashMap::from([
+///     (
+///         "GET / HTTP/1.1",
+///         NpmController::random as ControllerFunction,
+///     )
+/// ]);
+/// ```
+pub type Routes = HashMap<&'static str, ControllerFunction>;
 
-#[derive(Debug)]
-pub struct HandleRouteError;
-
+/// A struct which stores a route
 pub struct Router {
-    routes_config: Route,
+    routes_config: Routes,
 }
 
 impl Router {
-    pub fn new(routes_config: Route) -> Router {
+    /// Creates a new router given a RouteConfig
+    pub fn new(routes_config: Routes) -> Router {
         Router { routes_config }
     }
 
-    /// Returns a byte response to an incoming request
+    /// Returns a byte response to an incoming request by matching the requests status line
+    /// to its own routes config field
     ///
     /// # Arguments
     ///
@@ -28,19 +41,19 @@ impl Router {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::{
-    ///     router::{Router, Route},
-    ///     request::Request,
-    ///     mock_expansions_model::MockExpansionsModel,
-    ///     npm_expansion_error::NpmExpansionsError,
-    ///     expansions_model::ExpansionsAccess,
-    ///     npm_controller::ControllerFunction,
-    /// };
-    /// use std::collections::HashMap;
+    /// # use npm_expansions::{
+    /// #    router::{Routes, Router},
+    /// #    request::Request,
+    /// #    mock_expansions_model::MockExpansionsModel,
+    /// #    npm_expansion_error::NpmExpansionsError,
+    /// #    expansions_model::ExpansionsAccess,
+    /// #    npm_controller::ControllerFunction,
+    /// # };
+    /// # use std::collections::HashMap;
     ///
-    /// let actual_route: ControllerFunction = |_,_| Ok("actual_route".as_bytes().to_vec());
-    /// let route_config: Route =
-    ///     HashMap::from([("GET / HTTP/1.1", actual_route)]);
+    /// # let actual_route: ControllerFunction = |_,_| Ok("actual_route".as_bytes().to_vec());
+    /// # let route_config: Routes =
+    /// #     HashMap::from([("GET / HTTP/1.1", actual_route)]);
     /// let router = Router::new(route_config);
     /// let request = Request::new("GET / HTTP/1.1", HashMap::new(),  HashMap::new());
     /// let mock_expansions_model = &MockExpansionsModel::default();
@@ -72,8 +85,8 @@ mod tests {
 
     #[test]
     fn route_response() {
-        let actual_route: ControllerFunction = |_, _| Ok("actual_route".as_bytes().to_vec());
-        let route_config: Route = HashMap::from([("GET / HTTP/1.1", actual_route)]);
+        let controller_function: ControllerFunction = |_, _| Ok("actual_route".as_bytes().to_vec());
+        let route_config: Routes = HashMap::from([("GET / HTTP/1.1", controller_function)]);
 
         let router = Router::new(route_config);
         let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
@@ -86,7 +99,8 @@ mod tests {
     #[test]
     fn route_not_found() {
         let not_found: ControllerFunction = |_, _| Ok("not_found".as_bytes().to_vec());
-        let route_config: Route = HashMap::from([("404", not_found)]);
+        let route_config: Routes = HashMap::from([("404", not_found)]);
+
         let router = Router::new(route_config);
         let request = Request::new("GET /fake_route HTTP/1.1", HashMap::new(), HashMap::new());
         let mock_expansions_model = &MockExpansionsModel::default();
