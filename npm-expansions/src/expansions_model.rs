@@ -2,13 +2,18 @@ use levenshtein::levenshtein;
 use rand::Rng;
 use std::fs;
 
+/// A struct representing a vector of npm expansion strings and methods to search them
 pub struct ExpansionsModel {
     expansions: Vec<String>,
 }
 
+/// This trait represents the basic search functions that a expansions model should provide
 pub trait ExpansionsAccess {
+    /// Returns a random npm expansion
     fn random_expansion(&self) -> String;
+    /// Returns all available npm expansions
     fn all(&self) -> &Vec<String>;
+    /// Returns a curated list of npm expansions based on a given search query
     fn search(&self, query: &str) -> Vec<String>;
 }
 
@@ -47,6 +52,11 @@ impl ExpansionsAccess for ExpansionsModel {
 }
 
 impl ExpansionsModel {
+    /// Takes a path to a txt file and constructs a ExpansionsModel with its
+    /// expansions field populated by the expansions found in the txt file.
+    ///
+    /// The given text file should be in a format where each line
+    /// that is not a comment i.e. start with a # or * () is a npm expansion
     pub fn build(path: &str) -> ExpansionsModel {
         let expansions_string: Vec<String> = fs::read_to_string(path)
             .unwrap()
