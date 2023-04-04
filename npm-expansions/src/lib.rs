@@ -2,8 +2,9 @@
 //!
 //! A library creating a npm expansions web server based on HTTP/1.1
 
+#![feature(rustdoc_missing_doc_code_examples)]
 #![warn(missing_docs)]
-#![warn(missing_doc_code_examples)]
+#![warn(rustdoc::missing_doc_code_examples)]
 
 /// A series of default HTTP response methods
 pub mod default_controller;
