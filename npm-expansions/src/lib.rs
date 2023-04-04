@@ -28,7 +28,7 @@ pub mod npm_controller;
 pub mod npm_expansion_error;
 
 /// A representation of the different parts of a HTTP request
-pub mod request;
+pub mod http_request;
 
 /// A representation of a HTTP response
 pub mod http_response;

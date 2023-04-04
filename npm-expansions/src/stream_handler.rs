@@ -1,7 +1,7 @@
 use crate::default_controller::DefaultController;
 use crate::expansions_model::ExpansionsAccess;
+use crate::http_request::HttpRequest;
 use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
-use crate::request::Request;
 use crate::router;
 use std::{
     collections::HashMap,
@@ -38,7 +38,7 @@ fn respond_to_request(
     router: &router::Router,
     expansions_model: &dyn ExpansionsAccess,
 ) -> Result<(), NpmExpansionsError> {
-    let request = Request::build(stream)?;
+    let request = HttpRequest::build(stream)?;
     let response = router.route_request(request, expansions_model)?;
 
     stream
@@ -54,7 +54,7 @@ fn respond_to_request_error(
     stream: &mut (impl Read + Write),
     error: &NpmExpansionsError,
 ) -> Result<(), NpmExpansionsError> {
-    let error_request = Request::new(
+    let error_request = HttpRequest::new(
         "",
         HashMap::from([(
             "Accept".to_string(),

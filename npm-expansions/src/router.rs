@@ -1,8 +1,8 @@
 use crate::default_controller::DefaultController;
 use crate::expansions_model::ExpansionsAccess;
+use crate::http_request::HttpRequest;
 use crate::npm_controller::ControllerFunction;
 use crate::npm_expansion_error::NpmExpansionsError;
-use crate::request::Request;
 use std::collections::HashMap;
 
 /// A type representing a series of http routes and their associated controller functions
@@ -43,7 +43,7 @@ impl Router {
     /// ```
     /// # use npm_expansions::{
     /// #    router::{Routes, Router},
-    /// #    request::Request,
+    /// #    http_request::HttpRequest,
     /// #    mock_expansions_model::MockExpansionsModel,
     /// #    npm_expansion_error::NpmExpansionsError,
     /// #    expansions_model::ExpansionsAccess,
@@ -55,7 +55,7 @@ impl Router {
     /// # let route_config: Routes =
     /// #     HashMap::from([("GET / HTTP/1.1", actual_route)]);
     /// let router = Router::new(route_config);
-    /// let request = Request::new("GET / HTTP/1.1", HashMap::new(),  HashMap::new());
+    /// let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(),  HashMap::new());
     /// let mock_expansions_model = &MockExpansionsModel::default();
     /// let response = router.route_request(request, mock_expansions_model);
     ///
@@ -63,7 +63,7 @@ impl Router {
     /// ```
     pub fn route_request(
         &self,
-        request: Request,
+        request: HttpRequest,
         expansions_model: &dyn ExpansionsAccess,
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let status_line = request.status_line_path();
@@ -89,7 +89,7 @@ mod tests {
         let route_config: Routes = HashMap::from([("GET / HTTP/1.1", controller_function)]);
 
         let router = Router::new(route_config);
-        let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
         let mock_expansions_model = &MockExpansionsModel::default();
         let response = router.route_request(request, mock_expansions_model);
 
@@ -102,7 +102,7 @@ mod tests {
         let route_config: Routes = HashMap::from([("404", not_found)]);
 
         let router = Router::new(route_config);
-        let request = Request::new("GET /fake_route HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new("GET /fake_route HTTP/1.1", HashMap::new(), HashMap::new());
         let mock_expansions_model = &MockExpansionsModel::default();
         let response = router.route_request(request, mock_expansions_model);
 
@@ -112,7 +112,7 @@ mod tests {
     #[test]
     fn no_route() {
         let router = Router::new(HashMap::new());
-        let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
         let mock_expansions_model = &MockExpansionsModel::default();
         let response = router.route_request(request, mock_expansions_model);
 

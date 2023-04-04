@@ -5,7 +5,7 @@ use std::{
 };
 
 /// A struct representing the basic parts of a HTTP request i.e. status line, headers and query params
-pub struct Request {
+pub struct HttpRequest {
     status_line: String,
     headers: HashMap<String, String>,
     query_params: HashMap<String, String>,
@@ -13,7 +13,7 @@ pub struct Request {
 
 const HEADER_SIZE_LIMIT: u64 = 8000;
 
-impl Request {
+impl HttpRequest {
     /// Builds a request object from a given http request stream
     ///
     /// # Arguments
@@ -24,7 +24,7 @@ impl Request {
     ///
     /// ```
     /// use npm_expansions::{
-    ///     request::Request,
+    ///     http_request::HttpRequest,
     ///     mock_tcp_stream::MockTcpStream,
     /// };
     ///
@@ -35,7 +35,7 @@ impl Request {
     ///     read_data: contents,
     ///     write_data: Vec::new(),
     /// };
-    /// let request = Request::build(&mut stream).unwrap();
+    /// let request = HttpRequest::build(&mut stream).unwrap();
     ///
     /// assert_eq!(request.status_line(), "GET / HTTP/1.1");
     /// ```
@@ -49,7 +49,7 @@ impl Request {
     /// ```rust,should_error
     /// // fails if no http status line is given
     /// use npm_expansions::{
-    ///     request::Request,
+    ///     http_request::HttpRequest,
     ///     mock_tcp_stream::MockTcpStream,
     /// };
     ///
@@ -61,9 +61,9 @@ impl Request {
     ///     write_data: Vec::new(),
     /// };
     ///
-    /// Request::build(&mut stream);
+    /// HttpRequest::build(&mut stream);
     /// ```
-    pub fn build(stream: &mut (impl Read + Write)) -> Result<Request, NpmExpansionsError> {
+    pub fn build(stream: &mut (impl Read + Write)) -> Result<HttpRequest, NpmExpansionsError> {
         let buf_reader = BufReader::new(stream);
         let mut buffer = buf_reader.take(HEADER_SIZE_LIMIT).lines();
 
@@ -78,7 +78,7 @@ impl Request {
         let query_params = Self::build_query_params(&status_line)?;
         let headers = Self::build_headers(&mut buffer)?;
 
-        Ok(Request {
+        Ok(HttpRequest {
             status_line,
             headers,
             query_params,
@@ -102,7 +102,6 @@ impl Request {
             }
         }
 
-        // TODO Make this error more specific. This error could be too many headers or no blank line to mark end of headers.
         Err(NpmExpansionsError::from(NpmErrorKind::InvalidHttpRequest))
     }
 
@@ -165,8 +164,8 @@ impl Request {
         status_line: &str,
         headers: HashMap<String, String>,
         query_params: HashMap<String, String>,
-    ) -> Request {
-        Request {
+    ) -> HttpRequest {
+        HttpRequest {
             status_line: status_line.to_string(),
             headers,
             query_params,
@@ -225,7 +224,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(request.status_line(), "GET / HTTP/1.1")
         }
@@ -241,7 +240,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(
                 request.query_params(),
@@ -263,7 +262,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(request.query_params(), &HashMap::new())
         }
@@ -279,7 +278,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(request.query_params(), &HashMap::new())
         }
@@ -295,7 +294,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(
                 request.query_params(),
@@ -314,7 +313,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream);
+            let request = HttpRequest::build(&mut stream);
 
             assert!(request.is_err())
         }
@@ -330,7 +329,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream);
+            let request = HttpRequest::build(&mut stream);
 
             assert!(request.is_err())
         }
@@ -346,7 +345,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(
                 request.query_params(),
@@ -365,7 +364,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(
                 request.query_params(),
@@ -384,7 +383,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(request.query_params(), &HashMap::new())
         }
@@ -400,7 +399,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(
                 request.query_params(),
@@ -419,7 +418,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream).unwrap();
+            let request = HttpRequest::build(&mut stream).unwrap();
 
             assert_eq!(
                 request.headers(),
@@ -444,7 +443,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream);
+            let request = HttpRequest::build(&mut stream);
 
             assert!(request.is_err())
         }
@@ -460,7 +459,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream);
+            let request = HttpRequest::build(&mut stream);
 
             assert!(request.is_err())
         }
@@ -477,7 +476,7 @@ mod tests {
                 read_data: contents,
                 write_data: Vec::new(),
             };
-            let request = Request::build(&mut stream);
+            let request = HttpRequest::build(&mut stream);
 
             if let Err(err) = request {
                 is_correct_error = match err.kind() {
