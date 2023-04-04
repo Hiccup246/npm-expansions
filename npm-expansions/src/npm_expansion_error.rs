@@ -13,16 +13,24 @@ pub struct NpmExpansionsError {
 /// Enum for the different kinds of errors the server can produce
 #[derive(Debug)]
 pub enum NpmErrorKind {
+    /// A HTTP request has invalid headers
     InvalidRequestHeaders,
+    /// A HTTP request more than 8000 bytes of headers
     TooManyRequestHeaders,
+    /// A HTTP request contains invalid mime types
     InvalidRequestMimeType,
+    /// A HTTP request has an invalid format
     InvalidHttpRequest,
+    /// A mime type provided by the server is invalid
     SupportedMimeTypeError,
+    /// The sever encountered an error when processing a HTTP request
     InternalServerError,
+    /// A HTTP request has a route not supported by the server
     RouteNotFound,
 }
 
 impl NpmExpansionsError {
+    /// Creates a error from a given NpmErrorKind and message
     pub fn new(kind: NpmErrorKind, message: &str) -> NpmExpansionsError {
         NpmExpansionsError {
             kind,
@@ -30,13 +38,15 @@ impl NpmExpansionsError {
         }
     }
 
+    /// Creates a error from a NpmErrorKind
     pub fn from(kind: NpmErrorKind) -> NpmExpansionsError {
         NpmExpansionsError {
             kind,
-            message: "An NPM expansion error Occured".to_string(),
+            message: "An NPM expansion error occured".to_string(),
         }
     }
 
+    /// Returns the NpmErrorKind of a NpmExpansionsError
     pub fn kind(&self) -> &NpmErrorKind {
         &self.kind
     }
