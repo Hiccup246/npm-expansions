@@ -31,7 +31,7 @@ pub mod npm_expansion_error;
 pub mod request;
 
 /// A representation of a HTTP response
-pub mod response;
+pub mod http_response;
 
 /// A series of utilities to handle incoming HTTP requests and to response to them
 pub mod router;

@@ -1,8 +1,8 @@
 use crate::expansions_model::ExpansionsAccess;
+use crate::http_response::HttpResponse;
 use crate::mime_type::matcher;
 use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
-use crate::response::Response;
 
 /// A collection of functions which accept a request and expansions model and use
 /// them to produce JSON responses
@@ -71,7 +71,7 @@ impl NpmController {
         )?;
 
         let response = match best.as_str() {
-            "application/json" => Response::new(
+            "application/json" => HttpResponse::new(
                 "200 OK",
                 "Content-Type: application/json",
                 &format!(
@@ -81,7 +81,7 @@ impl NpmController {
             ),
             _ => not_acceptable_response(),
         }
-        .into_http_response();
+        .into_bytes_vec();
 
         Ok(response)
     }
@@ -150,14 +150,14 @@ impl NpmController {
             .collect();
 
         let response = match best.as_str() {
-            "application/json" => Response::new(
+            "application/json" => HttpResponse::new(
                 "200 OK",
                 "Content-Type: application/json",
                 &format!("[{}]", string_expansions.join(",")),
             ),
             _ => not_acceptable_response(),
         }
-        .into_http_response();
+        .into_bytes_vec();
 
         Ok(response)
     }
@@ -221,21 +221,21 @@ impl NpmController {
         let top_ten: Vec<String> = expansions_model.search(search_string);
 
         let response = match best.as_str() {
-            "application/json" => Response::new(
+            "application/json" => HttpResponse::new(
                 "200 OK",
                 "Content-Type: application/json",
                 &format!("[{}]", top_ten.join(",")),
             ),
             _ => not_acceptable_response(),
         }
-        .into_http_response();
+        .into_bytes_vec();
 
         Ok(response)
     }
 }
 
-fn not_acceptable_response() -> Response {
-    Response::new("406 NOT ACCEPTABLE", "", "Please accept application/json")
+fn not_acceptable_response() -> HttpResponse {
+    HttpResponse::new("406 NOT ACCEPTABLE", "", "Please accept application/json")
 }
 
 #[cfg(test)]

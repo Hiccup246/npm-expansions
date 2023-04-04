@@ -1,14 +1,14 @@
 /// A HTTP response object containing the core parts of status line, headers and contents
-pub struct Response {
+pub struct HttpResponse {
     status_line: String,
     headers: String,
     contents: String,
 }
 
-impl Response {
+impl HttpResponse {
     /// Creates a new response given a status line, headers and contents
-    pub fn new(status_line: &str, headers: &str, contents: &str) -> Response {
-        Response {
+    pub fn new(status_line: &str, headers: &str, contents: &str) -> HttpResponse {
+        HttpResponse {
             status_line: status_line.to_string(),
             headers: headers.to_string(),
             contents: contents.to_string(),
@@ -39,13 +39,13 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// use npm_expansions::response::Response;
+    /// use npm_expansions::http_response::HttpResponse;
     ///
-    /// let response = Response::new(
+    /// let response = HttpResponse::new(
     ///     "200",
     ///     "Content-Type: application/json;q=0.5",
     ///     "Hello World!",
-    /// ).into_http_response();
+    /// ).into_bytes_vec();
     /// let example_response = "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec();
     ///
     /// assert_eq!(response, example_response);
@@ -55,7 +55,7 @@ impl Response {
     ///
     /// The function panics if string formatting via format! panics
     ///
-    pub fn into_http_response(self) -> Vec<u8> {
+    pub fn into_bytes_vec(self) -> Vec<u8> {
         let status = self.status_line();
         let contents = self.contents();
         let headers = self.headers();
@@ -82,21 +82,21 @@ mod tests {
 
         #[test]
         fn correct_reponse_with_headers() {
-            let response = Response::new(
+            let response = HttpResponse::new(
                 "200",
                 "Content-Type: application/json;q=0.5",
                 "Hello World!",
             );
 
-            assert_eq!(response.into_http_response(), "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec())
+            assert_eq!(response.into_bytes_vec(), "HTTP/1.1 200\r\nContent-Length: 12\r\nContent-Type: application/json;q=0.5\r\n\r\nHello World!".as_bytes().to_vec())
         }
 
         #[test]
         fn correct_reponse_without_headers() {
-            let response = Response::new("200", "", "Hello World!");
+            let response = HttpResponse::new("200", "", "Hello World!");
 
             assert_eq!(
-                response.into_http_response(),
+                response.into_bytes_vec(),
                 "HTTP/1.1 200\r\nContent-Length: 12\r\n\r\nHello World!"
                     .as_bytes()
                     .to_vec()

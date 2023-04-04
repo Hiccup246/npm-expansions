@@ -1,7 +1,7 @@
+use crate::http_response::HttpResponse;
 use crate::mime_type::matcher;
 use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
-use crate::response::Response;
 
 /// A struct representing a series of functions to respond to HTTP errors e.g. 400, 500, 404 etc
 pub struct DefaultController {}
@@ -53,10 +53,10 @@ impl DefaultController {
         )?;
 
         let response = match best.as_str() {
-            "application/json" => Response::new("404 NOT FOUND", "", "NOT FOUND"),
+            "application/json" => HttpResponse::new("404 NOT FOUND", "", "NOT FOUND"),
             _ => not_acceptable_response(),
         }
-        .into_http_response();
+        .into_bytes_vec();
 
         Ok(response)
     }
@@ -108,11 +108,11 @@ impl DefaultController {
 
         let response = match best.as_str() {
             "application/json" => {
-                Response::new("500 INTERNAL SERVER ERROR", "", "INTERNAL SERVER ERROR")
+                HttpResponse::new("500 INTERNAL SERVER ERROR", "", "INTERNAL SERVER ERROR")
             }
             _ => not_acceptable_response(),
         }
-        .into_http_response();
+        .into_bytes_vec();
 
         Ok(response)
     }
@@ -163,17 +163,17 @@ impl DefaultController {
         )?;
 
         let response = match best.as_str() {
-            "application/json" => Response::new("400 BAD REQUEST", "", "BAD REQUEST"),
+            "application/json" => HttpResponse::new("400 BAD REQUEST", "", "BAD REQUEST"),
             _ => not_acceptable_response(),
         }
-        .into_http_response();
+        .into_bytes_vec();
 
         Ok(response)
     }
 }
 
-fn not_acceptable_response() -> Response {
-    Response::new("406 NOT ACCEPTABLE", "", "Please accept application/json")
+fn not_acceptable_response() -> HttpResponse {
+    HttpResponse::new("406 NOT ACCEPTABLE", "", "Please accept application/json")
 }
 
 #[cfg(test)]
