@@ -21,7 +21,7 @@ jobs:
     defaults:
       run:
         working-directory: ./nginx-reverse-proxy
-      steps:
+    steps:
       - uses: actions/checkout@v3
 
       - name: Cargo Format Check
