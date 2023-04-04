@@ -1,6 +1,6 @@
 // Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
 use crate::mime_type::parser;
-use crate::npm_expansion_error::NpmExpansionsError;
+use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 
 /// Returns the most appropriate mime type given a list of desired types and an accept header
 ///
@@ -40,14 +40,20 @@ pub fn best_match(
     let parsed_accept_headers: Vec<(&str, &str, f32)> = accept_header
         .split(',')
         .map(ensure_quality_value)
-        .collect::<Result<Vec<(&str, &str, f32)>, NpmExpansionsError>>()?;
+        .collect::<Result<Vec<(&str, &str, f32)>, parser::InvalidMimeType>>()
+        .or(Err(NpmExpansionsError::from(
+            NpmErrorKind::InvalidRequestMimeType,
+        )))?;
 
     let mut weighted_matches: Vec<(f32, &str)> = supported_mime_types
         .iter()
         .map(|mime_type| {
             fitness_of_mime_type(mime_type, &parsed_accept_headers).map(|val| (val, *mime_type))
         })
-        .collect::<Result<Vec<(f32, &str)>, NpmExpansionsError>>()?;
+        .collect::<Result<Vec<(f32, &str)>, parser::InvalidMimeType>>()
+        .or(Err(NpmExpansionsError::from(
+            NpmErrorKind::InternalServerError,
+        )))?;
 
     weighted_matches.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
@@ -84,7 +90,7 @@ pub fn best_match(
 ///
 /// ensure_quality_value("application/;q=0.5");
 /// ```
-pub fn ensure_quality_value(mime_type: &str) -> Result<(&str, &str, f32), NpmExpansionsError> {
+pub fn ensure_quality_value(mime_type: &str) -> Result<(&str, &str, f32), parser::InvalidMimeType> {
     let (mime_type, subtype, parameter) = parser::parse_mime_type(mime_type)?;
     let mut quality = 1.0;
 
@@ -133,7 +139,7 @@ pub fn ensure_quality_value(mime_type: &str) -> Result<(&str, &str, f32), NpmExp
 pub fn fitness_of_mime_type(
     mime_type: &str,
     mime_range: &Vec<(&str, &str, f32)>,
-) -> Result<f32, NpmExpansionsError> {
+) -> Result<f32, parser::InvalidMimeType> {
     let (mime_type, mime_subtype, _mime_quality) = ensure_quality_value(mime_type)?;
     let mut best_fitness = -1.0;
     let mut best_mime_type_quality = 0.0;

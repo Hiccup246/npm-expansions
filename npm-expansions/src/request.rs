@@ -71,7 +71,7 @@ impl Request {
         if let Some(Ok(line)) = buffer.next() {
             status_line = line;
         } else {
-            return Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
+            return Err(NpmExpansionsError::from(NpmErrorKind::InvalidHttpRequest));
         }
 
         let query_params = Self::build_query_params(&status_line)?;
@@ -91,7 +91,7 @@ impl Request {
 
         for line in header_buffer {
             let current_line =
-                line.map_err(|_| NpmExpansionsError::from(NpmErrorKind::RequestParseError))?;
+                line.map_err(|_| NpmExpansionsError::from(NpmErrorKind::InvalidHttpRequest))?;
 
             if current_line.is_empty() {
                 return Ok(headers);
@@ -102,13 +102,13 @@ impl Request {
         }
 
         // TODO Make this error more specific. This error could be too many headers or no blank line to mark end of headers.
-        Err(NpmExpansionsError::from(NpmErrorKind::RequestParseError))
+        Err(NpmExpansionsError::from(NpmErrorKind::InvalidHttpRequest))
     }
 
     fn header_key_value(header_line: String) -> Result<(String, String), NpmExpansionsError> {
-        let colon_position = header_line
-            .find(':')
-            .ok_or(NpmExpansionsError::from(NpmErrorKind::InvalidHeader))?;
+        let colon_position = header_line.find(':').ok_or(NpmExpansionsError::from(
+            NpmErrorKind::InvalidRequestHeaders,
+        ))?;
 
         let (key, value) = header_line.split_at(colon_position);
         let (_colon, header_value) = value.split_at(1);
@@ -123,7 +123,7 @@ impl Request {
 
         let uri = split_line
             .get(1)
-            .ok_or(NpmExpansionsError::from(NpmErrorKind::RequestParseError));
+            .ok_or(NpmExpansionsError::from(NpmErrorKind::InvalidHttpRequest));
 
         let query_params = uri?.split_once('?').unwrap_or(("", ""));
 
@@ -143,7 +143,7 @@ impl Request {
             .map(|param| {
                 param
                     .split_once('=')
-                    .ok_or(NpmExpansionsError::from(NpmErrorKind::RequestParseError))
+                    .ok_or(NpmExpansionsError::from(NpmErrorKind::InvalidHttpRequest))
             })
             .collect();
 
@@ -475,7 +475,7 @@ mod tests {
 
             if let Err(err) = request {
                 is_correct_error = match err.kind() {
-                    NpmErrorKind::RequestParseError => true,
+                    NpmErrorKind::InvalidHttpRequest => true,
                     _ => false,
                 };
             }

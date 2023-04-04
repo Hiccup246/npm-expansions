@@ -64,17 +64,19 @@ fn respond_to_request_error(
     );
 
     let error_response = match error.kind() {
-        NpmErrorKind::InvalidHeader => DefaultController::client_error(&error_request),
-        NpmErrorKind::TooManyHeaders => DefaultController::client_error(&error_request),
+        NpmErrorKind::InvalidRequestHeaders => DefaultController::client_error(&error_request),
+        NpmErrorKind::TooManyRequestHeaders => DefaultController::client_error(&error_request),
         NpmErrorKind::InternalServerError => {
             DefaultController::internal_server_error(&error_request)
         }
-        NpmErrorKind::RequestParseError => DefaultController::internal_server_error(&error_request),
+        NpmErrorKind::InvalidHttpRequest => {
+            DefaultController::internal_server_error(&error_request)
+        }
         NpmErrorKind::SupportedMimeTypeError => {
             DefaultController::internal_server_error(&error_request)
         }
-        NpmErrorKind::InvalidMimeType => DefaultController::client_error(&error_request),
-        NpmErrorKind::NotFound => DefaultController::not_found(&error_request),
+        NpmErrorKind::InvalidRequestMimeType => DefaultController::client_error(&error_request),
+        NpmErrorKind::RouteNotFound => DefaultController::not_found(&error_request),
     }?;
 
     stream

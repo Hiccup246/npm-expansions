@@ -1,8 +1,10 @@
 // Inspiration for these functions is taken from https://www.xml.com/pub/a/2005/06/08/restful.html
-use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 use std::collections::HashMap;
 
 type MimeType<'a> = (&'a str, &'a str, Option<HashMap<&'a str, &'a str>>);
+
+#[derive(Debug)]
+pub struct InvalidMimeType;
 
 /// Parses a mime type string slice into a tuple consisting of its type, subtype and parameters
 ///
@@ -30,7 +32,7 @@ type MimeType<'a> = (&'a str, &'a str, Option<HashMap<&'a str, &'a str>>);
 ///
 /// parse_mime_type("text/");
 /// ```
-pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, NpmExpansionsError> {
+pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, InvalidMimeType> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
     let parameters = match parts.get(1..) {
@@ -40,21 +42,12 @@ pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, NpmExpansionsError> 
 
     let (primary_type, subtype) = parts
         .first()
-        .ok_or(NpmExpansionsError::new(
-            NpmErrorKind::InvalidMimeType,
-            mime_type,
-        ))?
+        .ok_or(InvalidMimeType)?
         .split_once('/')
-        .ok_or(NpmExpansionsError::new(
-            NpmErrorKind::InvalidMimeType,
-            mime_type,
-        ))?;
+        .ok_or(InvalidMimeType)?;
 
     if primary_type.is_empty() || subtype.is_empty() {
-        Err(NpmExpansionsError::new(
-            NpmErrorKind::InvalidMimeType,
-            mime_type,
-        ))
+        Err(InvalidMimeType)
     } else {
         Ok((primary_type, subtype, parameters))
     }
@@ -62,13 +55,10 @@ pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, NpmExpansionsError> 
 
 fn parse_mime_parameters(
     parameters: Vec<&str>,
-) -> Result<Option<HashMap<&str, &str>>, NpmExpansionsError> {
-    let key_value_parameters: Result<Vec<(&str, &str)>, NpmExpansionsError> = parameters
+) -> Result<Option<HashMap<&str, &str>>, InvalidMimeType> {
+    let key_value_parameters: Result<Vec<(&str, &str)>, InvalidMimeType> = parameters
         .iter()
-        .map(|val| {
-            val.split_once('=')
-                .ok_or(NpmExpansionsError::new(NpmErrorKind::InvalidMimeType, val))
-        })
+        .map(|val| val.split_once('=').ok_or(InvalidMimeType))
         .collect();
 
     match key_value_parameters? {

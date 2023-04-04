@@ -13,13 +13,13 @@ pub struct NpmExpansionsError {
 /// Enum for the different kinds of errors the server can produce
 #[derive(Debug)]
 pub enum NpmErrorKind {
-    InvalidHeader,
-    TooManyHeaders,
-    InvalidMimeType,
-    RequestParseError,
+    InvalidRequestHeaders,
+    TooManyRequestHeaders,
+    InvalidRequestMimeType,
+    InvalidHttpRequest,
     SupportedMimeTypeError,
     InternalServerError,
-    NotFound,
+    RouteNotFound,
 }
 
 impl NpmExpansionsError {
