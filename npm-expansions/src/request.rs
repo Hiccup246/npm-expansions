@@ -4,6 +4,7 @@ use std::{
     io::{prelude::*, BufReader, Lines, Read, Take, Write},
 };
 
+/// A struct representing the basic parts of a HTTP request i.e. status line, headers and query params
 pub struct Request {
     status_line: String,
     headers: HashMap<String, String>,
@@ -159,6 +160,7 @@ impl Request {
         Ok(query_hash_map)
     }
 
+    /// Creates a new request from status line string, headers HashMap and query params hashmap
     pub fn new(
         status_line: &str,
         headers: HashMap<String, String>,
@@ -171,10 +173,12 @@ impl Request {
         }
     }
 
+    /// Returns the status line of a request object
     pub fn status_line(&self) -> &str {
         self.status_line.as_str()
     }
 
+    /// Returns the route from the status line of a request object
     pub fn status_line_stripped(&self) -> String {
         let split_line: Vec<&str> = self.status_line.split(' ').collect();
 
@@ -191,10 +195,12 @@ impl Request {
         format!("{method} {route} {version}")
     }
 
+    /// Returns the requests headers
     pub fn headers(&self) -> &HashMap<String, String> {
         &self.headers
     }
 
+    /// Returns the requests query params
     pub fn query_params(&self) -> &HashMap<String, String> {
         &self.query_params
     }
