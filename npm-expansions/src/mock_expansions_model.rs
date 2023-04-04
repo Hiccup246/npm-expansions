@@ -1,5 +1,6 @@
 use crate::expansions_model::ExpansionsAccess;
 
+/// A mock expansions model for testing purposes
 pub struct MockExpansionsModel {
     expansions: Vec<String>,
 }
