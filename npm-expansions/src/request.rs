@@ -178,8 +178,8 @@ impl Request {
         self.status_line.as_str()
     }
 
-    /// Returns the route from the status line of a request object
-    pub fn status_line_stripped(&self) -> String {
+    /// Returns the path from the status line of a request object
+    pub fn status_line_path(&self) -> String {
         let split_line: Vec<&str> = self.status_line.split(' ').collect();
 
         let method = *split_line.first().unwrap_or(&"");

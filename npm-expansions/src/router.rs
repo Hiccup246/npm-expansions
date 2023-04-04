@@ -66,7 +66,7 @@ impl Router {
         request: Request,
         expansions_model: &dyn ExpansionsAccess,
     ) -> Result<Vec<u8>, NpmExpansionsError> {
-        let status_line = request.status_line_stripped();
+        let status_line = request.status_line_path();
         let controller_function = self.routes_config.get(status_line.as_str());
 
         if let Some(controller_function) = controller_function {
