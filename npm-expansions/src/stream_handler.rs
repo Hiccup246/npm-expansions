@@ -108,14 +108,14 @@ mod tests {
                 write_data: Vec::new(),
             };
 
-            let mock_generator = &MockExpansionsModel::default();
+            let mock_expansions_model = &MockExpansionsModel::default();
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1",
                 NpmController::random as ControllerFunction,
             )]));
 
-            let response = respond_to_request(&mut stream, &router, mock_generator);
+            let response = respond_to_request(&mut stream, &router, mock_expansions_model);
 
             assert!(response.is_ok());
         }
@@ -132,14 +132,14 @@ mod tests {
                 write_data: Vec::new(),
             };
 
-            let mock_generator = &MockExpansionsModel::default();
+            let mock_expansions_model = &MockExpansionsModel::default();
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1",
                 NpmController::random as ControllerFunction,
             )]));
 
-            let response = respond_to_request(&mut stream, &router, mock_generator);
+            let response = respond_to_request(&mut stream, &router, mock_expansions_model);
 
             assert!(response.is_ok());
         }
@@ -161,9 +161,9 @@ mod tests {
                 NpmController::random as ControllerFunction,
             )]));
 
-            let mock_generator = &MockExpansionsModel::default();
+            let mock_expansions_model = &MockExpansionsModel::default();
 
-            let response = respond_to_request(&mut stream, &router, mock_generator);
+            let response = respond_to_request(&mut stream, &router, mock_expansions_model);
 
             assert!(response.is_err());
         }
@@ -189,9 +189,9 @@ mod tests {
                 NpmController::random as ControllerFunction,
             )]));
 
-            let mock_generator = &MockExpansionsModel::default();
+            let mock_expansions_model = &MockExpansionsModel::default();
 
-            let response = handle_connection(&mut stream, &router, mock_generator);
+            let response = handle_connection(&mut stream, &router, mock_expansions_model);
 
             assert!(response.is_ok());
         }
@@ -208,14 +208,14 @@ mod tests {
                 write_data: Vec::new(),
             };
 
-            let mock_generator = &MockExpansionsModel::default();
+            let mock_expansions_model = &MockExpansionsModel::default();
 
             let router = router::Router::new(HashMap::from([(
                 "GET / HTTP/1.1",
                 NpmController::random as ControllerFunction,
             )]));
 
-            let response = handle_connection(&mut stream, &router, mock_generator);
+            let response = handle_connection(&mut stream, &router, mock_expansions_model);
 
             assert!(response.is_ok());
         }

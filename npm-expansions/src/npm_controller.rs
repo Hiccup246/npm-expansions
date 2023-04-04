@@ -27,9 +27,9 @@ impl NpmController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let mock_generator = &MockExpansionsModel::default();
+    /// let mock_expansions_model = &MockExpansionsModel::default();
     /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
-    /// let response = NpmController::random(&request, mock_generator);
+    /// let response = NpmController::random(&request, mock_expansions_model);
     ///
     /// assert!(response.is_ok());
     /// ```
@@ -48,10 +48,10 @@ impl NpmController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let mock_generator = &MockExpansionsModel::default();
+    /// let mock_expansions_model = &MockExpansionsModel::default();
     /// let request = Request::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
-    /// NpmController::random(&request, mock_generator);
+    /// NpmController::random(&request, mock_expansions_model);
     /// ```
     pub fn random(
         request: &Request,
@@ -97,9 +97,9 @@ impl NpmController {
     /// };
     /// use std::collections::HashMap;
     //
-    /// let mock_generator = &MockExpansionsModel::default();
+    /// let mock_expansions_model = &MockExpansionsModel::default();
     /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
-    /// let response = NpmController::all(&request, mock_generator);
+    /// let response = NpmController::all(&request, mock_expansions_model);
     ///
     /// assert!(response.is_ok());
     /// ```
@@ -118,10 +118,10 @@ impl NpmController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let mock_generator = &MockExpansionsModel::default();
+    /// let mock_expansions_model = &MockExpansionsModel::default();
     /// let request = Request::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
-    /// NpmController::all(&request, mock_generator);
+    /// NpmController::all(&request, mock_expansions_model);
     /// ```
     pub fn all(
         request: &Request,
@@ -171,9 +171,9 @@ impl NpmController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let mock_generator = &MockExpansionsModel::default();
+    /// let mock_expansions_model = &MockExpansionsModel::default();
     /// let request = Request::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
-    /// let response = NpmController::search(&request, mock_generator);
+    /// let response = NpmController::search(&request, mock_expansions_model);
     ///
     /// assert!(response.is_ok());
     /// ```
@@ -190,8 +190,8 @@ impl NpmController {
     /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
     /// use npm_expansions::expansions_model::ExpansionsAccess;
     /// let request = Request::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// let mock_generator = &MockExpansionsModel::default();
-    /// NpmController::search(&request, mock_generator);
+    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// NpmController::search(&request, mock_expansions_model);
     /// ```
     pub fn search(
         request: &Request,

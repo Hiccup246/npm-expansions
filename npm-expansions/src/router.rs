@@ -43,8 +43,8 @@ impl Router {
     ///     HashMap::from([("GET / HTTP/1.1", actual_route)]);
     /// let router = Router::new(route_config);
     /// let request = Request::new("GET / HTTP/1.1", HashMap::new(),  HashMap::new());
-    /// let mock_generator = &MockExpansionsModel::default();
-    /// let response = router.route_request(request, mock_generator);
+    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// let response = router.route_request(request, mock_expansions_model);
     ///
     /// assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec());
     /// ```
@@ -77,8 +77,8 @@ mod tests {
 
         let router = Router::new(route_config);
         let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
-        let mock_generator = &MockExpansionsModel::default();
-        let response = router.route_request(request, mock_generator);
+        let mock_expansions_model = &MockExpansionsModel::default();
+        let response = router.route_request(request, mock_expansions_model);
 
         assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec())
     }
@@ -89,8 +89,8 @@ mod tests {
         let route_config: Route = HashMap::from([("404", not_found)]);
         let router = Router::new(route_config);
         let request = Request::new("GET /fake_route HTTP/1.1", HashMap::new(), HashMap::new());
-        let mock_generator = &MockExpansionsModel::default();
-        let response = router.route_request(request, mock_generator);
+        let mock_expansions_model = &MockExpansionsModel::default();
+        let response = router.route_request(request, mock_expansions_model);
 
         assert!(response.is_ok())
     }
@@ -99,8 +99,8 @@ mod tests {
     fn no_route() {
         let router = Router::new(HashMap::new());
         let request = Request::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
-        let mock_generator = &MockExpansionsModel::default();
-        let response = router.route_request(request, mock_generator);
+        let mock_expansions_model = &MockExpansionsModel::default();
+        let response = router.route_request(request, mock_expansions_model);
 
         assert!(response.is_ok())
     }
