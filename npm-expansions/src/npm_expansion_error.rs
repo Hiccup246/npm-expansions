@@ -44,6 +44,11 @@ impl NpmExpansionsError {
 
 impl fmt::Display for NpmExpansionsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
+        write!(
+            f,
+            "NpmExpansionsError of kind: {:?} and message: {}",
+            self.kind(),
+            self.message
+        )
     }
 }
