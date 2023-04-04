@@ -51,13 +51,13 @@ impl Router {
     pub fn route_request(
         &self,
         request: Request,
-        expansions_generator: &dyn ExpansionsAccess,
+        expansions_model: &dyn ExpansionsAccess,
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let status_line = request.status_line_stripped();
         let controller_function = self.routes_config.get(status_line.as_str());
 
         if let Some(controller_function) = controller_function {
-            return controller_function(&request, expansions_generator);
+            return controller_function(&request, expansions_model);
         }
 
         DefaultController::not_found(&request)
