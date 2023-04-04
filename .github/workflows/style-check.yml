@@ -12,7 +12,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install toolchain
-        run: rustup update nightly-2023-03-28 && rustup default nightly-2023-03-28
+        run: rustup update
+
+      - name: Install Clippy
+        run: rustup component add rustfmt
 
       - name: Cargo Format Check
         run: cargo fmt -- --check
@@ -29,6 +32,9 @@ jobs:
 
       - name: Install toolchain
         run: rustup update nightly-2023-03-28 && rustup default nightly-2023-03-28
+
+      - name: Install Clippy
+        run: rustup component add rustfmt
 
       - name: Cargo Format Check
         run: cargo fmt -- --check
