@@ -3,7 +3,15 @@ name = "asset-minifier"
 version = "0.1.0"
 edition = "2021"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
+cargo-husky = "1"
 minifier = "0.2.2"
 minify-html = "0.10.8"
 tempfile = "3.5.0"
+
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false # Disable features which are enabled by default
+features = ["precommit-hook", "run-cargo-fmt", "run-cargo-clippy"]
