@@ -1,6 +1,6 @@
-use levenshtein::levenshtein;
 use rand::Rng;
 use std::fs;
+use strsim::jaro_winkler;
 
 /// A struct representing a vector of npm expansion strings and methods to search them
 pub struct ExpansionsModel {
@@ -30,13 +30,13 @@ impl ExpansionsAccess for ExpansionsModel {
     }
 
     fn search(&self, query: &str) -> Vec<String> {
-        let mut scored_matches: Vec<(usize, &String)> = self
+        let mut scored_matches: Vec<(f64, &String)> = self
             .expansions
             .iter()
-            .map(|expansion| (levenshtein(expansion, query), expansion))
+            .map(|expansion| (jaro_winkler(expansion, query), expansion))
             .collect();
 
-        scored_matches.sort_by(|a, b| a.0.cmp(&b.0));
+        scored_matches.sort_by(|a, b| b.0.total_cmp(&a.0));
 
         let end_index = if scored_matches.len() < 10 {
             scored_matches.len()
