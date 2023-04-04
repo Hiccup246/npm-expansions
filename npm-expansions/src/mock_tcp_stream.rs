@@ -3,8 +3,11 @@ use std::{
     io::{Error, Read, Write},
 };
 
+/// A mock of a TCP stream for testing purposes
 pub struct MockTcpStream {
+    /// Fake data which can be read from the mock tcp stream
     pub read_data: Vec<u8>,
+    /// A place for fake data to be written to the mock tcp stream
     pub write_data: Vec<u8>,
 }
 
