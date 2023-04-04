@@ -12,6 +12,7 @@ WORKDIR /npm-expansions
 
 # Copy Projects Cargo.toml file to a new Cargo.toml file in filesystem of the container
 COPY ./Cargo.toml ./Cargo.toml
+COPY ./rust-toolchain.toml ./rust-toolchain.toml
 
 # Generate a cargo release build
 RUN cargo build --release

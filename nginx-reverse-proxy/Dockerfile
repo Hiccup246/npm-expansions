@@ -7,6 +7,7 @@ RUN cargo new --bin npm-expansions
 WORKDIR /npm-expansions
 
 COPY ./Cargo.toml ./Cargo.toml
+COPY ./rust-toolchain.toml ./rust-toolchain.toml
 
 ADD ./src ./src
 
