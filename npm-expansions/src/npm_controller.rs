@@ -55,7 +55,7 @@ impl NpmController {
     /// ```
     pub fn random(
         request: &Request,
-        expansions_generator: &dyn ExpansionsAccess,
+        expansions_model: &dyn ExpansionsAccess,
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -70,7 +70,7 @@ impl NpmController {
                 "Content-Type: application/json",
                 &format!(
                     "{{\"npm-expansion\": \"{}\"}}",
-                    expansions_generator.random_expansion()
+                    expansions_model.random_expansion()
                 ),
             ),
             _ => not_acceptable_response(),
@@ -125,7 +125,7 @@ impl NpmController {
     /// ```
     pub fn all(
         request: &Request,
-        expansions_generator: &dyn ExpansionsAccess,
+        expansions_model: &dyn ExpansionsAccess,
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -134,7 +134,7 @@ impl NpmController {
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
-        let string_expansions: Vec<String> = expansions_generator
+        let string_expansions: Vec<String> = expansions_model
             .all()
             .iter()
             .map(|expansions| format!("\"{expansions}\""))
@@ -195,7 +195,7 @@ impl NpmController {
     /// ```
     pub fn search(
         request: &Request,
-        expansions_generator: &dyn ExpansionsAccess,
+        expansions_model: &dyn ExpansionsAccess,
     ) -> Result<Vec<u8>, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -206,7 +206,7 @@ impl NpmController {
 
         let default = String::from(" ");
         let search_string = request.query_params().get("query").unwrap_or(&default);
-        let top_ten: Vec<String> = expansions_generator.search(search_string);
+        let top_ten: Vec<String> = expansions_model.search(search_string);
 
         let response = match best.as_str() {
             "application/json" => Response::new(
