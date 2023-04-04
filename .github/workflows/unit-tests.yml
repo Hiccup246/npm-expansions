@@ -15,7 +15,7 @@ jobs:
         run: rustup update nightly-2023-03-28 && rustup default nightly-2023-03-28
 
       - name: Cargo Test
-        run: cargo +nightly test
+        run: cargo test
   reverse_proxy_unit_tests:
     runs-on: ubuntu-latest
     defaults:
@@ -28,4 +28,4 @@ jobs:
         run: rustup update nightly-2023-03-28 && rustup default nightly-2023-03-28
 
       - name: Cargo Test
-        run: cargo +nightly test
+        run: cargo test
