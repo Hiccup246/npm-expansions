@@ -3,10 +3,11 @@ use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
 use crate::response::Response;
 
+/// A struct representing a series of functions to respond to HTTP errors e.g. 400, 500, 404 etc
 pub struct DefaultController {}
 
 impl DefaultController {
-    /// Returns a vector byte representation of the not_found page including html, css and javascript
+    /// Returns a vector byte representation of a 404 response. The response body is a plain string of "NOT FOUND".
     ///
     /// # Arguments
     ///
@@ -47,7 +48,7 @@ impl DefaultController {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
-            Vec::from(["application/json", "text/html"]),
+            Vec::from(["text/plain", "*/*"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
@@ -60,7 +61,7 @@ impl DefaultController {
         Ok(response)
     }
 
-    /// Returns a vector byte representation of the internal_server_error page including html, css and javascript
+    /// Returns a vector byte representation of a 500 response. The response body is a plain string of "INTERNAL SERVER ERROR".
     ///
     /// # Arguments
     ///
@@ -101,7 +102,7 @@ impl DefaultController {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
-            Vec::from(["application/json", "text/html"]),
+            Vec::from(["text/plain", "*/*"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
@@ -116,7 +117,7 @@ impl DefaultController {
         Ok(response)
     }
 
-    /// Returns a vector byte representation of the client_error page including html, css and javascript
+    /// Returns a vector byte representation of a 400 response. The response body is a plain string of "BAD REQUEST".
     ///
     /// # Arguments
     ///
@@ -157,7 +158,7 @@ impl DefaultController {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
-            Vec::from(["application/json", "text/html"]),
+            Vec::from(["text/plain", "*/*"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
