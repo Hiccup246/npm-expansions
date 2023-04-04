@@ -146,7 +146,7 @@ impl NpmController {
         let string_expansions: Vec<String> = expansions_model
             .all()
             .iter()
-            .map(|expansions| format!("\"{expansions}\""))
+            .map(|expansion| format!("\"{expansion}\""))
             .collect();
 
         let response = match best.as_str() {
@@ -218,7 +218,11 @@ impl NpmController {
 
         let default = String::from(" ");
         let search_string = request.query_params().get("query").unwrap_or(&default);
-        let top_ten: Vec<String> = expansions_model.search(search_string);
+        let top_ten: Vec<String> = expansions_model
+            .search(search_string)
+            .iter()
+            .map(|expansion| format!("\"{expansion}\""))
+            .collect();
 
         let response = match best.as_str() {
             "application/json" => HttpResponse::new(
