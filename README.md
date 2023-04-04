@@ -84,7 +84,7 @@ As you may have noticed this project is heavily inspired by the official [NPM](h
 
 <br>
 
-# 📋 ToDo
+# 📋 Future Features List
 1. ### Documentation
     1. Adding documentation comments for all public structs, enums, and functions and the crate as a whole
 4. ### Long term todo
