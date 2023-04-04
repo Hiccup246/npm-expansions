@@ -39,7 +39,11 @@ fn main() {
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
 
-        stream_handler::handle_connection(&mut stream, &router, expansions_generator);
+        if let Err(err) =
+            stream_handler::handle_connection(&mut stream, &router, expansions_generator)
+        {
+            println!("Fatal server error. Error Message: {}", err)
+        }
     }
 }
 

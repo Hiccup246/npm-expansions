@@ -1,59 +1,25 @@
+use crate::default_controller::DefaultController;
+use crate::expansions_model::ExpansionsAccess;
+use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
+use crate::request::Request;
+use crate::router;
 use std::{
     collections::HashMap,
     io::{Read, Write},
 };
 
-use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
-use crate::request::Request;
-use crate::router;
-use crate::{default_controller::DefaultController, expansions_model::ExpansionsAccess};
-
 pub fn handle_connection(
     stream: &mut (impl Read + Write),
     router: &router::Router,
     expansions_generator: &dyn ExpansionsAccess,
-) {
+) -> Result<(), NpmExpansionsError> {
     let response = respond_to_request(stream, router, expansions_generator);
 
     if let Err(res) = response {
-        let error_request = Request::new(
-            "",
-            HashMap::from([(
-                "Accept".to_string(),
-                "text/html,application/json".to_string(),
-            )]),
-            HashMap::new(),
-        );
-
-        let error_response = http_response_error_handler(&res, &error_request);
-
-        if let Ok(error_res) = error_response {
-            return stream.write_all(error_res.as_slice()).unwrap();
-        }
-
-        println!("Unconditional server failure. This is a server bug!")
+        respond_to_request_error(stream, &res)
+    } else {
+        Ok(())
     }
-}
-
-fn http_response_error_handler(
-    error: &NpmExpansionsError,
-    error_request: &Request,
-) -> Result<Vec<u8>, NpmExpansionsError> {
-    let error_response = match error.kind() {
-        NpmErrorKind::InvalidHeader => DefaultController::client_error(error_request),
-        NpmErrorKind::TooManyHeaders => DefaultController::client_error(error_request),
-        NpmErrorKind::InternalServerError => {
-            DefaultController::internal_server_error(error_request)
-        }
-        NpmErrorKind::RequestParseError => DefaultController::internal_server_error(error_request),
-        NpmErrorKind::SupportedMimeTypeError => {
-            DefaultController::internal_server_error(error_request)
-        }
-        NpmErrorKind::InvalidMimeType => DefaultController::client_error(error_request),
-        NpmErrorKind::NotFound => DefaultController::not_found(error_request),
-    };
-
-    error_response
 }
 
 fn respond_to_request(
@@ -64,7 +30,47 @@ fn respond_to_request(
     let request = Request::build(stream)?;
     let response = router.route_request(request, expansions_generator)?;
 
-    stream.write_all(response.as_slice()).unwrap();
+    stream
+        .write_all(response.as_slice())
+        .or(Err(NpmExpansionsError::from(
+            NpmErrorKind::InternalServerError,
+        )))?;
+
+    Ok(())
+}
+
+fn respond_to_request_error(
+    stream: &mut (impl Read + Write),
+    error: &NpmExpansionsError,
+) -> Result<(), NpmExpansionsError> {
+    let error_request = Request::new(
+        "",
+        HashMap::from([(
+            "Accept".to_string(),
+            "text/html,application/json".to_string(),
+        )]),
+        HashMap::new(),
+    );
+
+    let error_response = match error.kind() {
+        NpmErrorKind::InvalidHeader => DefaultController::client_error(&error_request),
+        NpmErrorKind::TooManyHeaders => DefaultController::client_error(&error_request),
+        NpmErrorKind::InternalServerError => {
+            DefaultController::internal_server_error(&error_request)
+        }
+        NpmErrorKind::RequestParseError => DefaultController::internal_server_error(&error_request),
+        NpmErrorKind::SupportedMimeTypeError => {
+            DefaultController::internal_server_error(&error_request)
+        }
+        NpmErrorKind::InvalidMimeType => DefaultController::client_error(&error_request),
+        NpmErrorKind::NotFound => DefaultController::not_found(&error_request),
+    }?;
+
+    stream
+        .write_all(error_response.as_slice())
+        .or(Err(NpmExpansionsError::from(
+            NpmErrorKind::InternalServerError,
+        )))?;
 
     Ok(())
 }
@@ -74,8 +80,7 @@ mod tests {
     use super::*;
     use crate::mock_expansions_model::MockExpansionsModel;
     use crate::mock_tcp_stream::MockTcpStream;
-    use crate::npm_controller::ControllerFunction;
-    use crate::npm_controller::NpmController;
+    use crate::npm_controller::{ControllerFunction, NpmController};
 
     mod respond_to_request {
         use super::*;
@@ -154,8 +159,6 @@ mod tests {
     }
 
     mod connection_handler {
-        use crate::npm_controller::ControllerFunction;
-
         use super::*;
 
         #[test]
@@ -179,7 +182,7 @@ mod tests {
 
             let response = handle_connection(&mut stream, &router, mock_generator);
 
-            assert_eq!(response, ());
+            assert!(response.is_ok());
         }
 
         #[test]
@@ -203,7 +206,7 @@ mod tests {
 
             let response = handle_connection(&mut stream, &router, mock_generator);
 
-            assert_eq!(response, ());
+            assert!(response.is_ok());
         }
     }
 }
