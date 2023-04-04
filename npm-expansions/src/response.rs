@@ -1,3 +1,4 @@
+/// A HTTP response object containing the core parts of status line, headers and contents
 pub struct Response {
     status_line: String,
     headers: String,
@@ -5,6 +6,7 @@ pub struct Response {
 }
 
 impl Response {
+    /// Creates a new response given a status line, headers and contents
     pub fn new(status_line: &str, headers: &str, contents: &str) -> Response {
         Response {
             status_line: status_line.to_string(),
@@ -13,14 +15,17 @@ impl Response {
         }
     }
 
+    /// Returns the status line of the response object
     pub fn status_line(&self) -> &str {
         self.status_line.as_str()
     }
 
+    /// Returns the headers of the response object
     pub fn headers(&self) -> &str {
         &self.headers
     }
 
+    /// Returns the contents of the response object
     pub fn contents(&self) -> &str {
         &self.contents
     }
