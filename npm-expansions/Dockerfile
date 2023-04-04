@@ -20,7 +20,6 @@ RUN cargo build --release
 RUN rm src/*.rs
 
 # Copy all project files into the filesystem of the container
-ADD ./rsc ./rsc
 ADD ./src ./src
 
 # Remove binary built from the inital cargo build --release command
@@ -67,6 +66,9 @@ USER $APP_USER
 
 # Sets the working directory to /usr/src/app
 WORKDIR ${APP}
+
+# Add project resources
+ADD ./rsc ./rsc
 
 # Execute our web application binary
 CMD ["./npm-expansions"]
