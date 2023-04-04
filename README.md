@@ -86,12 +86,7 @@ As you may have noticed this project is heavily inspired by the official [NPM](h
 
 # 📋 ToDo
 1. ### Documentation
-    1. Update controller function documentation comments to be more detailed about response format and returned values i.e. 200 vs 406
-    2. Adding documentation comments for all public structs, enums, and functions and the crate as a whole
-3. ### Refactoring
-    1. Read up about rust coding styles and idiomatic rust and refactor code to fit this style
-    2. Consider replacing a lot of `if let Ok(x) = y`, `if let Err(x) = y`, `if let Some(x) = y` and `if let None = y` patterns
-    with bubble-up patterns like `?`
+    1. Adding documentation comments for all public structs, enums, and functions and the crate as a whole
 4. ### Long term todo
 - Review readme and decide if any upgrades are needed
 - Add project to google search console
