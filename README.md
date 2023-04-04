@@ -1,11 +1,11 @@
 # 💬 npm-expansions
 
-<!-- ![](https://img.shields.io/github/license/Hiccup246/npm-expansions)
+![](https://img.shields.io/github/license/Hiccup246/npm-expansions)
 ![](https://img.shields.io/github/languages/code-size/Hiccup246/npm-expansions)
 ![](https://img.shields.io/github/actions/workflow/status/hiccup246/npm-expansions/unit-tests.yml?branch=main&label=Unit%20Tests)
-![](https://img.shields.io/github/actions/workflow/status/hiccup246/npm-expansions/style-check.yml?branch=main&label=Style%20Check) -->
+![](https://img.shields.io/github/actions/workflow/status/hiccup246/npm-expansions/style-check.yml?branch=main&label=Style%20Check)
 
-<!-- ![site-screenshot](https://raw.githubusercontent.com/Hiccup246/npm-expansions/main/nginx-reverse-proxy/static/site-screenshot.webp) -->
+![site-screenshot](https://raw.githubusercontent.com/Hiccup246/npm-expansions/main/nginx-reverse-proxy/static/site-screenshot.webp)
 
 A website and JSON API that allows npm expansions to be generated and searched. An NPM expansion represents the words with make up the NPM acronym e.g. "Nice People Meet".
 
@@ -27,11 +27,10 @@ The rust JSON web server is found in the `npm-expansions` directory while the ng
 ## Rust JSON web server
 The JSON web server is located within the `npm-expansions` directory and is responsible for serving JSON responses via TCP to routes with the prefix `/api`.
 
-The general structure of the project is as follows:
-- http parsing
-- routing
-- controllers
-- models
+The project roughly adheres to a model, view, controller ([MVC](https://developer.mozilla.org/en-US/docs/Glossary/MVC)) architecture. The project has two controllers (`DefaultController`, `NpmController`), one model (`ExpansionsModel`) and one "view" in the sense that all responses are in JSON format.
+
+The project can understood using a top down approach starting with the `main.rs` file. The following diagram attempts a explanation:
+![project-architecture-diagram](https://raw.githubusercontent.com/Hiccup246/npm-expansions/main/public/project-architecture.webp)
 
 ## Nginx static site and reverse proxy
 The nginx server is responsible for serving the static site and reverse proxying requests to the JSON web server. The nginx server itself is configured by `npm-expansions.conf` for production and `npm-expansions.dev.conf` for development.
@@ -85,14 +84,8 @@ As you may have noticed this project is heavily inspired by the official [NPM](h
 <br>
 
 # 📋 Future Features List
-4. ### Long term todo
-- Review readme and decide if any upgrades are needed
-- Add project to google search console
-- Update jameswatt.io with this project
-- Implement PostGres database with docker for npm expansions
 - Handle incoming requests in an optimized way e.g. threads or asynchronous events
-- Background routine to check if the official npm expansions repo has updated its `expansions.txt` file and to update this project's equivalent file with any changes. Note that the last change to the expansions text file occurred two years ago.
 - Add server logs for each request and failure
-- Refactor NpmExpansions to be instantiated once in the main and then passed around. This will increase performance
-  and allow the dynamic updating of the expansions.txt file in a separate thread.
-- Routinely updating expansions.txt could be done at startup and during execution using a second thread with message parsing
+- Dynamically update the `expansions.txt` file and the global `ExpansionsModel`.
+  - This could be done by a separate thread which routinely checks the official npm expansions repo and pull requests
+  - Note that the last change to the expansions text file in the official repo occurred two years ago.
