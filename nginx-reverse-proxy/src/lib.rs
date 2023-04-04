@@ -7,4 +7,4 @@
 #![warn(rustdoc::missing_doc_code_examples)]
 
 /// A series of utility functions that allow files and directories to be minifed
-pub mod asset_minifier;
+pub mod minify;
