@@ -4,13 +4,19 @@ use crate::npm_expansion_error::NpmExpansionsError;
 use crate::request::Request;
 use crate::response::Response;
 
+/// A collection of functions which accept a request and expansions model and use
+/// them to produce JSON responses
 pub struct NpmController {}
 
+/// The function signature of NpmController functions
 pub type ControllerFunction =
     fn(&Request, &dyn ExpansionsAccess) -> Result<Vec<u8>, NpmExpansionsError>;
 
 impl NpmController {
-    /// Returns a vector byte representation of a json object containing a random npm expansion
+    /// Returns a vector byte representation of a json object containing a random npm expansion.
+    /// ```json
+    /// { "npm-expansion": "Nice Pistons Mac" }
+    /// ```
     ///
     /// # Arguments
     ///
@@ -81,6 +87,9 @@ impl NpmController {
     }
 
     /// Returns a vector byte representation of a json array containing all npm expansions
+    /// ```json
+    /// ["Nice Pistons Mac", "Nicole Pasta Mcdougle"]
+    /// ```
     ///
     /// # Arguments
     ///
@@ -154,7 +163,10 @@ impl NpmController {
     }
 
     /// Returns a vector byte representation of a json array containing the top ten matches of npm expansions given
-    /// a request with a search_query query param
+    /// a request with a search_query field
+    /// ```json
+    /// ["Nice Pistons Mac", "Nicole Pasta Mcdougle"]
+    /// ```
     ///
     /// # Arguments
     ///
