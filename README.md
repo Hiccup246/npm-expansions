@@ -9,7 +9,7 @@
 
 A website and JSON API that allows npm expansions to be generated and searched. An NPM expansion represents the words with make up the NPM acronym e.g. "Nice People Meet".
 
-The website is written in vanilla HTML, CSS, and JS, its assets minified using [rust]((https://www.rust-lang.org/)), and served via [NGINX]((https://www.nginx.com/)). The JSON API is built using rust. Both the JSON API and NGINX server are deployed using [docker](https://www.docker.com/) and hosted via [fly.io](https://fly.io/).
+The website supports mobile, is written in vanilla HTML, CSS, and JS, its assets minified using [rust]((https://www.rust-lang.org/)), and served via [NGINX]((https://www.nginx.com/)). The JSON API is built using rust. Both the JSON API and NGINX server are deployed using [docker](https://www.docker.com/) and hosted via [fly.io](https://fly.io/).
 
 <br>
 
