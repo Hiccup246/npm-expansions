@@ -1,7 +1,7 @@
 # 💬 npm-expansions
 
-![](https://img.shields.io/github/license/Hiccup246/npm-expansions)
-![](https://img.shields.io/github/languages/code-size/Hiccup246/npm-expansions)
+![](https://img.shields.io/github/license/hiccup246/npm-expansions)
+![](https://img.shields.io/github/languages/code-size/hiccup246/npm-expansions)
 ![](https://img.shields.io/github/actions/workflow/status/hiccup246/npm-expansions/unit-tests.yml?branch=main&label=Unit%20Tests)
 ![](https://img.shields.io/github/actions/workflow/status/hiccup246/npm-expansions/style-check.yml?branch=main&label=Style%20Check)
 
@@ -30,7 +30,7 @@ The JSON web server is located within the `npm-expansions` directory and is resp
 The project roughly adheres to a model, view, controller ([MVC](https://developer.mozilla.org/en-US/docs/Glossary/MVC)) architecture. The project has two controllers (`DefaultController`, `NpmController`), one model (`ExpansionsModel`) and one "view" in the sense that all responses are in JSON format.
 
 The project can understood using a top down approach starting with the `main.rs` file. The following diagram attempts a explanation:
-![project-architecture-diagram](https://raw.githubusercontent.com/Hiccup246/npm-expansions/main/public/project-architecture.webp)
+![project-architecture-diagram](https://raw.githubusercontent.com/hiccup246/npm-expansions/main/project-architecture.webp)
 
 ## Nginx static site and reverse proxy
 The nginx server is responsible for serving the static site and reverse proxying requests to the JSON web server. The nginx server itself is configured by `npm-expansions.conf` for production and `npm-expansions.dev.conf` for development.
