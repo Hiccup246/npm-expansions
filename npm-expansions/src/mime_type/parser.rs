@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 type MimeType<'a> = (&'a str, &'a str, Option<HashMap<&'a str, &'a str>>);
 
+/// A error for representing the failure to process a mime type
 #[derive(Debug)]
 pub struct InvalidMimeType;
 
