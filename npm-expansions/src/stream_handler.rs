@@ -8,12 +8,23 @@ use std::{
     io::{Read, Write},
 };
 
+/// Handles a http stream by building a request object and routing the request to a controller. The controllers response
+/// is then written to the stream. If the produced response is a failure then a failure response
+/// is attempted using the DefaultController i.e. 400, 500, 404 etc. If the fail response
+/// produces a error then the error is returned as this indicates a fatal server error.
+///
+/// # Arguments
+///
+/// * `stream` - An incoming TCP stream
+/// * `router` - A Router object which can route a stream to a controller
+/// * `expansions_model` - A ExpansionsModel which produces NPM expansions and acts as persistent database
+///
 pub fn handle_connection(
     stream: &mut (impl Read + Write),
     router: &router::Router,
-    expansions_generator: &dyn ExpansionsAccess,
+    expansions_model: &dyn ExpansionsAccess,
 ) -> Result<(), NpmExpansionsError> {
-    let response = respond_to_request(stream, router, expansions_generator);
+    let response = respond_to_request(stream, router, expansions_model);
 
     if let Err(res) = response {
         respond_to_request_error(stream, &res)
@@ -25,10 +36,10 @@ pub fn handle_connection(
 fn respond_to_request(
     stream: &mut (impl Read + Write),
     router: &router::Router,
-    expansions_generator: &dyn ExpansionsAccess,
+    expansions_model: &dyn ExpansionsAccess,
 ) -> Result<(), NpmExpansionsError> {
     let request = Request::build(stream)?;
-    let response = router.route_request(request, expansions_generator)?;
+    let response = router.route_request(request, expansions_model)?;
 
     stream
         .write_all(response.as_slice())
