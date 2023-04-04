@@ -52,13 +52,13 @@ impl DefaultController {
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
-        let response = match best.as_str() {
-            "application/json" => HttpResponse::new("404 NOT FOUND", "", "NOT FOUND"),
-            _ => not_acceptable_response(),
-        }
-        .into_bytes_vec();
+        let response = if best.is_empty() {
+            not_acceptable_response()
+        } else {
+            HttpResponse::new("404 NOT FOUND", "", "NOT FOUND")
+        };
 
-        Ok(response)
+        Ok(response.into_bytes_vec())
     }
 
     /// Returns a vector byte representation of a 500 response. The response body is a plain string of "INTERNAL SERVER ERROR".
@@ -106,15 +106,13 @@ impl DefaultController {
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
-        let response = match best.as_str() {
-            "application/json" => {
-                HttpResponse::new("500 INTERNAL SERVER ERROR", "", "INTERNAL SERVER ERROR")
-            }
-            _ => not_acceptable_response(),
-        }
-        .into_bytes_vec();
+        let response = if best.is_empty() {
+            not_acceptable_response()
+        } else {
+            HttpResponse::new("500 INTERNAL SERVER ERROR", "", "INTERNAL SERVER ERROR")
+        };
 
-        Ok(response)
+        Ok(response.into_bytes_vec())
     }
 
     /// Returns a vector byte representation of a 400 response. The response body is a plain string of "BAD REQUEST".
@@ -162,13 +160,13 @@ impl DefaultController {
             accept_header.unwrap_or(&"".to_string()),
         )?;
 
-        let response = match best.as_str() {
-            "application/json" => HttpResponse::new("400 BAD REQUEST", "", "BAD REQUEST"),
-            _ => not_acceptable_response(),
-        }
-        .into_bytes_vec();
+        let response = if best.is_empty() {
+            not_acceptable_response()
+        } else {
+            HttpResponse::new("400 BAD REQUEST", "", "BAD REQUEST")
+        };
 
-        Ok(response)
+        Ok(response.into_bytes_vec())
     }
 }
 
