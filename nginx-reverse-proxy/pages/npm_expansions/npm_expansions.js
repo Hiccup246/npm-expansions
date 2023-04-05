@@ -17,8 +17,9 @@ async function searchExpansions(query) {
     const searchExpansionJSONResponse = await searchExpansionResponse.json();
     
     const textareaString = searchExpansionJSONResponse.reduce((acc, expansion) => acc + (expansion + "\n\n"), "");
-    document.querySelector(".results-expansions-list").innerHTML = textareaString;
-    document.querySelector(".results-expansions-list").setAttribute("rows", searchExpansionJSONResponse.length);
+    const textarea = document.querySelector(".results-expansions-list");
+    textarea.innerHTML = textareaString;
+    textarea.setAttribute("rows", searchExpansionJSONResponse.length);
 }
 
 async function loadAllExpansions() {
@@ -26,8 +27,9 @@ async function loadAllExpansions() {
     const allExpansionJSONResponse = await allExpansionResponse.json();
 
     const textareaString = allExpansionJSONResponse.reduce((acc, expansion) => acc + (expansion + "\n\n"), "");
-    document.querySelector(".results-expansions-list").innerHTML = textareaString;
-    document.querySelector(".results-expansions-list").setAttribute("rows", allExpansionJSONResponse.length);
+    const textarea = document.querySelector(".results-expansions-list");
+    textarea.innerHTML = textareaString;
+    textarea.setAttribute("rows", allExpansionJSONResponse.length);
 }
 
 function copyExpansionsToClipboard() {
