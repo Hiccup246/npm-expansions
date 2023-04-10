@@ -15,3 +15,5 @@
 # Ignore output generated from nginx-reverse-proxy
 **/minified_static
 **/minified_pages
+**/injected_static
+**/injected_pages
