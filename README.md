@@ -9,7 +9,7 @@
 
 A website and JSON API that allows npm expansions to be generated and searched. An NPM expansion represents the words with make up the NPM acronym e.g. "Nice People Meet".
 
-The website supports mobile, is written in vanilla HTML, CSS, and JS, its assets minified using [rust]((https://www.rust-lang.org/)), and served via [NGINX]((https://www.nginx.com/)). The JSON API is built using rust. Both the JSON API and NGINX server are deployed using [docker](https://www.docker.com/) and hosted via [fly.io](https://fly.io/).
+The website supports mobile, is written in vanilla HTML, CSS, and JS, its assets compiled using [rust]((https://www.rust-lang.org/)), and served via [NGINX]((https://www.nginx.com/)). The JSON API is built using rust. Both the JSON API and NGINX server are deployed using [docker](https://www.docker.com/) and hosted via [fly.io](https://fly.io/).
 
 <br>
 
@@ -22,7 +22,7 @@ The website supports mobile, is written in vanilla HTML, CSS, and JS, its assets
 <br>
 
 # 🗺️ Understanding the project
-The rust JSON web server is found in the `npm-expansions` directory while the nginx web server and rust project which minifies static files is found in the `nginx-reverse-proxy` directory.
+The rust JSON web server is found in the `npm-expansions` directory while the nginx web server and rust project compiles static files is found in the `nginx-reverse-proxy` directory.
 
 ## Rust JSON web server
 The JSON web server is located within the `npm-expansions` directory and is responsible for serving JSON responses via TCP to routes with the prefix `/api`.
@@ -35,7 +35,7 @@ The project can understood using a top down approach starting with the `main.rs`
 ## Nginx static site and reverse proxy
 The nginx server is responsible for serving the static site and reverse proxying requests to the JSON web server. The nginx server itself is configured by `npm-expansions.conf` for production and `npm-expansions.dev.conf` for development.
 
-The rust project within `nginx-reverse-proxy` is responsible for taking all the assets within the `pages` and `static` directories and performing minification on all `CS`, `JS`, and `HTML` files. After minification the assets are placed into directories called `minified_pages` and `minified_static` directories.
+The rust project within `nginx-reverse-proxy` is responsible for compiling the assets within the `pages` and `static` directories which involves injecting environment variables into `HTML` files and performing minification on all `CS`, `JS`, and `HTML` files. After injection and minification the assets are placed into directories called `minified_pages` and `minified_static` directories.
 
 <br>
 
@@ -73,7 +73,7 @@ This project is configured to be deployed to [fly.io](https://fly.io/) via two d
 - Ensure you have a fly.io account
 - Ensure you have authenticated via the fly.io CLI
 - Create two fly.io Apps by using the command `fly launch` and using the names `npm-expansions` and `npm-expansions-reverse-proxy`
-- Navigate to the nginx-reverse-proxy directory and run the command `fly deploy`
+- Navigate to the nginx-reverse-proxy directory and run the command `flyctl deploy --remote-only --build-arg UMAMI_WEBSITE_ID=${{ secrets.UMAMI_WEBSITE_ID }} UMAMI_WEBSITE_URL=${{ secrets.UMAMI_WEBSITE_URL }}`
 - Navigate to the npm-expansions directory and run the command `fly deploy`
 
 <br>
