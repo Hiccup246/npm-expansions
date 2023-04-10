@@ -90,5 +90,3 @@ As you may have noticed this project is heavily inspired by the official [NPM](h
   - This could be done by a separate thread which routinely checks the official npm expansions repo and pull requests
   - Note that the last change to the expansions text file in the official repo occurred two years ago.
 - Implement a background rain animation effect similar to the header of [deno merch](https://merch.deno.com/)
-- Implement environment variables for the static site
-  - Specifically for analytics tracking codes
