@@ -68,6 +68,8 @@ Then follow the steps below:
 
 Note that as the pages and static directory are binded to the docker contianer for quick development no minified or env injected files will be served. This leads to the umami analytics script being broken for development.
 
+Currently environment variables are only supported for `HTML` files and have the syntax of `{{ $YOUR_VARIABLE }}`. These can be verified by running `cargo run -- YOUR_VARIABLE=abc` and observing the injected and minified files.
+
 <br>
 
 # 🛰️ Deployment
@@ -75,7 +77,10 @@ This project is configured to be deployed to [fly.io](https://fly.io/) via two d
 - Ensure you have a fly.io account
 - Ensure you have authenticated via the fly.io CLI
 - Create two fly.io Apps by using the command `fly launch` and using the names `npm-expansions` and `npm-expansions-reverse-proxy`
-- Navigate to the nginx-reverse-proxy directory and run the command `flyctl deploy --remote-only --build-arg UMAMI_WEBSITE_ID=<your-umami-tracking-id> --build-arg UMAMI_WEBSITE_URL=<your-umami-url>`
+- Navigate to the nginx-reverse-proxy directory and run the command 
+  ```
+  flyctl deploy --remote-only --build-arg UMAMI_WEBSITE_ID=<your-umami-tracking-id> --build-arg UMAMI_WEBSITE_URL=<your-umami-url>
+  ```
 - Navigate to the npm-expansions directory and run the command `fly deploy`
 
 <br>
