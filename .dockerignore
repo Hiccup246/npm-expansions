@@ -7,8 +7,14 @@ target
 **/minified_pages
 minified_pages
 
+**/injected_pges
+injected_pges
+
 **/minified_static
 minified_static
+
+**/injected_static
+injected_static
 
 # Remove Cargo.lock from gitignore if creating an executable, leave it for libraries
 # More information here https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html
