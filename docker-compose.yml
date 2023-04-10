@@ -10,6 +10,8 @@ services:
       context: ./nginx-reverse-proxy
       args:
         NGINX_CONFIG: npm-expansions.dev.conf
+        UMAMI_WEBSITE_ID: 123
+        UMAMI_WEBSITE_URL: abc
     volumes:
       - type: bind
         source: ./nginx-reverse-proxy/pages

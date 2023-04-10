@@ -16,7 +16,10 @@ RUN cargo build --release
 ADD ./pages ./pages
 ADD ./static ./static
 
-RUN cargo run
+ARG UMAMI_WEBSITE_ID
+ARG UMAMI_WEBSITE_URL
+
+RUN cargo run -- UMAMI_WEBSITE_ID=$UMAMI_WEBSITE_ID UMAMI_WEBSITE_URL=$UMAMI_WEBSITE_URL
 
 FROM nginx:1.23.3 as reverse-proxy
 
