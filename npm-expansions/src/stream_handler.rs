@@ -58,33 +58,33 @@ fn respond_to_request_error(
     stream: &mut (impl Read + Write + TcpAddr),
     error: &NpmExpansionsError,
 ) -> Result<(), NpmExpansionsError> {
-    let error_request = HttpRequest::new(
-        "",
-        "",
-        HashMap::from([(
-            "Accept".to_string(),
-            "text/html,application/json".to_string(),
-        )]),
-        HashMap::new(),
-    );
+    let http_request = HttpRequest::build(stream).unwrap_or_else(|_error| {
+        HttpRequest::new(
+            "",
+            "",
+            HashMap::from([(
+                "Accept".to_string(),
+                "text/html,application/json".to_string(),
+            )]),
+            HashMap::new(),
+        )
+    });
 
     let error_response = match error.kind() {
-        NpmErrorKind::InvalidRequestHeaders => DefaultController::client_error(&error_request),
-        NpmErrorKind::TooManyRequestHeaders => DefaultController::client_error(&error_request),
+        NpmErrorKind::InvalidRequestHeaders => DefaultController::client_error(&http_request),
+        NpmErrorKind::TooManyRequestHeaders => DefaultController::client_error(&http_request),
         NpmErrorKind::InternalServerError => {
-            DefaultController::internal_server_error(&error_request)
+            DefaultController::internal_server_error(&http_request)
         }
-        NpmErrorKind::InvalidHttpRequest => {
-            DefaultController::internal_server_error(&error_request)
-        }
+        NpmErrorKind::InvalidHttpRequest => DefaultController::internal_server_error(&http_request),
         NpmErrorKind::SupportedMimeTypeError => {
-            DefaultController::internal_server_error(&error_request)
+            DefaultController::internal_server_error(&http_request)
         }
-        NpmErrorKind::InvalidRequestMimeType => DefaultController::client_error(&error_request),
-        NpmErrorKind::RouteNotFound => DefaultController::not_found(&error_request),
+        NpmErrorKind::InvalidRequestMimeType => DefaultController::client_error(&http_request),
+        NpmErrorKind::RouteNotFound => DefaultController::not_found(&http_request),
     }?;
 
-    log_request(&error_request, &error_response);
+    log_request(&http_request, &error_response);
 
     stream
         .write_all(error_response.into_bytes_vec().as_slice())
