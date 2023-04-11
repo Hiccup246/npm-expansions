@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 cargo-husky = "1.5.0"
+chrono = "0.4.24"
 levenshtein = "1.0.5"
 rand = "0.8.4"
 strsim = "0.10.0"
