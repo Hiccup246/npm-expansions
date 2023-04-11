@@ -1,6 +1,11 @@
+use std::net::Ipv4Addr;
+use std::net::SocketAddr;
+use std::net::SocketAddrV4;
 use std::{
     cmp::min,
+    io,
     io::{Error, Read, Write},
+    net::TcpStream,
 };
 
 /// A mock of a TCP stream for testing purposes
@@ -28,5 +33,26 @@ impl Write for MockTcpStream {
 
     fn flush(&mut self) -> Result<(), Error> {
         Ok(())
+    }
+}
+
+/// Trait exposing TcpStream ip address functionality
+pub trait TcpAddr {
+    /// Returns the socket address of the remote peer of this TCP connection.
+    fn peer_addr(&self) -> io::Result<SocketAddr>;
+}
+
+impl TcpAddr for MockTcpStream {
+    fn peer_addr(&self) -> io::Result<SocketAddr> {
+        Ok(SocketAddr::V4(SocketAddrV4::new(
+            Ipv4Addr::new(127, 0, 0, 1),
+            8080,
+        )))
+    }
+}
+
+impl TcpAddr for TcpStream {
+    fn peer_addr(&self) -> io::Result<SocketAddr> {
+        self.peer_addr()
     }
 }
