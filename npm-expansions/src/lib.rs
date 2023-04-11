@@ -38,3 +38,6 @@ pub mod router;
 
 /// A module for taking a TCP stream and correctly handling its HTTP request
 pub mod stream_handler;
+
+/// A module for handling the spawning of threads
+pub mod thread_pool;
