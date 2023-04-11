@@ -92,7 +92,6 @@ As you may have noticed this project is heavily inspired by the official [NPM](h
 
 # 📋 Future Features List
 - Handle incoming requests in an optimized way e.g. threads or asynchronous events
-- Add server logs for each request and failure
 - Dynamically update the `expansions.txt` file and the global `ExpansionsModel`.
   - This could be done by a separate thread which routinely checks the official npm expansions repo and pull requests
   - Note that the last change to the expansions text file in the official repo occurred two years ago.
