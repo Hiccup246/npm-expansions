@@ -10,7 +10,7 @@ pub struct NpmController {}
 
 /// The function signature of NpmController functions
 pub type ControllerFunction =
-    fn(&HttpRequest, &dyn ExpansionsAccess) -> Result<Vec<u8>, NpmExpansionsError>;
+    fn(&HttpRequest, &dyn ExpansionsAccess) -> Result<HttpResponse, NpmExpansionsError>;
 
 impl NpmController {
     /// Returns a vector byte representation of a json object containing a random npm expansion.
@@ -34,7 +34,7 @@ impl NpmController {
     /// use std::collections::HashMap;
     ///
     /// let mock_expansions_model = &MockExpansionsModel::default();
-    /// let request = HttpRequest::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::random(&request, mock_expansions_model);
     ///
     /// assert!(response.is_ok());
@@ -55,14 +55,14 @@ impl NpmController {
     /// use std::collections::HashMap;
     ///
     /// let mock_expansions_model = &MockExpansionsModel::default();
-    /// let request = HttpRequest::new("GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// NpmController::random(&request, mock_expansions_model);
     /// ```
     pub fn random(
         request: &HttpRequest,
         expansions_model: &dyn ExpansionsAccess,
-    ) -> Result<Vec<u8>, NpmExpansionsError> {
+    ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
@@ -72,7 +72,8 @@ impl NpmController {
 
         let response = match best.as_str() {
             "application/json" => HttpResponse::new(
-                "200 OK",
+                "200",
+                "OK",
                 "Content-Type: application/json",
                 &format!(
                     "{{\"npm-expansion\": \"{}\"}}",
@@ -80,8 +81,7 @@ impl NpmController {
                 ),
             ),
             _ => not_acceptable_response(),
-        }
-        .into_bytes_vec();
+        };
 
         Ok(response)
     }
@@ -107,7 +107,7 @@ impl NpmController {
     /// use std::collections::HashMap;
     //
     /// let mock_expansions_model = &MockExpansionsModel::default();
-    /// let request = HttpRequest::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::all(&request, mock_expansions_model);
     ///
     /// assert!(response.is_ok());
@@ -128,14 +128,14 @@ impl NpmController {
     /// use std::collections::HashMap;
     ///
     /// let mock_expansions_model = &MockExpansionsModel::default();
-    /// let request = HttpRequest::new("GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// NpmController::all(&request, mock_expansions_model);
     /// ```
     pub fn all(
         request: &HttpRequest,
         expansions_model: &dyn ExpansionsAccess,
-    ) -> Result<Vec<u8>, NpmExpansionsError> {
+    ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
@@ -151,13 +151,13 @@ impl NpmController {
 
         let response = match best.as_str() {
             "application/json" => HttpResponse::new(
-                "200 OK",
+                "200",
+                "OK",
                 "Content-Type: application/json",
                 &format!("[{}]", string_expansions.join(",")),
             ),
             _ => not_acceptable_response(),
-        }
-        .into_bytes_vec();
+        };
 
         Ok(response)
     }
@@ -184,7 +184,7 @@ impl NpmController {
     /// use std::collections::HashMap;
     ///
     /// let mock_expansions_model = &MockExpansionsModel::default();
-    /// let request = HttpRequest::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
+    /// let request = HttpRequest::new("127.0.0.1", "GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
     /// let response = NpmController::search(&request, mock_expansions_model);
     ///
     /// assert!(response.is_ok());
@@ -201,14 +201,14 @@ impl NpmController {
     /// use std::collections::HashMap;
     /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
     /// use npm_expansions::expansions_model::ExpansionsAccess;
-    /// let request = HttpRequest::new("GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     /// let mock_expansions_model = &MockExpansionsModel::default();
     /// NpmController::search(&request, mock_expansions_model);
     /// ```
     pub fn search(
         request: &HttpRequest,
         expansions_model: &dyn ExpansionsAccess,
-    ) -> Result<Vec<u8>, NpmExpansionsError> {
+    ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
@@ -226,20 +226,25 @@ impl NpmController {
 
         let response = match best.as_str() {
             "application/json" => HttpResponse::new(
-                "200 OK",
+                "200",
+                "OK",
                 "Content-Type: application/json",
                 &format!("[{}]", top_ten.join(",")),
             ),
             _ => not_acceptable_response(),
-        }
-        .into_bytes_vec();
+        };
 
         Ok(response)
     }
 }
 
 fn not_acceptable_response() -> HttpResponse {
-    HttpResponse::new("406 NOT ACCEPTABLE", "", "Please accept application/json")
+    HttpResponse::new(
+        "406",
+        "NOT ACCEPTABLE",
+        "",
+        "Please accept application/json",
+    )
 }
 
 #[cfg(test)]
@@ -255,6 +260,7 @@ mod tests {
 
     fn valid_request(controller_function: ControllerFunction) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
@@ -269,6 +275,7 @@ mod tests {
     #[test_case(NpmController::search; "search")]
     fn valid_request_returns_content(controller_function: ControllerFunction) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
@@ -278,6 +285,7 @@ mod tests {
         assert!(
             controller_function(&request, expansions_generator)
                 .unwrap()
+                .into_bytes_vec()
                 .len()
                 > 0
         )
@@ -288,6 +296,7 @@ mod tests {
     #[test_case(NpmController::search; "search")]
     fn invalid_request_headers(controller_function: ControllerFunction) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/".to_string())]),
             HashMap::new(),
@@ -301,6 +310,7 @@ mod tests {
 
     fn lower_case_accept_header(controller_function: ControllerFunction) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
@@ -313,7 +323,12 @@ mod tests {
     #[test_case(NpmController::random; "random")]
 
     fn no_accept_header(controller_function: ControllerFunction) {
-        let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new(
+            "127.0.0.1",
+            "GET / HTTP/1.1",
+            HashMap::new(),
+            HashMap::new(),
+        );
 
         let expansions_generator = &MockExpansionsModel::default();
         assert!(controller_function(&request, expansions_generator).is_ok())

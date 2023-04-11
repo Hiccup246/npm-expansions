@@ -1,6 +1,8 @@
 use crate::default_controller::DefaultController;
 use crate::expansions_model::ExpansionsAccess;
 use crate::http_request::HttpRequest;
+use crate::http_response::HttpResponse;
+use crate::mock_tcp_stream::TcpAddr;
 use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 use crate::router;
 use std::{
@@ -20,7 +22,7 @@ use std::{
 /// * `expansions_model` - A ExpansionsModel which produces NPM expansions and acts as persistent database
 ///
 pub fn handle_connection(
-    stream: &mut (impl Read + Write),
+    stream: &mut (impl Read + Write + TcpAddr),
     router: &router::Router,
     expansions_model: &dyn ExpansionsAccess,
 ) -> Result<(), NpmExpansionsError> {
@@ -34,15 +36,17 @@ pub fn handle_connection(
 }
 
 fn respond_to_request(
-    stream: &mut (impl Read + Write),
+    stream: &mut (impl Read + Write + TcpAddr),
     router: &router::Router,
     expansions_model: &dyn ExpansionsAccess,
 ) -> Result<(), NpmExpansionsError> {
     let request = HttpRequest::build(stream)?;
-    let response = router.route_request(request, expansions_model)?;
+    let response = router.route_request(&request, expansions_model)?;
+
+    log_request(&request, &response);
 
     stream
-        .write_all(response.as_slice())
+        .write_all(response.into_bytes_vec().as_slice())
         .or(Err(NpmExpansionsError::from(
             NpmErrorKind::InternalServerError,
         )))?;
@@ -51,10 +55,11 @@ fn respond_to_request(
 }
 
 fn respond_to_request_error(
-    stream: &mut (impl Read + Write),
+    stream: &mut (impl Read + Write + TcpAddr),
     error: &NpmExpansionsError,
 ) -> Result<(), NpmExpansionsError> {
     let error_request = HttpRequest::new(
+        "",
         "",
         HashMap::from([(
             "Accept".to_string(),
@@ -79,13 +84,37 @@ fn respond_to_request_error(
         NpmErrorKind::RouteNotFound => DefaultController::not_found(&error_request),
     }?;
 
+    log_request(&error_request, &error_response);
+
     stream
-        .write_all(error_response.as_slice())
+        .write_all(error_response.into_bytes_vec().as_slice())
         .or(Err(NpmExpansionsError::from(
             NpmErrorKind::InternalServerError,
         )))?;
 
     Ok(())
+}
+
+fn log_request(request: &HttpRequest, response: &HttpResponse) {
+    let referer = request
+        .headers()
+        .get("Referer")
+        .or_else(|| request.headers().get("referer"));
+    let user_agent = request
+        .headers()
+        .get("User-Agent")
+        .or_else(|| request.headers().get("user-agent"));
+
+    println!(
+        "{} - - [{}] \"{}\" {} {} \"{}\" \"{}\"",
+        request.host(),
+        chrono::Utc::now().format("%d/%b/%Y:%H:%M:%S %z"),
+        request.status_line(),
+        response.status_code(),
+        response.contents().bytes().len(),
+        referer.unwrap_or(&"-".to_string()),
+        user_agent.unwrap_or(&"-".to_string()),
+    );
 }
 
 #[cfg(test)]

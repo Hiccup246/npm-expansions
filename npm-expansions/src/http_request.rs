@@ -1,3 +1,4 @@
+use crate::mock_tcp_stream::TcpAddr;
 use crate::npm_expansion_error::{NpmErrorKind, NpmExpansionsError};
 use std::{
     collections::HashMap,
@@ -6,6 +7,7 @@ use std::{
 
 /// A struct representing the basic parts of a HTTP request i.e. status line, headers and query params
 pub struct HttpRequest {
+    host: String,
     status_line: String,
     headers: HashMap<String, String>,
     query_params: HashMap<String, String>,
@@ -63,7 +65,13 @@ impl HttpRequest {
     ///
     /// HttpRequest::build(&mut stream);
     /// ```
-    pub fn build(stream: &mut (impl Read + Write)) -> Result<HttpRequest, NpmExpansionsError> {
+    pub fn build(
+        stream: &mut (impl Read + Write + TcpAddr),
+    ) -> Result<HttpRequest, NpmExpansionsError> {
+        let host = stream
+            .peer_addr()
+            .map(|socket_addr| socket_addr.ip().to_string())
+            .unwrap_or("-".to_string());
         let buf_reader = BufReader::new(stream);
         let mut buffer = buf_reader.take(HEADER_SIZE_LIMIT).lines();
 
@@ -79,6 +87,7 @@ impl HttpRequest {
         let headers = Self::build_headers(&mut buffer)?;
 
         Ok(HttpRequest {
+            host,
             status_line,
             headers,
             query_params,
@@ -161,11 +170,13 @@ impl HttpRequest {
 
     /// Creates a new request from status line string, headers HashMap and query params hashmap
     pub fn new(
+        host: &str,
         status_line: &str,
         headers: HashMap<String, String>,
         query_params: HashMap<String, String>,
     ) -> HttpRequest {
         HttpRequest {
+            host: host.to_string(),
             status_line: status_line.to_string(),
             headers,
             query_params,
@@ -175,6 +186,11 @@ impl HttpRequest {
     /// Returns the status line of a request object
     pub fn status_line(&self) -> &str {
         self.status_line.as_str()
+    }
+
+    /// Returns the SocketAddr of the http request object
+    pub fn host(&self) -> &str {
+        self.host.as_str()
     }
 
     /// Returns the path from the status line of a request object

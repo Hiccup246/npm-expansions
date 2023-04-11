@@ -22,7 +22,7 @@ impl DefaultController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let request = HttpRequest::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::not_found(&request);
     ///
     /// assert!(response.is_ok());
@@ -40,11 +40,11 @@ impl DefaultController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let request = HttpRequest::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// DefaultController::not_found(&request);
     /// ```
-    pub fn not_found(request: &HttpRequest) -> Result<Vec<u8>, NpmExpansionsError> {
+    pub fn not_found(request: &HttpRequest) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
@@ -55,10 +55,10 @@ impl DefaultController {
         let response = if best.is_empty() {
             not_acceptable_response()
         } else {
-            HttpResponse::new("404 NOT FOUND", "", "NOT FOUND")
+            HttpResponse::new("404", "NOT FOUND", "", "NOT FOUND")
         };
 
-        Ok(response.into_bytes_vec())
+        Ok(response)
     }
 
     /// Returns a vector byte representation of a 500 response. The response body is a plain string of "INTERNAL SERVER ERROR".
@@ -76,7 +76,7 @@ impl DefaultController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let request = HttpRequest::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::internal_server_error(&request);
     ///
     /// assert!(response.is_ok());
@@ -94,11 +94,13 @@ impl DefaultController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let request = HttpRequest::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// DefaultController::internal_server_error(&request);
     /// ```
-    pub fn internal_server_error(request: &HttpRequest) -> Result<Vec<u8>, NpmExpansionsError> {
+    pub fn internal_server_error(
+        request: &HttpRequest,
+    ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
@@ -109,10 +111,10 @@ impl DefaultController {
         let response = if best.is_empty() {
             not_acceptable_response()
         } else {
-            HttpResponse::new("500 INTERNAL SERVER ERROR", "", "INTERNAL SERVER ERROR")
+            HttpResponse::new("500", "INTERNAL SERVER ERROR", "", "INTERNAL SERVER ERROR")
         };
 
-        Ok(response.into_bytes_vec())
+        Ok(response)
     }
 
     /// Returns a vector byte representation of a 400 response. The response body is a plain string of "BAD REQUEST".
@@ -130,7 +132,7 @@ impl DefaultController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let request = HttpRequest::new("GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET /non-existant/route HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = DefaultController::client_error(&request);
     ///
     /// assert!(response.is_ok());
@@ -148,11 +150,11 @@ impl DefaultController {
     /// };
     /// use std::collections::HashMap;
     ///
-    /// let request = HttpRequest::new("GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET / HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// DefaultController::client_error(&request);
     /// ```
-    pub fn client_error(request: &HttpRequest) -> Result<Vec<u8>, NpmExpansionsError> {
+    pub fn client_error(request: &HttpRequest) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
         let best = matcher::best_match(
@@ -163,15 +165,20 @@ impl DefaultController {
         let response = if best.is_empty() {
             not_acceptable_response()
         } else {
-            HttpResponse::new("400 BAD REQUEST", "", "BAD REQUEST")
+            HttpResponse::new("400", "BAD REQUEST", "", "BAD REQUEST")
         };
 
-        Ok(response.into_bytes_vec())
+        Ok(response)
     }
 }
 
 fn not_acceptable_response() -> HttpResponse {
-    HttpResponse::new("406 NOT ACCEPTABLE", "", "Please accept application/json")
+    HttpResponse::new(
+        "406",
+        "NOT ACCEPTABLE",
+        "",
+        "Please accept application/json",
+    )
 }
 
 #[cfg(test)]
@@ -183,8 +190,11 @@ mod tests {
     #[test_case(DefaultController::not_found; "not_found")]
     #[test_case(DefaultController::internal_server_error; "internal_server_error")]
     #[test_case(DefaultController::client_error; "client_error")]
-    fn valid_request(controller_function: fn(&HttpRequest) -> Result<Vec<u8>, NpmExpansionsError>) {
+    fn valid_request(
+        controller_function: fn(&HttpRequest) -> Result<HttpResponse, NpmExpansionsError>,
+    ) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
@@ -198,24 +208,32 @@ mod tests {
     #[test_case(DefaultController::client_error; "client_error")]
 
     fn valid_request_returns_content(
-        controller_function: fn(&HttpRequest) -> Result<Vec<u8>, NpmExpansionsError>,
+        controller_function: fn(&HttpRequest) -> Result<HttpResponse, NpmExpansionsError>,
     ) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
         );
 
-        assert!(controller_function(&request).unwrap().len() > 0)
+        assert!(
+            controller_function(&request)
+                .unwrap()
+                .into_bytes_vec()
+                .len()
+                > 0
+        )
     }
 
     #[test_case(DefaultController::not_found; "not_found")]
     #[test_case(DefaultController::internal_server_error; "internal_server_error")]
     #[test_case(DefaultController::client_error; "client_error")]
     fn invalid_request_headers(
-        controller_function: fn(&HttpRequest) -> Result<Vec<u8>, NpmExpansionsError>,
+        controller_function: fn(&HttpRequest) -> Result<HttpResponse, NpmExpansionsError>,
     ) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("Accept".to_string(), "text/".to_string())]),
             HashMap::new(),
@@ -229,9 +247,10 @@ mod tests {
     #[test_case(DefaultController::client_error; "client_error")]
 
     fn lower_case_accept_header(
-        controller_function: fn(&HttpRequest) -> Result<Vec<u8>, NpmExpansionsError>,
+        controller_function: fn(&HttpRequest) -> Result<HttpResponse, NpmExpansionsError>,
     ) {
         let request = HttpRequest::new(
+            "127.0.0.1",
             "GET / HTTP/1.1",
             HashMap::from([("accept".to_string(), "text/html".to_string())]),
             HashMap::new(),
@@ -245,9 +264,14 @@ mod tests {
     #[test_case(DefaultController::client_error; "client_error")]
 
     fn no_accept_header(
-        controller_function: fn(&HttpRequest) -> Result<Vec<u8>, NpmExpansionsError>,
+        controller_function: fn(&HttpRequest) -> Result<HttpResponse, NpmExpansionsError>,
     ) {
-        let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new(
+            "127.0.0.1",
+            "GET / HTTP/1.1",
+            HashMap::new(),
+            HashMap::new(),
+        );
 
         assert!(controller_function(&request).is_ok())
     }

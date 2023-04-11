@@ -1,6 +1,7 @@
 use crate::default_controller::DefaultController;
 use crate::expansions_model::ExpansionsAccess;
 use crate::http_request::HttpRequest;
+use crate::http_response::HttpResponse;
 use crate::npm_controller::ControllerFunction;
 use crate::npm_expansion_error::NpmExpansionsError;
 use std::collections::HashMap;
@@ -48,32 +49,33 @@ impl Router {
     /// #    npm_expansion_error::NpmExpansionsError,
     /// #    expansions_model::ExpansionsAccess,
     /// #    npm_controller::ControllerFunction,
+    /// #    http_response::HttpResponse,
     /// # };
     /// # use std::collections::HashMap;
     ///
-    /// # let actual_route: ControllerFunction = |_,_| Ok("actual_route".as_bytes().to_vec());
+    /// # let actual_route: ControllerFunction = |_,_| Ok(HttpResponse::new("200", "OK", "", "actual_route"));
     /// # let route_config: Routes =
     /// #     HashMap::from([("GET / HTTP/1.1", actual_route)]);
     /// let router = Router::new(route_config);
-    /// let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(),  HashMap::new());
+    /// let request = HttpRequest::new("127.0.0.1", "GET / HTTP/1.1", HashMap::new(),  HashMap::new());
     /// let mock_expansions_model = &MockExpansionsModel::default();
-    /// let response = router.route_request(request, mock_expansions_model);
+    /// let response = router.route_request(&request, mock_expansions_model);
     ///
-    /// assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec());
+    /// assert_eq!(response.unwrap().contents(), "actual_route");
     /// ```
     pub fn route_request(
         &self,
-        request: HttpRequest,
+        request: &HttpRequest,
         expansions_model: &dyn ExpansionsAccess,
-    ) -> Result<Vec<u8>, NpmExpansionsError> {
+    ) -> Result<HttpResponse, NpmExpansionsError> {
         let status_line = request.status_line_path();
         let controller_function = self.routes_config.get(status_line.as_str());
 
         if let Some(controller_function) = controller_function {
-            return controller_function(&request, expansions_model);
+            return controller_function(request, expansions_model);
         }
 
-        DefaultController::not_found(&request)
+        DefaultController::not_found(request)
     }
 }
 
@@ -85,26 +87,38 @@ mod tests {
 
     #[test]
     fn route_response() {
-        let controller_function: ControllerFunction = |_, _| Ok("actual_route".as_bytes().to_vec());
+        let controller_function: ControllerFunction =
+            |_, _| Ok(HttpResponse::new("200", "OK", "", "actual_route"));
         let route_config: Routes = HashMap::from([("GET / HTTP/1.1", controller_function)]);
 
         let router = Router::new(route_config);
-        let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new(
+            "127.0.0.1",
+            "GET / HTTP/1.1",
+            HashMap::new(),
+            HashMap::new(),
+        );
         let mock_expansions_model = &MockExpansionsModel::default();
-        let response = router.route_request(request, mock_expansions_model);
+        let response = router.route_request(&request, mock_expansions_model);
 
-        assert_eq!(response.unwrap(), "actual_route".as_bytes().to_vec())
+        assert_eq!(response.unwrap().contents(), "actual_route")
     }
 
     #[test]
     fn route_not_found() {
-        let not_found: ControllerFunction = |_, _| Ok("not_found".as_bytes().to_vec());
+        let not_found: ControllerFunction =
+            |_, _| Ok(HttpResponse::new("404", "NOT FOUND", "", "not found"));
         let route_config: Routes = HashMap::from([("404", not_found)]);
 
         let router = Router::new(route_config);
-        let request = HttpRequest::new("GET /fake_route HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new(
+            "127.0.0.1",
+            "GET /fake_route HTTP/1.1",
+            HashMap::new(),
+            HashMap::new(),
+        );
         let mock_expansions_model = &MockExpansionsModel::default();
-        let response = router.route_request(request, mock_expansions_model);
+        let response = router.route_request(&request, mock_expansions_model);
 
         assert!(response.is_ok())
     }
@@ -112,9 +126,14 @@ mod tests {
     #[test]
     fn no_route() {
         let router = Router::new(HashMap::new());
-        let request = HttpRequest::new("GET / HTTP/1.1", HashMap::new(), HashMap::new());
+        let request = HttpRequest::new(
+            "127.0.0.1",
+            "GET / HTTP/1.1",
+            HashMap::new(),
+            HashMap::new(),
+        );
         let mock_expansions_model = &MockExpansionsModel::default();
-        let response = router.route_request(request, mock_expansions_model);
+        let response = router.route_request(&request, mock_expansions_model);
 
         assert!(response.is_ok())
     }
