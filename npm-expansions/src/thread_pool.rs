@@ -3,6 +3,7 @@ use std::{
     thread,
 };
 
+/// A ThreadPool represented as workers which instantiate new threads to execute clojured provided by the sender as Jobs
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job>>,
@@ -37,6 +38,7 @@ impl ThreadPool {
         }
     }
 
+    /// Takes a clojure and executes it using workers from the ThreadPool
     pub fn execute<F>(&self, f: F)
     where
         F: FnOnce() + Send + 'static,
