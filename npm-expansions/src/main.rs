@@ -1,24 +1,20 @@
 use npm_expansions::{
-    expansions_model::{ExpansionsAccess, ExpansionsModel},
+    expansions_model::ExpansionsModel,
     npm_controller::{ControllerFunction, NpmController},
-    router::{Router, Routes},
+    router::Router,
     stream_handler,
+    thread_pool::ThreadPool,
 };
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::{env, net::TcpListener};
 
-fn main() {
-    let development_env = env::var("DEV").is_ok();
-    let addr = if development_env {
-        "0.0.0.0:8000"
-    } else {
-        "[::]:8080"
-    };
+static EXPANSIONS_MODEL: Lazy<Arc<ExpansionsModel>> =
+    Lazy::new(|| Arc::new(ExpansionsModel::build("rsc/expansions.txt")));
 
-    let expansions_generator =
-        &ExpansionsModel::build("rsc/expansions.txt") as &dyn ExpansionsAccess;
-
-    let config: Routes = HashMap::from([
+static ROUTER: Lazy<Arc<Router>> = Lazy::new(|| {
+    Arc::new(Router::new(HashMap::from([
         (
             "GET /api/random HTTP/1.1",
             NpmController::random as ControllerFunction,
@@ -31,18 +27,31 @@ fn main() {
             "GET /api/search HTTP/1.1",
             NpmController::search as ControllerFunction,
         ),
-    ]);
+    ])))
+});
 
-    let router = Router::new(config);
+fn main() {
+    let development_env = env::var("DEV").is_ok();
+    let addr = if development_env {
+        "0.0.0.0:8000"
+    } else {
+        "[::]:8080"
+    };
+
     let listener = TcpListener::bind(addr).unwrap();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
 
-        if let Err(err) =
-            stream_handler::handle_connection(&mut stream, &router, expansions_generator)
-        {
-            println!("Fatal server error. Error Message: {}", err)
-        }
+        let pool = ThreadPool::new(2);
+
+        pool.execute(move || {
+            stream_handler::handle_connection(
+                &mut stream,
+                ROUTER.clone(),
+                EXPANSIONS_MODEL.clone(),
+            )
+            .unwrap_or_else(|error| println!("Fatal server error. Error Message: {}", error));
+        });
     }
 }

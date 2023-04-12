@@ -3,6 +3,7 @@ use crate::http_request::HttpRequest;
 use crate::http_response::HttpResponse;
 use crate::mime_type::matcher;
 use crate::npm_expansion_error::NpmExpansionsError;
+use std::sync::Arc;
 
 /// A collection of functions which accept a request and expansions model and use
 /// them to produce JSON responses
@@ -10,7 +11,7 @@ pub struct NpmController {}
 
 /// The function signature of NpmController functions
 pub type ControllerFunction =
-    fn(&HttpRequest, &dyn ExpansionsAccess) -> Result<HttpResponse, NpmExpansionsError>;
+    fn(&HttpRequest, Arc<dyn ExpansionsAccess>) -> Result<HttpResponse, NpmExpansionsError>;
 
 impl NpmController {
     /// Returns a vector byte representation of a json object containing a random npm expansion.
@@ -31,9 +32,9 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::collections::HashMap;
+    /// use std::{collections::HashMap, sync::Arc};
     ///
-    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
     /// let request = HttpRequest::new("127.0.0.1", "GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::random(&request, mock_expansions_model);
     ///
@@ -52,16 +53,16 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::collections::HashMap;
+    /// use std::{collections::HashMap, sync::Arc};
     ///
-    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
     /// let request = HttpRequest::new("127.0.0.1", "GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// NpmController::random(&request, mock_expansions_model);
     /// ```
     pub fn random(
         request: &HttpRequest,
-        expansions_model: &dyn ExpansionsAccess,
+        expansions_model: Arc<dyn ExpansionsAccess>,
     ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -104,9 +105,9 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::collections::HashMap;
+    /// use std::{collections::HashMap, sync::Arc};
     //
-    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
     /// let request = HttpRequest::new("127.0.0.1", "GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::all(&request, mock_expansions_model);
     ///
@@ -125,16 +126,16 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::collections::HashMap;
+    /// use std::{collections::HashMap, sync::Arc};
     ///
-    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
     /// let request = HttpRequest::new("127.0.0.1", "GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// NpmController::all(&request, mock_expansions_model);
     /// ```
     pub fn all(
         request: &HttpRequest,
-        expansions_model: &dyn ExpansionsAccess,
+        expansions_model: Arc<dyn ExpansionsAccess>,
     ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -181,9 +182,9 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::collections::HashMap;
+    /// use std::{collections::HashMap, sync::Arc};
     ///
-    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
     /// let request = HttpRequest::new("127.0.0.1", "GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
     /// let response = NpmController::search(&request, mock_expansions_model);
     ///
@@ -196,18 +197,22 @@ impl NpmController {
     ///
     /// ```rust,should_error
     /// // fails if the given request has invalid headers
-    /// use npm_expansions::npm_controller::NpmController;
-    /// use npm_expansions::http_request::HttpRequest;
-    /// use std::collections::HashMap;
-    /// use npm_expansions::mock_expansions_model::MockExpansionsModel;
-    /// use npm_expansions::expansions_model::ExpansionsAccess;
+    /// use npm_expansions::{
+    ///     npm_controller::NpmController,
+    ///     http_request::HttpRequest,
+    ///     mock_expansions_model::MockExpansionsModel,
+    ///     expansions_model::ExpansionsAccess,
+    /// };
+    /// use std::{collections::HashMap, sync::Arc};
+    ///
     /// let request = HttpRequest::new("127.0.0.1", "GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// let mock_expansions_model = &MockExpansionsModel::default();
+    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    ///
     /// NpmController::search(&request, mock_expansions_model);
     /// ```
     pub fn search(
         request: &HttpRequest,
-        expansions_model: &dyn ExpansionsAccess,
+        expansions_model: Arc<dyn ExpansionsAccess>,
     ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -257,7 +262,6 @@ mod tests {
     #[test_case(NpmController::random; "random")]
     #[test_case(NpmController::all; "all")]
     #[test_case(NpmController::search; "search")]
-
     fn valid_request(controller_function: ControllerFunction) {
         let request = HttpRequest::new(
             "127.0.0.1",
@@ -266,8 +270,8 @@ mod tests {
             HashMap::new(),
         );
 
-        let expansions_generator = &MockExpansionsModel::default();
-        assert!(controller_function(&request, expansions_generator).is_ok())
+        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        assert!(controller_function(&request, mock_expansions_model).is_ok())
     }
 
     #[test_case(NpmController::random; "random")]
@@ -281,9 +285,9 @@ mod tests {
             HashMap::new(),
         );
 
-        let expansions_generator = &MockExpansionsModel::default();
+        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
         assert!(
-            controller_function(&request, expansions_generator)
+            controller_function(&request, mock_expansions_model)
                 .unwrap()
                 .into_bytes_vec()
                 .len()
@@ -302,12 +306,11 @@ mod tests {
             HashMap::new(),
         );
 
-        let expansions_generator = &MockExpansionsModel::default();
-        assert!(controller_function(&request, expansions_generator).is_err())
+        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        assert!(controller_function(&request, mock_expansions_model).is_err())
     }
 
     #[test_case(NpmController::random; "random")]
-
     fn lower_case_accept_header(controller_function: ControllerFunction) {
         let request = HttpRequest::new(
             "127.0.0.1",
@@ -316,12 +319,11 @@ mod tests {
             HashMap::new(),
         );
 
-        let expansions_generator = &MockExpansionsModel::default();
-        assert!(controller_function(&request, expansions_generator).is_ok())
+        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        assert!(controller_function(&request, mock_expansions_model).is_ok())
     }
 
     #[test_case(NpmController::random; "random")]
-
     fn no_accept_header(controller_function: ControllerFunction) {
         let request = HttpRequest::new(
             "127.0.0.1",
@@ -330,7 +332,7 @@ mod tests {
             HashMap::new(),
         );
 
-        let expansions_generator = &MockExpansionsModel::default();
-        assert!(controller_function(&request, expansions_generator).is_ok())
+        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        assert!(controller_function(&request, mock_expansions_model).is_ok())
     }
 }
