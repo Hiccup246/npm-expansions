@@ -68,7 +68,7 @@ impl HttpResponse {
     ///
     /// The function panics if string formatting via format! panics
     ///
-    pub fn into_bytes_vec(self) -> Vec<u8> {
+    pub fn into_bytes_vec(&self) -> Vec<u8> {
         let status = self.status_line();
         let contents = self.contents();
         let headers = self.headers();
