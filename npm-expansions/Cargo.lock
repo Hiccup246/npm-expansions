@@ -265,6 +265,7 @@ dependencies = [
  "cargo-husky",
  "chrono",
  "levenshtein",
+ "once_cell",
  "rand",
  "strsim",
  "tempfile",
