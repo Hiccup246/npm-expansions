@@ -10,9 +10,9 @@ fn main() {
         let (key, val) = arg
             .split_once('=')
             .expect("Command line arguments must be in format KEY=val");
-        
+
         println!("Injecting env variable: {}", key);
-        
+
         env_variables.insert(key.trim().to_string(), val.to_string());
     }
 
