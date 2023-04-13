@@ -35,6 +35,8 @@ impl ThreadPool {
         for id in 0..size {
             if let Ok(worker) = Worker::new(id, Arc::clone(&receiver)) {
                 workers.push(worker);
+            } else {
+                println!("Failed to create new worker")
             }
         }
 
