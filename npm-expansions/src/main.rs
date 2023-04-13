@@ -56,7 +56,7 @@ fn main() {
 
         let pool = ThreadPool::new(thread_count);
 
-        pool.execute(move || {
+        let execution_result = pool.execute(move || {
             stream_handler::handle_connection(
                 &mut stream,
                 ROUTER.clone(),
@@ -64,5 +64,9 @@ fn main() {
             )
             .unwrap_or_else(|error| println!("Fatal server error. Error Message: {}", error));
         });
+
+        if let Err(execution_err) = execution_result {
+            println!("Failed to execute clojure: {:?}", execution_err)
+        }
     }
 }

@@ -1,7 +1,7 @@
 use std::io::Error;
 use std::{
     sync::{
-        mpsc::{self},
+        mpsc::{self, SendError},
         Arc, Mutex,
     },
     thread,
@@ -45,13 +45,21 @@ impl ThreadPool {
     }
 
     /// Takes a clojure and executes it using workers from the ThreadPool
-    pub fn execute<F>(&self, f: F)
+    pub fn execute<F>(&self, f: F) -> Result<(), SendError<Box<(dyn FnOnce() + Send + 'static)>>>
     where
         F: FnOnce() + Send + 'static,
     {
         let job = Box::new(f);
 
-        self.sender.as_ref().unwrap().send(job).unwrap();
+        if let Some(sender) = self.sender.as_ref() {
+            sender.send(job)?;
+
+            Ok(())
+        } else {
+            println!("Failed to send Job. Sender has been dropped.");
+
+            Ok(())
+        }
     }
 }
 
