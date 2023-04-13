@@ -4,7 +4,10 @@ use crate::http_request::HttpRequest;
 use crate::http_response::HttpResponse;
 use crate::npm_controller::ControllerFunction;
 use crate::npm_expansion_error::NpmExpansionsError;
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 /// A type representing a series of http routes and their associated controller functions
 /// # Examples
@@ -51,7 +54,7 @@ impl Router {
     /// #    npm_controller::ControllerFunction,
     /// #    http_response::HttpResponse,
     /// # };
-    /// # use std::{collections::HashMap, sync::Arc};
+    /// # use std::{collections::HashMap, sync::{Arc, RwLock}};
     ///
     ///
     /// # let actual_route: ControllerFunction = |_,_| Ok(HttpResponse::new("200", "OK", "", "actual_route"));
@@ -59,7 +62,7 @@ impl Router {
     /// #     HashMap::from([("GET / HTTP/1.1", actual_route)]);
     /// let router = Router::new(route_config);
     /// let request = HttpRequest::new("127.0.0.1", "GET / HTTP/1.1", HashMap::new(),  HashMap::new());
-    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    /// let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
     /// let response = router.route_request(&request, mock_expansions_model);
     ///
     /// assert_eq!(response.unwrap().contents(), "actual_route");
@@ -67,7 +70,7 @@ impl Router {
     pub fn route_request(
         &self,
         request: &HttpRequest,
-        expansions_model: Arc<dyn ExpansionsAccess>,
+        expansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
     ) -> Result<HttpResponse, NpmExpansionsError> {
         let status_line = request.status_line_path();
         let controller_function = self.routes_config.get(status_line.as_str());
@@ -99,7 +102,7 @@ mod tests {
             HashMap::new(),
             HashMap::new(),
         );
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         let response = router.route_request(&request, mock_expansions_model);
 
         assert_eq!(response.unwrap().contents(), "actual_route")
@@ -118,7 +121,7 @@ mod tests {
             HashMap::new(),
             HashMap::new(),
         );
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         let response = router.route_request(&request, mock_expansions_model);
 
         assert!(response.is_ok())
@@ -133,7 +136,7 @@ mod tests {
             HashMap::new(),
             HashMap::new(),
         );
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         let response = router.route_request(&request, mock_expansions_model);
 
         assert!(response.is_ok())

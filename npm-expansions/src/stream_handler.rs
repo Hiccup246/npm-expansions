@@ -8,7 +8,7 @@ use crate::router::Router;
 use std::{
     collections::HashMap,
     io::{Read, Write},
-    sync::Arc,
+    sync::{Arc, RwLock},
 };
 
 /// Handles a http stream by building a request object and routing the request to a controller. The controllers response
@@ -25,7 +25,7 @@ use std::{
 pub fn handle_connection(
     stream: &mut (impl Read + Write + TcpAddr),
     router: Arc<Router>,
-    expansions_model: Arc<dyn ExpansionsAccess>,
+    expansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
 ) -> Result<(), NpmExpansionsError> {
     let response = respond_to_request(stream, router, expansions_model);
 
@@ -39,7 +39,7 @@ pub fn handle_connection(
 fn respond_to_request(
     stream: &mut (impl Read + Write + TcpAddr),
     router: Arc<Router>,
-    expansions_model: Arc<dyn ExpansionsAccess>,
+    expansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
 ) -> Result<(), NpmExpansionsError> {
     let request = HttpRequest::build(stream)?;
     let response = router.route_request(&request, expansions_model)?;
@@ -140,7 +140,7 @@ mod tests {
                 write_data: Vec::new(),
             };
 
-            let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+            let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
 
             let router = Arc::new(Router::new(HashMap::from([(
                 "GET / HTTP/1.1",
@@ -164,7 +164,7 @@ mod tests {
                 write_data: Vec::new(),
             };
 
-            let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+            let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
 
             let router = Arc::new(Router::new(HashMap::from([(
                 "GET / HTTP/1.1",
@@ -193,7 +193,7 @@ mod tests {
                 NpmController::random as ControllerFunction,
             )])));
 
-            let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+            let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
 
             let response = respond_to_request(&mut stream, router, mock_expansions_model);
 
@@ -221,7 +221,7 @@ mod tests {
                 NpmController::random as ControllerFunction,
             )])));
 
-            let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+            let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
 
             let response = handle_connection(&mut stream, router, mock_expansions_model);
 
@@ -240,7 +240,7 @@ mod tests {
                 write_data: Vec::new(),
             };
 
-            let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+            let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
 
             let router = Arc::new(Router::new(HashMap::from([(
                 "GET / HTTP/1.1",

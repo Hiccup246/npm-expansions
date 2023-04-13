@@ -3,7 +3,7 @@ use crate::http_request::HttpRequest;
 use crate::http_response::HttpResponse;
 use crate::mime_type::matcher;
 use crate::npm_expansion_error::NpmExpansionsError;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 /// A collection of functions which accept a request and expansions model and use
 /// them to produce JSON responses
@@ -11,7 +11,7 @@ pub struct NpmController {}
 
 /// The function signature of NpmController functions
 pub type ControllerFunction =
-    fn(&HttpRequest, Arc<dyn ExpansionsAccess>) -> Result<HttpResponse, NpmExpansionsError>;
+    fn(&HttpRequest, Arc<RwLock<dyn ExpansionsAccess>>) -> Result<HttpResponse, NpmExpansionsError>;
 
 impl NpmController {
     /// Returns a vector byte representation of a json object containing a random npm expansion.
@@ -32,9 +32,9 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::{collections::HashMap, sync::Arc};
+    /// use std::{collections::HashMap, sync::{Arc, RwLock}};
     ///
-    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    /// let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
     /// let request = HttpRequest::new("127.0.0.1", "GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::random(&request, mock_expansions_model);
     ///
@@ -53,16 +53,16 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::{collections::HashMap, sync::Arc};
+    /// use std::{collections::HashMap, sync::{Arc, RwLock}};
     ///
-    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    /// let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
     /// let request = HttpRequest::new("127.0.0.1", "GET /random HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// NpmController::random(&request, mock_expansions_model);
     /// ```
     pub fn random(
         request: &HttpRequest,
-        expansions_model: Arc<dyn ExpansionsAccess>,
+        expansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
     ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -78,7 +78,7 @@ impl NpmController {
                 "Content-Type: application/json",
                 &format!(
                     "{{\"npm-expansion\": \"{}\"}}",
-                    expansions_model.random_expansion()
+                    expansions_model.read().unwrap().random_expansion()
                 ),
             ),
             _ => not_acceptable_response(),
@@ -105,9 +105,9 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::{collections::HashMap, sync::Arc};
+    /// use std::{collections::HashMap, sync::{Arc, RwLock}};
     //
-    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    /// let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
     /// let request = HttpRequest::new("127.0.0.1", "GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::new());
     /// let response = NpmController::all(&request, mock_expansions_model);
     ///
@@ -126,16 +126,16 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::{collections::HashMap, sync::Arc};
+    /// use std::{collections::HashMap, sync::{Arc, RwLock}};
     ///
-    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    /// let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
     /// let request = HttpRequest::new("127.0.0.1", "GET /all HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
     ///
     /// NpmController::all(&request, mock_expansions_model);
     /// ```
     pub fn all(
         request: &HttpRequest,
-        expansions_model: Arc<dyn ExpansionsAccess>,
+        expansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
     ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -145,6 +145,8 @@ impl NpmController {
         )?;
 
         let string_expansions: Vec<String> = expansions_model
+            .read()
+            .unwrap()
             .all()
             .iter()
             .map(|expansion| format!("\"{expansion}\""))
@@ -182,9 +184,9 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::{collections::HashMap, sync::Arc};
+    /// use std::{collections::HashMap, sync::{Arc, RwLock}};
     ///
-    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    /// let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
     /// let request = HttpRequest::new("127.0.0.1", "GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "application/json".to_string())]), HashMap::from([("query".to_string(), "abc".to_string())]));
     /// let response = NpmController::search(&request, mock_expansions_model);
     ///
@@ -203,16 +205,16 @@ impl NpmController {
     ///     mock_expansions_model::MockExpansionsModel,
     ///     expansions_model::ExpansionsAccess,
     /// };
-    /// use std::{collections::HashMap, sync::Arc};
+    /// use std::{collections::HashMap, sync::{Arc, RwLock}};
     ///
     /// let request = HttpRequest::new("127.0.0.1", "GET /search HTTP/1.1", HashMap::from([("Accept".to_string(), "text/".to_string())]), HashMap::new());
-    /// let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+    /// let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
     ///
     /// NpmController::search(&request, mock_expansions_model);
     /// ```
     pub fn search(
         request: &HttpRequest,
-        expansions_model: Arc<dyn ExpansionsAccess>,
+        expansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
     ) -> Result<HttpResponse, NpmExpansionsError> {
         let headers = request.headers();
         let accept_header = headers.get("Accept").or_else(|| headers.get("accept"));
@@ -224,6 +226,8 @@ impl NpmController {
         let default = String::from(" ");
         let search_string = request.query_params().get("query").unwrap_or(&default);
         let top_ten: Vec<String> = expansions_model
+            .read()
+            .unwrap()
             .search(search_string)
             .iter()
             .map(|expansion| format!("\"{expansion}\""))
@@ -270,7 +274,7 @@ mod tests {
             HashMap::new(),
         );
 
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         assert!(controller_function(&request, mock_expansions_model).is_ok())
     }
 
@@ -285,7 +289,7 @@ mod tests {
             HashMap::new(),
         );
 
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         assert!(
             controller_function(&request, mock_expansions_model)
                 .unwrap()
@@ -306,7 +310,7 @@ mod tests {
             HashMap::new(),
         );
 
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         assert!(controller_function(&request, mock_expansions_model).is_err())
     }
 
@@ -319,7 +323,7 @@ mod tests {
             HashMap::new(),
         );
 
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         assert!(controller_function(&request, mock_expansions_model).is_ok())
     }
 
@@ -332,7 +336,7 @@ mod tests {
             HashMap::new(),
         );
 
-        let mock_expansions_model = Arc::new(MockExpansionsModel::default());
+        let mock_expansions_model = Arc::new(RwLock::new(MockExpansionsModel::default()));
         assert!(controller_function(&request, mock_expansions_model).is_ok())
     }
 }

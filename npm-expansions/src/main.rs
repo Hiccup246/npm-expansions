@@ -7,11 +7,11 @@ use npm_expansions::{
 };
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::{env, net::TcpListener};
 
-static EXPANSIONS_MODEL: Lazy<Arc<ExpansionsModel>> =
-    Lazy::new(|| Arc::new(ExpansionsModel::build("rsc/expansions.txt")));
+static EXPANSIONS_MODEL: Lazy<Arc<RwLock<ExpansionsModel>>> =
+    Lazy::new(|| Arc::new(RwLock::new(ExpansionsModel::build("rsc/expansions.txt"))));
 
 static ROUTER: Lazy<Arc<Router>> = Lazy::new(|| {
     Arc::new(Router::new(HashMap::from([
