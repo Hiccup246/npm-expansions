@@ -69,7 +69,9 @@ impl Drop for ThreadPool {
 
         for worker in &mut self.workers {
             if let Some(thread) = worker.thread.take() {
-                thread.join().unwrap();
+                thread
+                    .join()
+                    .expect("Failed to call join on worker thread while dropping");
             }
         }
     }
