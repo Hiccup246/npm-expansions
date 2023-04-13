@@ -1,5 +1,9 @@
+use std::io::Error;
 use std::{
-    sync::{mpsc, Arc, Mutex},
+    sync::{
+        mpsc::{self},
+        Arc, Mutex,
+    },
     thread,
 };
 
@@ -29,7 +33,9 @@ impl ThreadPool {
         let mut workers = Vec::with_capacity(size);
 
         for id in 0..size {
-            workers.push(Worker::new(id, Arc::clone(&receiver)));
+            if let Ok(worker) = Worker::new(id, Arc::clone(&receiver)) {
+                workers.push(worker);
+            }
         }
 
         ThreadPool {
@@ -67,8 +73,10 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
-        let thread = thread::spawn(move || loop {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Result<Worker, Error> {
+        let builder = thread::Builder::new();
+
+        let thread = builder.spawn(move || loop {
             let message = receiver.lock().unwrap().recv();
 
             match message {
@@ -81,9 +89,9 @@ impl Worker {
             }
         });
 
-        Worker {
+        Ok(Worker {
             _id: id,
-            thread: Some(thread),
-        }
+            thread: Some(thread?),
+        })
     }
 }
