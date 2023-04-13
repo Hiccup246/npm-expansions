@@ -91,8 +91,8 @@ As you may have noticed this project is heavily inspired by the official [NPM](h
 <br>
 
 # 📋 Future Features List
-- Look into upgrading `thread_pool` with better error handling
 - Dynamically update the `expansions.txt` file and the global `ExpansionsModel`.
   - This could be done by a separate thread which routinely checks the official npm expansions repo and pull requests
   - Note that the last change to the expansions text file in the official repo occurred two years ago.
+- Read up on common `thread_pool` error handling techniques
 - Implement a background rain animation effect similar to the header of [deno merch](https://merch.deno.com/)
