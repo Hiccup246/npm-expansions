@@ -222,7 +222,6 @@ impl NpmController {
             Vec::from(["application/json"]),
             accept_header.unwrap_or(&"".to_string()),
         )?;
-
         let default = String::from(" ");
         let search_string = request.query_params().get("query").unwrap_or(&default);
         let top_ten: Vec<String> = expansions_model
