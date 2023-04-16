@@ -42,6 +42,9 @@ pub mod stream_handler;
 /// A module for handling the spawning of threads
 pub mod thread_pool;
 
+/// A module for updating a expansions.txt resource file
+pub mod expansions_updater;
+
 /// A module for loading a history.txt file
 pub mod history_model;
 
