@@ -2,7 +2,7 @@ use std::{fmt, fs, path::PathBuf, path::Path, io};
 use chrono::TimeZone;
 use chrono::Utc;
 
-struct HistoryModel {
+pub struct HistoryModel {
     history_file: PathBuf,
     pub history_entries: Vec<(chrono::DateTime<Utc>, String)>
 }
