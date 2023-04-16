@@ -1,4 +1,4 @@
-use std::{fmt, fs, path::PathBuf, path::Path};
+use std::{fmt, fs, path::PathBuf, path::Path, io};
 use chrono::TimeZone;
 use chrono::Utc;
 
@@ -68,6 +68,12 @@ impl HistoryModel {
         entries.sort_by(|a, b| a.cmp(b));
 
         self.history_entries.last()
+    }
+
+    pub fn update_history_file(&self, entry: (chrono::DateTime<Utc>, &str)) -> Result<(), io::Error> {    
+        fs::write(&self.history_file, format!("{},{}\r\n", entry.0.format("%+"), entry.1))?;
+
+        Ok(())
     }
 }
 
@@ -177,6 +183,28 @@ mod tests {
             );
 
             assert_eq!(model.latest_entry().unwrap().1, "4302")
+        }
+    }
+
+    mod update_history_file {
+        use super::*;
+        
+        #[test]
+        fn writes_new_pr_number() {
+            let tmpfile = Builder::new()
+                .prefix("history")
+                .suffix(".txt")
+                .tempfile()
+                .unwrap();
+            let model = HistoryModel::new(tmpfile.path());
+            let datetime = chrono::Utc::now();
+
+            fs::write(tmpfile.path(), "").unwrap();
+            model.update_history_file((datetime, "4302")).unwrap();
+
+            let file = fs::read_to_string(tmpfile.path()).unwrap();
+
+            assert_eq!(file.lines().last().unwrap(), format!("{},4302", datetime.format("%+")))
         }
     }
 }
