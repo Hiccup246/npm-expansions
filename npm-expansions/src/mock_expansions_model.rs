@@ -1,4 +1,5 @@
 use crate::expansions_model::ExpansionsAccess;
+use std::io;
 
 /// A mock expansions model for testing purposes
 pub struct MockExpansionsModel {
@@ -16,6 +17,14 @@ impl ExpansionsAccess for MockExpansionsModel {
 
     fn search(&self, _query: &str) -> Vec<String> {
         self.expansions[0..10].to_owned()
+    }
+
+    fn add_expansions(&mut self, expansions: &Vec<String>) {
+        self.expansions.extend(expansions.to_owned())
+    }
+
+    fn update_expansions_file(&self, expansions: Vec<String>) -> Result<(), io::Error> {
+        Ok(())
     }
 }
 

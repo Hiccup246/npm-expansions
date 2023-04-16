@@ -1,3 +1,5 @@
+use npm_expansions::expansions_updater;
+use npm_expansions::history_model::HistoryModel;
 use npm_expansions::{
     expansions_model::ExpansionsModel,
     npm_controller::{ControllerFunction, NpmController},
@@ -6,12 +8,14 @@ use npm_expansions::{
     thread_pool::ThreadPool,
 };
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use std::{env, net::TcpListener};
+use std::{collections::HashMap, env, net::TcpListener, path::Path, thread};
 
-static EXPANSIONS_MODEL: Lazy<Arc<RwLock<ExpansionsModel>>> =
-    Lazy::new(|| Arc::new(RwLock::new(ExpansionsModel::build("rsc/expansions.txt"))));
+static EXPANSIONS_MODEL: Lazy<Arc<RwLock<ExpansionsModel>>> = Lazy::new(|| {
+    Arc::new(RwLock::new(ExpansionsModel::build(Path::new(
+        "rsc/expansions.txt",
+    ))))
+});
 
 static ROUTER: Lazy<Arc<Router>> = Lazy::new(|| {
     Arc::new(Router::new(HashMap::from([
@@ -48,6 +52,34 @@ fn main() {
     } else {
         "[::]:8080"
     };
+
+    // TODO Once expansions_updater is complete
+    // thread::Builder::new()
+    //     .spawn(move || loop {
+    //         let mut history_model = HistoryModel::new(Path::new("rsc/history.txt"));
+
+    //         match history_model.load_history() {
+    //             Ok(_loaded) => {
+    //                 let time_to_next_update =
+    //                     expansions_updater::calc_sleep_time(&history_model, chrono::Utc::now());
+
+    //                 thread::sleep(time_to_next_update);
+
+    //                 if let Err(err) = expansions_updater::add_new_expansion(
+    //                     &history_model,
+    //                     EXPANSIONS_MODEL.clone(),
+    //                 ) {
+    //                     println!("Failed to update expansions file: {}", err);
+    //                     break;
+    //                 }
+    //             }
+    //             Err(err) => {
+    //                 println!("Failed to instantiate HistoryModel: {}", err);
+    //                 break;
+    //             }
+    //         };
+    //     })
+    //     .expect("Failed to spawn background thread to update expansions.txt");
 
     let listener = TcpListener::bind(addr).unwrap();
 
