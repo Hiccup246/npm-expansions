@@ -183,7 +183,7 @@ mod tests {
 
         fs::write(named_tempfile.path(), "2022-02-01T00:00:00+00:00,4302\r\n").unwrap();
 
-        let mut history_model = HistoryModel::new(Path::new("rsc/history.txt"));
+        let mut history_model = HistoryModel::new(named_tempfile.path());
         history_model.load_history().unwrap();
 
         let mock_date = Utc.with_ymd_and_hms(2022, 2, 15, 0, 0, 0).unwrap();
