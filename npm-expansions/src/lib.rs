@@ -44,3 +44,6 @@ pub mod thread_pool;
 
 /// A module for loading a history.txt file
 pub mod history_model;
+
+/// A module for interatcting with Githubs API
+pub mod github_api;
