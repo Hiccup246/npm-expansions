@@ -1,40 +1,46 @@
-use std::{fmt, fs, path::PathBuf, path::Path, io};
 use chrono::TimeZone;
 use chrono::Utc;
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::{fmt, fs, io, path::Path, path::PathBuf};
 
 pub struct HistoryModel {
     history_file: PathBuf,
-    pub history_entries: Vec<(chrono::DateTime<Utc>, String)>
+    pub history_entries: Vec<(chrono::DateTime<Utc>, String)>,
 }
 
 #[derive(Debug)]
-struct HistoryModelError {
-    message: String
+pub struct HistoryModelError {
+    message: String,
 }
 
 impl HistoryModelError {
     pub fn from(message: &str) -> HistoryModelError {
-        HistoryModelError { message: message.to_string() }
+        HistoryModelError {
+            message: message.to_string(),
+        }
     }
 }
 
 impl fmt::Display for HistoryModelError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "HistoryModelError: {:?}",
-            self.message
-        )
+        write!(f, "HistoryModelError: {:?}", self.message)
     }
 }
 
 impl HistoryModel {
     pub fn new(history_file: &Path) -> HistoryModel {
-        HistoryModel { history_file: history_file.to_path_buf(), history_entries: Vec::new() }
+        HistoryModel {
+            history_file: history_file.to_path_buf(),
+            history_entries: Vec::new(),
+        }
     }
 
     pub fn from(history_entries: Vec<(chrono::DateTime<Utc>, String)>) -> HistoryModel {
-        HistoryModel { history_file: PathBuf::new(), history_entries: history_entries }
+        HistoryModel {
+            history_file: PathBuf::new(),
+            history_entries: history_entries,
+        }
     }
 
     pub fn load_history(&mut self) -> Result<(), HistoryModelError> {
@@ -42,16 +48,22 @@ impl HistoryModel {
             .unwrap()
             .lines()
             .map(|entry| {
-                let (date, pr_number) = entry.split_once(",").ok_or(HistoryModelError::from("Incorrect history file format."))?;
+                let (date, pr_number) = entry
+                    .split_once(",")
+                    .ok_or(HistoryModelError::from("Incorrect history file format."))?;
 
                 if pr_number.is_empty() {
                     return Err(HistoryModelError::from("Incorrect history file format."));
                 }
-                
-                Ok((chrono::Utc.datetime_from_str(&date, "%+").map_err(|err| HistoryModelError::from("Incorrect history file format."))?, pr_number.to_string()))
+
+                Ok((
+                    chrono::Utc
+                        .datetime_from_str(&date, "%+")
+                        .map_err(|err| HistoryModelError::from("Incorrect history file format."))?,
+                    pr_number.to_string(),
+                ))
             })
             .collect::<Result<Vec<(chrono::DateTime<Utc>, String)>, HistoryModelError>>();
-
 
         self.history_entries = entries?;
 
@@ -59,24 +71,34 @@ impl HistoryModel {
     }
 
     pub fn pr_numbers(&self) -> Vec<&String> {
-        self.history_entries.iter().map(|entry| &entry.1).collect::<Vec<&String>>()
+        self.history_entries
+            .iter()
+            .map(|entry| &entry.1)
+            .collect::<Vec<&String>>()
     }
 
     pub fn latest_entry(&self) -> Option<&(chrono::DateTime<Utc>, String)> {
         let mut entries = self.history_entries.clone();
-        
+
         entries.sort_by(|a, b| a.cmp(b));
 
         self.history_entries.last()
     }
 
-    pub fn update_history_file(&self, entry: (chrono::DateTime<Utc>, &str)) -> Result<(), io::Error> {    
-        fs::write(&self.history_file, format!("{},{}\r\n", entry.0.format("%+"), entry.1))?;
+    pub fn update_history_file(
+        &self,
+        entry: (chrono::DateTime<Utc>, &str),
+    ) -> Result<(), io::Error> {
+        let mut history_file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(self.history_file.as_path())?;
+
+        writeln!(history_file, "{},{}", entry.0.format("%+"), entry.1)?;
 
         Ok(())
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -152,10 +174,16 @@ mod tests {
 
         #[test]
         fn returns_pr_numbers() {
-            let model = HistoryModel::from(vec![(chrono::Utc::now(), "4301".to_string()), (chrono::Utc::now(), "4302".to_string())]);
+            let model = HistoryModel::from(vec![
+                (chrono::Utc::now(), "4301".to_string()),
+                (chrono::Utc::now(), "4302".to_string()),
+            ]);
 
-            assert_eq!(model.pr_numbers(), vec![&"4301".to_string(), &"4302".to_string()])
-        } 
+            assert_eq!(
+                model.pr_numbers(),
+                vec![&"4301".to_string(), &"4302".to_string()]
+            )
+        }
     }
 
     mod latest_entry {
@@ -163,24 +191,35 @@ mod tests {
 
         #[test]
         fn returns_correct_date() {
-            let model = HistoryModel::from(
-                vec![
-                    (chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(), "4301".to_string()),
-                    (chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap(), "4302".to_string())
-                ]
-            );
+            let model = HistoryModel::from(vec![
+                (
+                    chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(),
+                    "4301".to_string(),
+                ),
+                (
+                    chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap(),
+                    "4302".to_string(),
+                ),
+            ]);
 
-            assert_eq!(model.latest_entry().unwrap().0, chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap())
+            assert_eq!(
+                model.latest_entry().unwrap().0,
+                chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap()
+            )
         }
 
         #[test]
         fn returns_correct_pr_number() {
-            let model = HistoryModel::from(
-                vec![
-                    (chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(), "4301".to_string()),
-                    (chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap(), "4302".to_string())
-                ]
-            );
+            let model = HistoryModel::from(vec![
+                (
+                    chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(),
+                    "4301".to_string(),
+                ),
+                (
+                    chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap(),
+                    "4302".to_string(),
+                ),
+            ]);
 
             assert_eq!(model.latest_entry().unwrap().1, "4302")
         }
@@ -188,7 +227,7 @@ mod tests {
 
     mod update_history_file {
         use super::*;
-        
+
         #[test]
         fn writes_new_pr_number() {
             let tmpfile = Builder::new()
@@ -196,6 +235,7 @@ mod tests {
                 .suffix(".txt")
                 .tempfile()
                 .unwrap();
+
             let model = HistoryModel::new(tmpfile.path());
             let datetime = chrono::Utc::now();
 
@@ -204,7 +244,38 @@ mod tests {
 
             let file = fs::read_to_string(tmpfile.path()).unwrap();
 
-            assert_eq!(file.lines().last().unwrap(), format!("{},4302", datetime.format("%+")))
+            assert_eq!(
+                file.lines().last().unwrap(),
+                format!("{},4302", datetime.format("%+"))
+            )
+        }
+
+        #[test]
+        fn writes_multiple_pr_numbers() {
+            let tmpfile = Builder::new()
+                .prefix("history")
+                .suffix(".txt")
+                .tempfile()
+                .unwrap();
+
+            let model = HistoryModel::new(tmpfile.path());
+            let datetime = chrono::Utc::now();
+
+            fs::write(tmpfile.path(), "").unwrap();
+
+            model.update_history_file((datetime, "4302")).unwrap();
+            model.update_history_file((datetime, "4303")).unwrap();
+
+            let file = fs::read_to_string(tmpfile.path()).unwrap();
+
+            assert_eq!(
+                file,
+                format!(
+                    "{},4302\n{},4303\n",
+                    datetime.format("%+"),
+                    datetime.format("%+")
+                )
+            )
         }
     }
 }
