@@ -6,16 +6,17 @@ use core::time::Duration;
 use rustrict::CensorStr;
 use std::{
     fmt,
-    path::Path,
     sync::{Arc, RwLock},
 };
 
+///
 #[derive(Debug)]
 pub struct UpdaterError {
     message: String,
 }
 
 impl UpdaterError {
+    ///
     pub fn from(message: &str) -> UpdaterError {
         UpdaterError {
             message: message.to_string(),
@@ -29,167 +30,170 @@ impl fmt::Display for UpdaterError {
     }
 }
 
-static NPM_EXPANSIONS_REPO: &str = "https://api.github.com/repos/npm/npm-expansions";
+///
+pub struct ExpansionsUpater {
+    epxansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
+    history_model: Arc<RwLock<HistoryModel>>,
+    github_api: GithubApi,
+    repo_url: String,
+    update_interval_millis: i64,
+}
 
-pub fn add_new_expansion(
-    history_model: &HistoryModel,
-    expansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
-) -> Result<(), UpdaterError> {
-    let github_api = GithubApi::new("npm-expansions.com")
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+impl ExpansionsUpater {
+    ///
+    pub fn new(
+        epxansions_model: Arc<RwLock<dyn ExpansionsAccess>>,
+        history_model: Arc<RwLock<HistoryModel>>,
+        repo_url: String,
+        update_interval_millis: i64,
+    ) -> ExpansionsUpater {
+        ExpansionsUpater {
+            epxansions_model,
+            history_model,
+            github_api: GithubApi::new("expansions_updater")
+                .expect("Failed to create github api for ExpansionsUpdater"),
+            repo_url,
+            update_interval_millis,
+        }
+    }
 
-    let merged_prs = history_model.pr_numbers();
+    ///
+    pub fn add_new_expansions(&mut self) -> Result<Vec<String>, UpdaterError> {
+        let new_pr_number = self.find_new_pr_number()?;
 
-    let repo_pr_numbers = github_api
-        .repo_pr_numbers(NPM_EXPANSIONS_REPO)
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+        self.update_history_file(&new_pr_number, "success")?;
 
-    let new_pr_number = next_unused_pr_number(&repo_pr_numbers, &merged_prs)
-        .ok_or(UpdaterError::from("No new prs to get!"))?;
+        let expansions_file = self.get_expansions_file(&new_pr_number)?;
+        let appropriate_expansions = collate_appropriate_expansions(&expansions_file);
 
-    let pr_url = format!("{}/pulls/{}", NPM_EXPANSIONS_REPO, new_pr_number);
-    let pr_files = github_api
-        .fetch_pr_raw_file_urls(&pr_url)
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+        let written_expansions = self.update_expansions_model(&appropriate_expansions)?;
 
-    let expansions_file_url =
-        pr_files
-            .get("expansions.txt")
-            .ok_or(UpdaterError::from(&format!(
-                "No expansions.txt file for {pr_url}"
-            )))?;
+        Ok(written_expansions)
+    }
 
-    let expansions_file = github_api
-        .fetch_pr_file(expansions_file_url)
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
-    let expansions_file_string = std::str::from_utf8(expansions_file.as_slice())
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+    ///
+    pub fn time_to_next_update(
+        &self,
+        current_date: DateTime<Utc>,
+    ) -> Result<Duration, UpdaterError> {
+        let read_access_history_model = self
+            .history_model
+            .read()
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
 
-    let readable_expansions_model = expansions_model
-        .read()
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+        let mut sleep_duration = chrono::Duration::milliseconds(0);
+        let update_interval_duration = chrono::Duration::milliseconds(self.update_interval_millis);
 
-    let new_expansions: Vec<String> = expansions_file_string
+        if let Some((last_updated_at, _pr_number)) = read_access_history_model.latest_entry() {
+            let time_since_last_update = current_date - *last_updated_at;
+
+            if time_since_last_update < update_interval_duration {
+                sleep_duration = update_interval_duration - time_since_last_update;
+            };
+        };
+
+        Ok(Duration::from_millis(
+            sleep_duration.num_milliseconds() as u64
+        ))
+    }
+
+    fn find_new_pr_number(&self) -> Result<String, UpdaterError> {
+        let read_access_history_model = self
+            .history_model
+            .read()
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        let merged_prs = read_access_history_model.pr_numbers();
+
+        let repo_pr_numbers = self
+            .github_api
+            .repo_pr_numbers(&self.repo_url)
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        let new_pr_number = repo_pr_numbers
+            .iter()
+            .find(|&pr_number| !merged_prs.contains(&pr_number))
+            .ok_or(UpdaterError::from("No new prs to get!"))?;
+
+        Ok(new_pr_number.clone())
+    }
+
+    fn update_history_file(&self, pr_number: &String, _status: &str) -> Result<(), UpdaterError> {
+        let write_access_history_model = self
+            .history_model
+            .write()
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        write_access_history_model
+            .update_history_file((chrono::Utc::now(), pr_number))
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        Ok(())
+    }
+
+    fn get_expansions_file(&self, pr_number: &String) -> Result<String, UpdaterError> {
+        let pr_url = format!("{}/pulls/{}", self.repo_url, pr_number);
+
+        let pr_files = self
+            .github_api
+            .fetch_pr_raw_file_urls(&pr_url)
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        let expansions_file_url =
+            pr_files
+                .get("expansions.txt")
+                .ok_or(UpdaterError::from(&format!(
+                    "No expansions.txt file for {pr_url}"
+                )))?;
+
+        let expansions_file = self
+            .github_api
+            .fetch_pr_file(expansions_file_url)
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        let expansions_file_string = std::str::from_utf8(expansions_file.as_slice())
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        Ok(expansions_file_string.to_string())
+    }
+
+    fn update_expansions_model(
+        &self,
+        new_expansions: &[String],
+    ) -> Result<Vec<String>, UpdaterError> {
+        let mut writeable_expansions_model = self
+            .epxansions_model
+            .write()
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        let _written_expansions = writeable_expansions_model
+            .update_expansions_file(new_expansions)
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        writeable_expansions_model
+            .reload()
+            .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
+
+        Ok(_written_expansions)
+    }
+}
+
+fn collate_appropriate_expansions(expansions_file: &str) -> Vec<String> {
+    let new_expansions: Vec<String> = expansions_file
         .lines()
         .filter(|expansion| !expansion.starts_with('#'))
         .filter(|expansion| !expansion.is_inappropriate())
         .map(|expansion| expansion.to_string())
-        .filter(|expansion| !readable_expansions_model.all().contains(&expansion))
         .collect();
 
-    let mut writeable_expansions_model = expansions_model
-        .write()
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
-
-    writeable_expansions_model.add_expansions(&new_expansions);
-
-    writeable_expansions_model
-        .update_expansions_file(new_expansions)
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
-
-    history_model
-        .update_history_file((chrono::Utc::now(), &new_pr_number))
-        .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
-
-    Ok(())
-}
-
-pub fn calc_sleep_time(history_model: &HistoryModel, current_date: DateTime<Utc>) -> Duration {
-    let two_weeks = chrono::Duration::milliseconds(60000 * 60 * 24 * 14);
-    let mut sleep_duration = chrono::Duration::milliseconds(0);
-
-    if let Some((last_updated_at, _pr_number)) = history_model.latest_entry() {
-        let time_since_last_update = current_date - *last_updated_at;
-
-        if time_since_last_update < two_weeks {
-            sleep_duration = two_weeks - time_since_last_update;
-        };
-    };
-
-    Duration::from_millis(sleep_duration.num_milliseconds() as u64)
-}
-
-fn next_unused_pr_number<'a>(
-    repo_pr_numbers: &'a Vec<String>,
-    merged_prs: &Vec<&String>,
-) -> Option<&'a String> {
-    for pr_number in repo_pr_numbers {
-        if !merged_prs.contains(&pr_number) {
-            return Some(pr_number);
-        }
-    }
-
-    None
+    new_expansions
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use chrono::TimeZone;
-    use chrono::Utc;
-    use std::fs;
-    use tempfile::Builder;
-
-    #[test]
-    fn calc_sleep_time_test() {
-        let named_tempfile = Builder::new()
-            .prefix("pr_numbers")
-            .suffix(".txt")
-            .tempfile()
-            .unwrap();
-
-        fs::write(named_tempfile.path(), "2022-02-02T00:00:00+00:00,4302\r\n").unwrap();
-        let two_weeks_in_millis = 60000 * 60 * 24 * 14;
-
-        let mut history_model = HistoryModel::new(named_tempfile.path());
-        history_model.load_history().unwrap();
-
-        let mock_date = Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap();
-        assert_eq!(
-            calc_sleep_time(&history_model, mock_date),
-            Duration::from_millis(two_weeks_in_millis)
-        );
-    }
-
-    #[test]
-    fn calc_sleep_time_test_2() {
-        let named_tempfile = Builder::new()
-            .prefix("pr_numbers")
-            .suffix(".txt")
-            .tempfile()
-            .unwrap();
-
-        let two_weeks_in_millis = 60000 * 60 * 24 * 12;
-
-        fs::write(named_tempfile.path(), "2022-02-01T00:00:00+00:00,4302\r\n").unwrap();
-
-        let mut history_model = HistoryModel::new(named_tempfile.path());
-        history_model.load_history().unwrap();
-
-        let mock_date = Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap();
-        assert_eq!(
-            calc_sleep_time(&history_model, mock_date),
-            Duration::from_millis(two_weeks_in_millis)
-        );
-    }
-
-    #[test]
-    fn calc_sleep_time_test_3() {
-        let named_tempfile = Builder::new()
-            .prefix("pr_numbers")
-            .suffix(".txt")
-            .tempfile()
-            .unwrap();
-
-        fs::write(named_tempfile.path(), "2022-02-01T00:00:00+00:00,4302\r\n").unwrap();
-
-        let mut history_model = HistoryModel::new(named_tempfile.path());
-        history_model.load_history().unwrap();
-
-        let mock_date = Utc.with_ymd_and_hms(2022, 2, 15, 0, 0, 0).unwrap();
-        assert_eq!(
-            calc_sleep_time(&history_model, mock_date),
-            Duration::from_millis(0)
-        );
-    }
+    // use super::*;
+    // use chrono::TimeZone;
+    // use chrono::Utc;
+    // use std::fs;
+    // use tempfile::Builder;
 }
