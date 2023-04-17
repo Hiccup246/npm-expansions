@@ -2,7 +2,7 @@ use rand::Rng;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::{
-    fs::{self, File},
+    fs::{self},
     io,
     path::Path,
     path::PathBuf,
@@ -24,10 +24,11 @@ pub trait ExpansionsAccess {
     /// Returns a curated list of npm expansions based on a given search query
     fn search(&self, query: &str) -> Vec<String>;
 
-    /// Adds an array of expansions to an existing list of expansions
-    fn add_expansions(&mut self, expansions: &Vec<String>);
+    ///
+    fn update_expansions_file(&self, expansions: &[String]) -> Result<Vec<String>, io::Error>;
 
-    fn update_expansions_file(&self, expansions: Vec<String>) -> Result<(), io::Error>;
+    ///
+    fn reload(&mut self) -> Result<(), io::Error>;
 }
 
 impl ExpansionsAccess for ExpansionsModel {
@@ -63,19 +64,27 @@ impl ExpansionsAccess for ExpansionsModel {
             .collect::<Vec<String>>()
     }
 
-    fn add_expansions(&mut self, expansions: &Vec<String>) {
-        self.expansions.extend(expansions.to_owned())
-    }
+    fn update_expansions_file(&self, expansions: &[String]) -> Result<Vec<String>, io::Error> {
+        let unique_expansions: Vec<String> = expansions
+            .iter()
+            .filter(|expansion| !self.expansions.contains(expansion))
+            .map(|expansion| expansion.to_owned())
+            .collect();
 
-    fn update_expansions_file(&self, expansions: Vec<String>) -> Result<(), io::Error> {
         let mut expansions_file = OpenOptions::new()
             .write(true)
             .append(true)
             .open(self.expansions_file.as_path())?;
 
-        for expansion in expansions {
+        for expansion in &unique_expansions {
             writeln!(expansions_file, "{}", expansion)?;
         }
+
+        Ok(unique_expansions)
+    }
+
+    fn reload(&mut self) -> Result<(), io::Error> {
+        self.expansions = load_expansions_txt(self.expansions_file.as_path())?;
 
         Ok(())
     }
@@ -87,19 +96,22 @@ impl ExpansionsModel {
     ///
     /// The given text file should be in a format where each line
     /// that is not a comment i.e. start with a # or * () is a npm expansion
-    pub fn build(path: &Path) -> ExpansionsModel {
-        let expansions_string: Vec<String> = fs::read_to_string(path)
-            .unwrap()
-            .lines()
-            .filter(|expansion| !expansion.starts_with("#"))
-            .map(|expansion| expansion.to_string())
-            .collect();
-
+    pub fn new(path: &Path) -> ExpansionsModel {
         ExpansionsModel {
             expansions_file: path.to_path_buf(),
-            expansions: expansions_string,
+            expansions: load_expansions_txt(path).expect("Failed to parse expansions file"),
         }
     }
+}
+
+fn load_expansions_txt(path: &Path) -> Result<Vec<String>, io::Error> {
+    let expansions: Vec<String> = fs::read_to_string(path)?
+        .lines()
+        .filter(|expansion| !expansion.starts_with('#'))
+        .map(|expansion| expansion.to_string())
+        .collect();
+
+    Ok(expansions)
 }
 
 #[cfg(test)]
@@ -117,7 +129,7 @@ mod tests {
         )
         .unwrap();
 
-        let expansion = ExpansionsModel::build(file.path()).random_expansion();
+        let expansion = ExpansionsModel::new(file.path()).random_expansion();
 
         assert!(!expansion.is_empty())
     }
@@ -132,7 +144,7 @@ mod tests {
         )
         .unwrap();
 
-        let all_expansions = ExpansionsModel::build(file.path());
+        let all_expansions = ExpansionsModel::new(file.path());
 
         assert_eq!(all_expansions.all().len(), 3)
     }
@@ -146,7 +158,7 @@ mod tests {
             "Nacho Pizza Marinade\nNacho Portion Monitor\nNacho Portmanteau Meltdown\nNacho Printing Machine\nNachos Pillage Milwaukee\nNachos Preventing Motivation\nNadie Programa más\nNagging Penguin Matriarchs\nNahi Pata Mujhe!\nNail Polish Makeover\nNail Polishing Minions\nNaive Pac Man\nNaive Props Mutation\nNaive Puppets Marching".as_bytes()
         ).unwrap();
 
-        let expansions = ExpansionsModel::build(file.path()).search("Nachos Pillage Milwaukee");
+        let expansions = ExpansionsModel::new(file.path()).search("Nachos Pillage Milwaukee");
 
         assert_eq!(expansions.first().unwrap(), "Nachos Pillage Milwaukee")
     }
@@ -160,7 +172,7 @@ mod tests {
             "Nacho Pizza Marinade\nNacho Portion Monitor\nNacho Portmanteau Meltdown\nNacho Printing Machine\nNachos Pillage Milwaukee\nNachos Preventing Motivation\nNadie Programa más\nNagging Penguin Matriarchs\nNahi Pata Mujhe!\nNail Polish Makeover\nNail Polishing Minions\nNaive Pac Man\nNaive Props Mutation\nNaive Puppets Marching".as_bytes()
         ).unwrap();
 
-        let expansions = ExpansionsModel::build(file.path()).search("Nachos Pillage Milwaukee");
+        let expansions = ExpansionsModel::new(file.path()).search("Nachos Pillage Milwaukee");
 
         assert_eq!(expansions.len(), 10)
     }
@@ -168,11 +180,11 @@ mod tests {
     #[test]
     fn writes_new_expansions() {
         let file = Builder::new().prefix("expansions.txt").tempfile().unwrap();
-        let model = ExpansionsModel::build(file.path());
+        let model = ExpansionsModel::new(file.path());
 
         fs::write(file.path(), b"").unwrap();
         model
-            .update_expansions_file(vec![
+            .update_expansions_file(&vec![
                 "no manager please".to_string(),
                 "nix program mistress".to_string(),
             ])
