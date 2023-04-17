@@ -9,13 +9,17 @@ use npm_expansions::{
 };
 use once_cell::sync::Lazy;
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 use std::{collections::HashMap, env, net::TcpListener, path::Path, thread};
 
 static EXPANSIONS_MODEL: Lazy<Arc<RwLock<ExpansionsModel>>> = Lazy::new(|| {
-    Arc::new(RwLock::new(ExpansionsModel::build(Path::new(
+    Arc::new(RwLock::new(ExpansionsModel::new(Path::new(
         "rsc/expansions.txt",
     ))))
 });
+
+static HISTORY_MODEL: Lazy<Arc<RwLock<HistoryModel>>> =
+    Lazy::new(|| Arc::new(RwLock::new(HistoryModel::new(Path::new("rsc/history.txt")))));
 
 static ROUTER: Lazy<Arc<Router>> = Lazy::new(|| {
     Arc::new(Router::new(HashMap::from([
@@ -35,6 +39,8 @@ static ROUTER: Lazy<Arc<Router>> = Lazy::new(|| {
 });
 
 static DEFAULT_THREAD_COUNT: usize = 2;
+static NPM_EXPANSIONS_REPO_URL: &str = "https://api.github.com/repos/npm/npm-expansions";
+static TWO_WEEKS_IN_MILLIS: i64 = 60000 * 60 * 24 * 14;
 
 fn main() {
     let thread_count = env::var("THREAD_COUNT")
@@ -53,33 +59,32 @@ fn main() {
         "[::]:8080"
     };
 
-    // TODO Once expansions_updater is complete
-    // thread::Builder::new()
-    //     .spawn(move || loop {
-    //         let mut history_model = HistoryModel::new(Path::new("rsc/history.txt"));
+    let update_interval = match env::var("UPDATER_INTERVAL") {
+        Ok(interval) => interval.parse::<i64>().unwrap_or(TWO_WEEKS_IN_MILLIS),
+        Err(_err) => TWO_WEEKS_IN_MILLIS,
+    };
 
-    //         match history_model.load_history() {
-    //             Ok(_loaded) => {
-    //                 let time_to_next_update =
-    //                     expansions_updater::calc_sleep_time(&history_model, chrono::Utc::now());
+    thread::Builder::new()
+        .spawn(move || loop {
+            let mut updater = expansions_updater::ExpansionsUpater::new(
+                EXPANSIONS_MODEL.clone(),
+                HISTORY_MODEL.clone(),
+                NPM_EXPANSIONS_REPO_URL.to_string(),
+                update_interval
+            );
 
-    //                 thread::sleep(time_to_next_update);
+            let next_update_in = updater.time_to_next_update(chrono::Utc::now()).unwrap_or_else(|err|{
+                print!("Updater failed to calculate next interval time with error: {}...defaulting to {}", err, TWO_WEEKS_IN_MILLIS);
+                Duration::from_millis(TWO_WEEKS_IN_MILLIS as u64)
+            });
 
-    //                 if let Err(err) = expansions_updater::add_new_expansion(
-    //                     &history_model,
-    //                     EXPANSIONS_MODEL.clone(),
-    //                 ) {
-    //                     println!("Failed to update expansions file: {}", err);
-    //                     break;
-    //                 }
-    //             }
-    //             Err(err) => {
-    //                 println!("Failed to instantiate HistoryModel: {}", err);
-    //                 break;
-    //             }
-    //         };
-    //     })
-    //     .expect("Failed to spawn background thread to update expansions.txt");
+            thread::sleep(next_update_in);
+
+            match updater.add_new_expansions() {
+                Ok(res) => println!("Updater successfully added new expansions! {:?}", res),
+                Err(err) => println!("Updater failed to add new expansion with error: {}", err)
+            }
+        }).expect("Failed to spawn background thread to update expansions model");
 
     let listener = TcpListener::bind(addr).unwrap();
 
