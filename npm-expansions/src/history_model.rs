@@ -4,17 +4,21 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fmt, fs, io, path::Path, path::PathBuf};
 
+///
 pub struct HistoryModel {
     history_file: PathBuf,
+    ///
     pub history_entries: Vec<(chrono::DateTime<Utc>, String)>,
 }
 
+///
 #[derive(Debug)]
 pub struct HistoryModelError {
     message: String,
 }
 
 impl HistoryModelError {
+    ///
     pub fn from(message: &str) -> HistoryModelError {
         HistoryModelError {
             message: message.to_string(),
@@ -29,47 +33,23 @@ impl fmt::Display for HistoryModelError {
 }
 
 impl HistoryModel {
+    ///
     pub fn new(history_file: &Path) -> HistoryModel {
         HistoryModel {
             history_file: history_file.to_path_buf(),
-            history_entries: Vec::new(),
+            history_entries: load_history(history_file).expect("Failed to parse history file"),
         }
     }
 
+    ///
     pub fn from(history_entries: Vec<(chrono::DateTime<Utc>, String)>) -> HistoryModel {
         HistoryModel {
             history_file: PathBuf::new(),
-            history_entries: history_entries,
+            history_entries,
         }
     }
 
-    pub fn load_history(&mut self) -> Result<(), HistoryModelError> {
-        let entries = fs::read_to_string(&self.history_file)
-            .unwrap()
-            .lines()
-            .map(|entry| {
-                let (date, pr_number) = entry
-                    .split_once(",")
-                    .ok_or(HistoryModelError::from("Incorrect history file format."))?;
-
-                if pr_number.is_empty() {
-                    return Err(HistoryModelError::from("Incorrect history file format."));
-                }
-
-                Ok((
-                    chrono::Utc
-                        .datetime_from_str(&date, "%+")
-                        .map_err(|err| HistoryModelError::from("Incorrect history file format."))?,
-                    pr_number.to_string(),
-                ))
-            })
-            .collect::<Result<Vec<(chrono::DateTime<Utc>, String)>, HistoryModelError>>();
-
-        self.history_entries = entries?;
-
-        Ok(())
-    }
-
+    ///
     pub fn pr_numbers(&self) -> Vec<&String> {
         self.history_entries
             .iter()
@@ -77,14 +57,16 @@ impl HistoryModel {
             .collect::<Vec<&String>>()
     }
 
+    ///
     pub fn latest_entry(&self) -> Option<&(chrono::DateTime<Utc>, String)> {
         let mut entries = self.history_entries.clone();
 
-        entries.sort_by(|a, b| a.cmp(b));
+        entries.sort();
 
         self.history_entries.last()
     }
 
+    ///
     pub fn update_history_file(
         &self,
         entry: (chrono::DateTime<Utc>, &str),
@@ -98,6 +80,38 @@ impl HistoryModel {
 
         Ok(())
     }
+
+    ///
+    pub fn reload(&mut self) -> Result<(), HistoryModelError> {
+        self.history_entries = load_history(&self.history_file)?;
+
+        Ok(())
+    }
+}
+
+fn load_history(path: &Path) -> Result<Vec<(chrono::DateTime<Utc>, String)>, HistoryModelError> {
+    let entries = fs::read_to_string(path)
+        .unwrap()
+        .lines()
+        .map(|entry| {
+            let (date, pr_number) = entry
+                .split_once(',')
+                .ok_or(HistoryModelError::from("Incorrect history file format."))?;
+
+            if pr_number.is_empty() {
+                return Err(HistoryModelError::from("Incorrect history file format."));
+            }
+
+            Ok((
+                chrono::Utc
+                    .datetime_from_str(date, "%+")
+                    .map_err(|_err| HistoryModelError::from("Incorrect history file format."))?,
+                pr_number.to_string(),
+            ))
+        })
+        .collect::<Result<Vec<(chrono::DateTime<Utc>, String)>, HistoryModelError>>();
+
+    entries
 }
 
 #[cfg(test)]
@@ -105,7 +119,7 @@ mod tests {
     use super::*;
     use tempfile::Builder;
 
-    mod load_history {
+    mod new {
         use super::*;
 
         #[test]
@@ -118,12 +132,19 @@ mod tests {
 
             fs::write(tmpfile.path(), "2022-02-02T00:00:00+00:00,4302\r\n").unwrap();
 
-            let mut model = HistoryModel::new(tmpfile.path());
+            let model = HistoryModel::new(tmpfile.path());
 
-            assert!(model.load_history().is_ok())
+            assert_eq!(
+                model.history_entries,
+                vec![(
+                    chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(),
+                    "4302".to_string(),
+                )]
+            );
         }
 
         #[test]
+        #[should_panic(expected = "Failed to parse history file")]
         fn file_with_no_comma() {
             let tmpfile = Builder::new()
                 .prefix("history")
@@ -133,12 +154,11 @@ mod tests {
 
             fs::write(tmpfile.path(), "2022-02-02T00:00:00+00:004302\r\n").unwrap();
 
-            let mut model = HistoryModel::new(tmpfile.path());
-
-            assert!(model.load_history().is_err())
+            HistoryModel::new(tmpfile.path());
         }
 
         #[test]
+        #[should_panic(expected = "Failed to parse history file")]
         fn file_with_incorrect_date() {
             let tmpfile = Builder::new()
                 .prefix("history")
@@ -148,12 +168,11 @@ mod tests {
 
             fs::write(tmpfile.path(), "2022-02-02:00,4302\r\n").unwrap();
 
-            let mut model = HistoryModel::new(tmpfile.path());
-
-            assert!(model.load_history().is_err())
+            HistoryModel::new(tmpfile.path());
         }
 
         #[test]
+        #[should_panic(expected = "Failed to parse history file")]
         fn file_with_no_pr_number() {
             let tmpfile = Builder::new()
                 .prefix("history")
@@ -163,9 +182,7 @@ mod tests {
 
             fs::write(tmpfile.path(), "2022-02-02:00,\r\n").unwrap();
 
-            let mut model = HistoryModel::new(tmpfile.path());
-
-            assert!(model.load_history().is_err())
+            HistoryModel::new(tmpfile.path());
         }
     }
 
