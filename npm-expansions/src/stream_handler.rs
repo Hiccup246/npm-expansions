@@ -78,9 +78,6 @@ fn respond_to_request_error(
             DefaultController::internal_server_error(&http_request)
         }
         NpmErrorKind::InvalidHttpRequest => DefaultController::internal_server_error(&http_request),
-        NpmErrorKind::SupportedMimeTypeError => {
-            DefaultController::internal_server_error(&http_request)
-        }
         NpmErrorKind::InvalidRequestMimeType => DefaultController::client_error(&http_request),
         NpmErrorKind::RouteNotFound => DefaultController::not_found(&http_request),
     }?;

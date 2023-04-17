@@ -21,8 +21,6 @@ pub enum NpmErrorKind {
     InvalidRequestMimeType,
     /// A HTTP request has an invalid format
     InvalidHttpRequest,
-    /// A mime type provided by the server is invalid
-    SupportedMimeTypeError,
     /// The sever encountered an error when processing a HTTP request
     InternalServerError,
     /// A HTTP request has a route not supported by the server
