@@ -4,11 +4,12 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fmt, fs, io, path::Path, path::PathBuf};
 
+type HistoryEntry = (chrono::DateTime<Utc>, String, String);
 ///
 pub struct HistoryModel {
     history_file: PathBuf,
     ///
-    pub history_entries: Vec<(chrono::DateTime<Utc>, String)>,
+    pub history_entries: Vec<HistoryEntry>,
 }
 
 ///
@@ -42,7 +43,7 @@ impl HistoryModel {
     }
 
     ///
-    pub fn from(history_entries: Vec<(chrono::DateTime<Utc>, String)>) -> HistoryModel {
+    pub fn from(history_entries: Vec<HistoryEntry>) -> HistoryModel {
         HistoryModel {
             history_file: PathBuf::new(),
             history_entries,
@@ -58,7 +59,7 @@ impl HistoryModel {
     }
 
     ///
-    pub fn latest_entry(&self) -> Option<&(chrono::DateTime<Utc>, String)> {
+    pub fn latest_entry(&self) -> Option<&HistoryEntry> {
         let mut entries = self.history_entries.clone();
 
         entries.sort();
@@ -69,14 +70,20 @@ impl HistoryModel {
     ///
     pub fn update_history_file(
         &self,
-        entry: (chrono::DateTime<Utc>, &str),
+        entry: (chrono::DateTime<Utc>, &str, &str),
     ) -> Result<(), io::Error> {
         let mut history_file = OpenOptions::new()
             .write(true)
             .append(true)
             .open(self.history_file.as_path())?;
 
-        writeln!(history_file, "{},{}", entry.0.format("%+"), entry.1)?;
+        writeln!(
+            history_file,
+            "{},{},{}",
+            entry.0.format("%+"),
+            entry.1,
+            entry.2
+        )?;
 
         Ok(())
     }
@@ -89,27 +96,32 @@ impl HistoryModel {
     }
 }
 
-fn load_history(path: &Path) -> Result<Vec<(chrono::DateTime<Utc>, String)>, HistoryModelError> {
+fn load_history(path: &Path) -> Result<Vec<HistoryEntry>, HistoryModelError> {
     let entries = fs::read_to_string(path)
         .unwrap()
         .lines()
         .map(|entry| {
-            let (date, pr_number) = entry
-                .split_once(',')
-                .ok_or(HistoryModelError::from("Incorrect history file format."))?;
+            let split_entry: Vec<&str> = entry.split(',').collect();
 
-            if pr_number.is_empty() {
-                return Err(HistoryModelError::from("Incorrect history file format."));
-            }
+            let date = split_entry.first().ok_or(HistoryModelError::from(
+                "Incorrect history file format. Missing date in entry.",
+            ))?;
+            let pr_number = split_entry.get(1).ok_or(HistoryModelError::from(
+                "Incorrect history file format. Missing pr number in entry.",
+            ))?;
+            let status = split_entry.get(2).ok_or(HistoryModelError::from(
+                "Incorrect history file format. Missing status in entry.",
+            ))?;
 
             Ok((
                 chrono::Utc
                     .datetime_from_str(date, "%+")
                     .map_err(|_err| HistoryModelError::from("Incorrect history file format."))?,
                 pr_number.to_string(),
+                status.to_string(),
             ))
         })
-        .collect::<Result<Vec<(chrono::DateTime<Utc>, String)>, HistoryModelError>>();
+        .collect::<Result<Vec<HistoryEntry>, HistoryModelError>>();
 
     entries
 }
@@ -130,7 +142,7 @@ mod tests {
                 .tempfile()
                 .unwrap();
 
-            fs::write(tmpfile.path(), "2022-02-02T00:00:00+00:00,4302\r\n").unwrap();
+            fs::write(tmpfile.path(), "2022-02-02T00:00:00+00:00,4302,success\r\n").unwrap();
 
             let model = HistoryModel::new(tmpfile.path());
 
@@ -139,20 +151,21 @@ mod tests {
                 vec![(
                     chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(),
                     "4302".to_string(),
+                    "success".to_string(),
                 )]
             );
         }
 
         #[test]
         #[should_panic(expected = "Failed to parse history file")]
-        fn file_with_no_comma() {
+        fn file_with_missing_comma() {
             let tmpfile = Builder::new()
                 .prefix("history")
                 .suffix(".txt")
                 .tempfile()
                 .unwrap();
 
-            fs::write(tmpfile.path(), "2022-02-02T00:00:00+00:004302\r\n").unwrap();
+            fs::write(tmpfile.path(), "2022-02-02T00:00:00+00:004302,success\r\n").unwrap();
 
             HistoryModel::new(tmpfile.path());
         }
@@ -180,7 +193,21 @@ mod tests {
                 .tempfile()
                 .unwrap();
 
-            fs::write(tmpfile.path(), "2022-02-02:00,\r\n").unwrap();
+            fs::write(tmpfile.path(), "2022-02-02:00,,success\r\n").unwrap();
+
+            HistoryModel::new(tmpfile.path());
+        }
+
+        #[test]
+        #[should_panic(expected = "Failed to parse history file")]
+        fn file_with_no_status() {
+            let tmpfile = Builder::new()
+                .prefix("history")
+                .suffix(".txt")
+                .tempfile()
+                .unwrap();
+
+            fs::write(tmpfile.path(), "2022-02-02:00,4302,\r\n").unwrap();
 
             HistoryModel::new(tmpfile.path());
         }
@@ -192,8 +219,16 @@ mod tests {
         #[test]
         fn returns_pr_numbers() {
             let model = HistoryModel::from(vec![
-                (chrono::Utc::now(), "4301".to_string()),
-                (chrono::Utc::now(), "4302".to_string()),
+                (
+                    chrono::Utc::now(),
+                    "4301".to_string(),
+                    "success".to_string(),
+                ),
+                (
+                    chrono::Utc::now(),
+                    "4302".to_string(),
+                    "success".to_string(),
+                ),
             ]);
 
             assert_eq!(
@@ -212,10 +247,12 @@ mod tests {
                 (
                     chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(),
                     "4301".to_string(),
+                    "success".to_string(),
                 ),
                 (
                     chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap(),
                     "4302".to_string(),
+                    "success".to_string(),
                 ),
             ]);
 
@@ -231,10 +268,12 @@ mod tests {
                 (
                     chrono::Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(),
                     "4301".to_string(),
+                    "success".to_string(),
                 ),
                 (
                     chrono::Utc.with_ymd_and_hms(2022, 2, 3, 0, 0, 0).unwrap(),
                     "4302".to_string(),
+                    "success".to_string(),
                 ),
             ]);
 
@@ -257,13 +296,15 @@ mod tests {
             let datetime = chrono::Utc::now();
 
             fs::write(tmpfile.path(), "").unwrap();
-            model.update_history_file((datetime, "4302")).unwrap();
+            model
+                .update_history_file((datetime, "4302", "failure"))
+                .unwrap();
 
             let file = fs::read_to_string(tmpfile.path()).unwrap();
 
             assert_eq!(
                 file.lines().last().unwrap(),
-                format!("{},4302", datetime.format("%+"))
+                format!("{},4302,failure", datetime.format("%+"))
             )
         }
 
@@ -280,15 +321,19 @@ mod tests {
 
             fs::write(tmpfile.path(), "").unwrap();
 
-            model.update_history_file((datetime, "4302")).unwrap();
-            model.update_history_file((datetime, "4303")).unwrap();
+            model
+                .update_history_file((datetime, "4302", "success"))
+                .unwrap();
+            model
+                .update_history_file((datetime, "4303", "failure"))
+                .unwrap();
 
             let file = fs::read_to_string(tmpfile.path()).unwrap();
 
             assert_eq!(
                 file,
                 format!(
-                    "{},4302\n{},4303\n",
+                    "{},4302,success\n{},4303,failure\n",
                     datetime.format("%+"),
                     datetime.format("%+")
                 )

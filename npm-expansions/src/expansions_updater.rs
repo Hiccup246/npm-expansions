@@ -84,7 +84,9 @@ impl ExpansionsUpater {
         let mut sleep_duration = chrono::Duration::milliseconds(0);
         let update_interval_duration = chrono::Duration::milliseconds(self.update_interval_millis);
 
-        if let Some((last_updated_at, _pr_number)) = read_access_history_model.latest_entry() {
+        if let Some((last_updated_at, _pr_number, _status)) =
+            read_access_history_model.latest_entry()
+        {
             let time_since_last_update = current_date - *last_updated_at;
 
             if time_since_last_update < update_interval_duration {
@@ -105,12 +107,12 @@ impl ExpansionsUpater {
 
         let merged_prs = read_access_history_model.pr_numbers();
 
-        let repo_pr_numbers = self
+        let open_pr_numbers = self
             .github_api
-            .repo_pr_numbers(&self.repo_url)
+            .open_pr_numbers(&self.repo_url)
             .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
 
-        let new_pr_number = repo_pr_numbers
+        let new_pr_number = open_pr_numbers
             .iter()
             .find(|&pr_number| !merged_prs.contains(&pr_number))
             .ok_or(UpdaterError::from("No new prs to get!"))?;
@@ -118,14 +120,14 @@ impl ExpansionsUpater {
         Ok(new_pr_number.clone())
     }
 
-    fn update_history_file(&self, pr_number: &String, _status: &str) -> Result<(), UpdaterError> {
+    fn update_history_file(&self, pr_number: &str, status: &str) -> Result<(), UpdaterError> {
         let write_access_history_model = self
             .history_model
             .write()
             .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
 
         write_access_history_model
-            .update_history_file((chrono::Utc::now(), pr_number))
+            .update_history_file((chrono::Utc::now(), pr_number, status))
             .map_err(|err| UpdaterError::from(err.to_string().as_str()))?;
 
         Ok(())
