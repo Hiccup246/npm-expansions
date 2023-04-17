@@ -2,13 +2,17 @@ use reqwest;
 use serde_json;
 use std::collections::HashMap;
 
-///
+/// A struct allowing HTTP requests to be made to the github developer REST API found at https://docs.github.com/en/rest
 pub struct GithubApi {
     client: reqwest::blocking::Client,
 }
 
 impl GithubApi {
+    /// Creates a new instance of GithubApi with a reqwest client
     ///
+    /// # Arguments
+    ///
+    /// * `user_agent` - user_agent string which will be imbedded intp all HTTP requests
     pub fn new(user_agent: &str) -> Result<GithubApi, reqwest::Error> {
         let client = reqwest::blocking::Client::builder()
             .user_agent(user_agent)
@@ -17,9 +21,13 @@ impl GithubApi {
         Ok(GithubApi { client })
     }
 
+    /// Returns the unique numbers of all open pull requests for a given github repository
     ///
-    pub fn repo_pr_numbers(&self, repo_url: &str) -> Result<Vec<String>, reqwest::Error> {
-        let repo_prs_url = repo_url.to_owned() + "/pulls";
+    /// # Arguments
+    ///
+    /// * `repo_url` - the url of a github repository
+    pub fn open_pr_numbers(&self, repo_url: &str) -> Result<Vec<String>, reqwest::Error> {
+        let repo_prs_url = repo_url.to_owned() + "/pulls?state=open";
         let repo_prs: Vec<serde_json::Value> = self
             .client
             .get(repo_prs_url)
@@ -29,7 +37,14 @@ impl GithubApi {
         Ok(repo_prs.iter().map(|pr| pr["number"].to_string()).collect())
     }
 
+    /// Returns all files associated with a given pull request in a HashMap of format
+    /// ```json
+    /// { "filename": "raw_url" }
+    /// ```
     ///
+    /// # Arguments
+    ///
+    /// * `pr_url` - url of a github pull request
     pub fn fetch_pr_raw_file_urls(
         &self,
         pr_url: &str,
@@ -61,7 +76,11 @@ impl GithubApi {
         Ok(HashMap::from_iter(name_and_raw_url))
     }
 
+    /// Returns the bytes of an individual raw github file
     ///
+    /// # Arguments
+    ///
+    /// * `raw_file_url` - a raw file github url
     pub fn fetch_pr_file(&self, raw_file_url: &str) -> Result<Vec<u8>, reqwest::Error> {
         Ok(self.client.get(raw_file_url).send()?.bytes()?.to_vec())
     }
@@ -72,7 +91,7 @@ mod tests {
     use super::*;
     use mockito;
 
-    mod repo_pr_numbers {
+    mod open_pr_numbers {
         use super::*;
 
         #[test]
@@ -82,12 +101,12 @@ mod tests {
             let repo_url = mock_server.url() + "/repos/npm/npm-expansions";
 
             let mock = mock_server
-                .mock("GET", "/repos/npm/npm-expansions/pulls")
+                .mock("GET", "/repos/npm/npm-expansions/pulls?state=open")
                 .with_status(200)
                 .with_body("[{\"number\": 4301},{\"number\": 4302},{\"number\": 4303}]")
                 .create();
 
-            github_api.repo_pr_numbers(repo_url.as_str()).unwrap();
+            github_api.open_pr_numbers(repo_url.as_str()).unwrap();
 
             mock.assert();
         }
@@ -99,12 +118,12 @@ mod tests {
             let repo_url = mock_server.url() + "/repos/npm/npm-expansions";
 
             mock_server
-                .mock("GET", "/repos/npm/npm-expansions/pulls")
+                .mock("GET", "/repos/npm/npm-expansions/pulls?state=open")
                 .with_status(200)
                 .with_body("[{\"number\":4301},{\"number\":4302},{\"number\":4303}]")
                 .create();
 
-            let pr_numbers = github_api.repo_pr_numbers(repo_url.as_str()).unwrap();
+            let pr_numbers = github_api.open_pr_numbers(repo_url.as_str()).unwrap();
 
             assert_eq!(pr_numbers, vec!["4301", "4302", "4303"])
         }
@@ -116,12 +135,12 @@ mod tests {
             let repo_url = mock_server.url() + "/repos/npm";
 
             mock_server
-                .mock("GET", "/repos/npm/npm-expansions/pulls")
+                .mock("GET", "/repos/npm/npm-expansions/pulls?state=open")
                 .with_status(200)
                 .with_body("[{\"number\":4301},{\"number\":4302},{\"number\":4303}]")
                 .create();
 
-            let pr_numbers = github_api.repo_pr_numbers(repo_url.as_str());
+            let pr_numbers = github_api.open_pr_numbers(repo_url.as_str());
 
             assert!(pr_numbers.is_err())
         }
@@ -133,12 +152,12 @@ mod tests {
             let repo_url = mock_server.url() + "/repos/npm/npm-expansions";
 
             mock_server
-                .mock("GET", "/repos/npm/npm-expansions/pulls")
+                .mock("GET", "/repos/npm/npm-expansions/pulls?state=open")
                 .with_status(200)
                 .with_body("number\":4301 \"number\":4302 \"number\":4303}]")
                 .create();
 
-            let pr_numbers = github_api.repo_pr_numbers(repo_url.as_str());
+            let pr_numbers = github_api.open_pr_numbers(repo_url.as_str());
 
             assert!(pr_numbers.is_err())
         }
@@ -150,11 +169,11 @@ mod tests {
             let repo_url = mock_server.url() + "/repos/npm/npm-expansions";
 
             mock_server
-                .mock("GET", "/repos/npm/npm-expansions/pulls")
+                .mock("GET", "/repos/npm/npm-expansions/pulls?state=open")
                 .with_status(400)
                 .create();
 
-            let pr_numbers = github_api.repo_pr_numbers(repo_url.as_str());
+            let pr_numbers = github_api.open_pr_numbers(repo_url.as_str());
 
             assert!(pr_numbers.is_err())
         }
@@ -166,12 +185,12 @@ mod tests {
             let repo_url = mock_server.url() + "/repos/npm/npm-expansions";
 
             mock_server
-                .mock("GET", "/repos/npm/npm-expansions/pulls")
+                .mock("GET", "/repos/npm/npm-expansions/pulls?state=open")
                 .with_status(200)
                 .with_body("[]")
                 .create();
 
-            let pr_numbers = github_api.repo_pr_numbers(repo_url.as_str()).unwrap();
+            let pr_numbers = github_api.open_pr_numbers(repo_url.as_str()).unwrap();
 
             assert_eq!(pr_numbers, Vec::new() as Vec<String>)
         }
