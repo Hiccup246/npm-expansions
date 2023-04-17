@@ -12,20 +12,20 @@ mod tests {
 
     #[bench]
     fn random_expansions(b: &mut Bencher) {
-        let expansions_generator = ExpansionsModel::build(Path::new("rsc/expansions.txt"));
+        let expansions_generator = ExpansionsModel::new(Path::new("rsc/expansions.txt"));
         b.iter(|| expansions_generator.random_expansion());
     }
 
     #[bench]
     fn all_expansions(b: &mut Bencher) {
-        let expansions_generator = ExpansionsModel::build(Path::new("rsc/expansions.txt"));
+        let expansions_generator = ExpansionsModel::new(Path::new("rsc/expansions.txt"));
 
         b.iter(|| expansions_generator.all());
     }
 
     #[bench]
     fn search_expansions(b: &mut Bencher) {
-        let expansions_generator = ExpansionsModel::build(Path::new("rsc/expansions.txt"));
+        let expansions_generator = ExpansionsModel::new(Path::new("rsc/expansions.txt"));
 
         b.iter(|| expansions_generator.search("Nacho Person Manager"));
     }
