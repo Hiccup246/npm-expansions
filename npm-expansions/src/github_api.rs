@@ -2,23 +2,22 @@ use reqwest;
 use serde_json;
 use std::collections::HashMap;
 
+///
 pub struct GithubApi {
-    user_agent: String,
     client: reqwest::blocking::Client,
 }
 
 impl GithubApi {
+    ///
     pub fn new(user_agent: &str) -> Result<GithubApi, reqwest::Error> {
         let client = reqwest::blocking::Client::builder()
             .user_agent(user_agent)
             .build()?;
 
-        Ok(GithubApi {
-            user_agent: user_agent.to_string(),
-            client,
-        })
+        Ok(GithubApi { client })
     }
 
+    ///
     pub fn repo_pr_numbers(&self, repo_url: &str) -> Result<Vec<String>, reqwest::Error> {
         let repo_prs_url = repo_url.to_owned() + "/pulls";
         let repo_prs: Vec<serde_json::Value> = self
@@ -27,12 +26,10 @@ impl GithubApi {
             .send()?
             .json::<Vec<serde_json::Value>>()?;
 
-        Ok(repo_prs
-            .iter()
-            .filter_map(|pr| Some(pr["number"].to_string()))
-            .collect())
+        Ok(repo_prs.iter().map(|pr| pr["number"].to_string()).collect())
     }
 
+    ///
     pub fn fetch_pr_raw_file_urls(
         &self,
         pr_url: &str,
@@ -64,6 +61,7 @@ impl GithubApi {
         Ok(HashMap::from_iter(name_and_raw_url))
     }
 
+    ///
     pub fn fetch_pr_file(&self, raw_file_url: &str) -> Result<Vec<u8>, reqwest::Error> {
         Ok(self.client.get(raw_file_url).send()?.bytes()?.to_vec())
     }
