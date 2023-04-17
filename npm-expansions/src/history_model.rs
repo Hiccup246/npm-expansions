@@ -5,6 +5,7 @@ use std::io::Write;
 use std::{fmt, fs, io, path::Path, path::PathBuf};
 
 type HistoryEntry = (chrono::DateTime<Utc>, String, String);
+
 ///
 pub struct HistoryModel {
     history_file: PathBuf,
