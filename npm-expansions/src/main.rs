@@ -66,24 +66,11 @@ fn main() {
 
     thread::Builder::new()
         .spawn(move || loop {
-            let mut updater = expansions_updater::ExpansionsUpater::new(
-                EXPANSIONS_MODEL.clone(),
-                HISTORY_MODEL.clone(),
-                NPM_EXPANSIONS_REPO_URL.to_string(),
-                update_interval
-            );
+            // Read access to history model
+            // Sleep for correct duration
 
-            let next_update_in = updater.time_to_next_update(chrono::Utc::now()).unwrap_or_else(|err|{
-                print!("Updater failed to calculate next interval time with error: {}...defaulting to {}", err, TWO_WEEKS_IN_MILLIS);
-                Duration::from_millis(TWO_WEEKS_IN_MILLIS as u64)
-            });
-
-            thread::sleep(next_update_in);
-
-            match updater.add_new_expansions() {
-                Ok(res) => println!("Updater successfully added new expansions! {:?}", res),
-                Err(err) => println!("Updater failed to add new expansion with error: {}", err)
-            }
+            // Call add new expansions
+            // Error handle
         }).expect("Failed to spawn background thread to update expansions model");
 
     let listener = TcpListener::bind(addr).unwrap();
