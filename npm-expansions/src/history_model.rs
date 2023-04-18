@@ -1,7 +1,9 @@
+use chrono::DateTime;
 use chrono::TimeZone;
 use chrono::Utc;
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::time::Duration;
 use std::{fmt, fs, io, path::Path, path::PathBuf};
 
 type HistoryEntry = (chrono::DateTime<Utc>, String, String);
@@ -70,13 +72,13 @@ impl HistoryModel {
 
     ///
     pub fn update_history_file(
-        &self,
+        &mut self,
         entry: (chrono::DateTime<Utc>, &str, &str),
-    ) -> Result<(), io::Error> {
+    ) -> Result<(), HistoryModelError> {
         let mut history_file = OpenOptions::new()
             .write(true)
             .append(true)
-            .open(self.history_file.as_path())?;
+            .open(self.history_file.as_path()).map_err(|err| HistoryModelError::from("Could not gain append access to history file"))?;
 
         writeln!(
             history_file,
@@ -84,16 +86,36 @@ impl HistoryModel {
             entry.0.format("%+"),
             entry.1,
             entry.2
-        )?;
+        ).map_err(|err| HistoryModelError::from("Could not write new entry to history file"))?;
+
+        self.reload()?;
 
         Ok(())
     }
 
     ///
-    pub fn reload(&mut self) -> Result<(), HistoryModelError> {
+    fn reload(&mut self) -> Result<(), HistoryModelError> {
         self.history_entries = load_history(&self.history_file)?;
 
         Ok(())
+    }
+
+    pub fn time_until_interval(&self, target_date: DateTime<Utc>, interval: Duration) -> Duration {
+        let mut time_since_last_entry = Duration::from_millis(0);
+
+        if let Some((last_entry_date, _pr_number, _status)) = self.latest_entry() {
+            let time_difference = target_date.timestamp_micros() - last_entry_date.timestamp_micros();
+            
+            if time_difference > 0 {
+                time_since_last_entry = Duration::from_millis(time_difference as u64);
+            }
+        }
+
+        if interval - time_since_last_entry > Duration::from_millis(0) {
+            interval - time_since_last_entry
+        } else {
+            Duration::from_millis(0)
+        }
     }
 }
 
@@ -293,7 +315,7 @@ mod tests {
                 .tempfile()
                 .unwrap();
 
-            let model = HistoryModel::new(tmpfile.path());
+            let mut model = HistoryModel::new(tmpfile.path());
             let datetime = chrono::Utc::now();
 
             fs::write(tmpfile.path(), "").unwrap();
@@ -317,7 +339,7 @@ mod tests {
                 .tempfile()
                 .unwrap();
 
-            let model = HistoryModel::new(tmpfile.path());
+            let mut model = HistoryModel::new(tmpfile.path());
             let datetime = chrono::Utc::now();
 
             fs::write(tmpfile.path(), "").unwrap();
@@ -339,6 +361,25 @@ mod tests {
                     datetime.format("%+")
                 )
             )
+        }
+    }
+
+    mod time_until_interval {
+        use super::*;
+
+        #[test]
+        fn interval_has_elapsed() {
+
+        }
+
+        #[test]
+        fn interval_not_yet_reached() {
+
+        }
+
+        #[test]
+        fn interval_has_exactly_elapsed() {
+
         }
     }
 }
