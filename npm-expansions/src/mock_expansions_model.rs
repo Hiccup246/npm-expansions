@@ -19,12 +19,8 @@ impl ExpansionsAccess for MockExpansionsModel {
         self.expansions[0..10].to_owned()
     }
 
-    fn update_expansions_file(&self, _expansions: &[String]) -> Result<Vec<String>, io::Error> {
+    fn update_expansions_file(&mut self, _expansions: &[String]) -> Result<Vec<String>, io::Error> {
         Ok(Vec::from(["node package manger".to_string()]))
-    }
-
-    fn reload(&mut self) -> Result<(), io::Error> {
-        Ok(())
     }
 }
 

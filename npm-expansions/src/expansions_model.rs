@@ -25,10 +25,7 @@ pub trait ExpansionsAccess {
     fn search(&self, query: &str) -> Vec<String>;
 
     ///
-    fn update_expansions_file(&self, expansions: &[String]) -> Result<Vec<String>, io::Error>;
-
-    ///
-    fn reload(&mut self) -> Result<(), io::Error>;
+    fn update_expansions_file(&mut self, expansions: &[String]) -> Result<Vec<String>, io::Error>;
 }
 
 impl ExpansionsAccess for ExpansionsModel {
@@ -64,7 +61,7 @@ impl ExpansionsAccess for ExpansionsModel {
             .collect::<Vec<String>>()
     }
 
-    fn update_expansions_file(&self, expansions: &[String]) -> Result<Vec<String>, io::Error> {
+    fn update_expansions_file(&mut self, expansions: &[String]) -> Result<Vec<String>, io::Error> {
         let unique_expansions: Vec<String> = expansions
             .iter()
             .filter(|expansion| !self.expansions.contains(expansion))
@@ -80,13 +77,9 @@ impl ExpansionsAccess for ExpansionsModel {
             writeln!(expansions_file, "{}", expansion)?;
         }
 
+        self.reload()?;
+
         Ok(unique_expansions)
-    }
-
-    fn reload(&mut self) -> Result<(), io::Error> {
-        self.expansions = load_expansions_txt(self.expansions_file.as_path())?;
-
-        Ok(())
     }
 }
 
@@ -101,6 +94,12 @@ impl ExpansionsModel {
             expansions_file: path.to_path_buf(),
             expansions: load_expansions_txt(path).expect("Failed to parse expansions file"),
         }
+    }
+
+    fn reload(&mut self) -> Result<(), io::Error> {
+        self.expansions = load_expansions_txt(self.expansions_file.as_path())?;
+
+        Ok(())
     }
 }
 
@@ -180,7 +179,7 @@ mod tests {
     #[test]
     fn writes_new_expansions() {
         let file = Builder::new().prefix("expansions.txt").tempfile().unwrap();
-        let model = ExpansionsModel::new(file.path());
+        let mut model = ExpansionsModel::new(file.path());
 
         fs::write(file.path(), b"").unwrap();
         model
