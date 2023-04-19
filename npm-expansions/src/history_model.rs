@@ -54,11 +54,11 @@ impl HistoryModel {
     }
 
     ///
-    pub fn pr_numbers(&self) -> Vec<&String> {
+    pub fn pr_numbers(&self) -> Vec<String> {
         self.history_entries
             .iter()
-            .map(|entry| &entry.1)
-            .collect::<Vec<&String>>()
+            .map(|entry| entry.1)
+            .collect::<Vec<String>>()
     }
 
     ///
@@ -256,7 +256,7 @@ mod tests {
 
             assert_eq!(
                 model.pr_numbers(),
-                vec![&"4301".to_string(), &"4302".to_string()]
+                vec!["4301".to_string(), "4302".to_string()]
             )
         }
     }

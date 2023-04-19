@@ -43,10 +43,14 @@ pub mod stream_handler;
 pub mod thread_pool;
 
 /// A module for updating a expansions.txt resource file
-pub mod expansions_updater;
+pub mod expansions_adder;
 
 /// A module for loading a history.txt file
 pub mod history_model;
 
 /// A module for interatcting with Githubs API
 pub mod github_api;
+
+pub mod npm_expansions_github;
+
+pub mod github_api_mock;

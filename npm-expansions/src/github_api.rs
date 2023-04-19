@@ -7,26 +7,22 @@ pub struct GithubApi {
     client: reqwest::blocking::Client,
 }
 
-impl GithubApi {
-    /// Creates a new instance of GithubApi with a reqwest client
-    ///
-    /// # Arguments
-    ///
-    /// * `user_agent` - user_agent string which will be imbedded intp all HTTP requests
-    pub fn new(user_agent: &str) -> Result<GithubApi, reqwest::Error> {
-        let client = reqwest::blocking::Client::builder()
-            .user_agent(user_agent)
-            .build()?;
+pub trait GithubApiAccess {
+    fn open_pr_numbers(&self, repo_url: &str) -> Result<Vec<String>, reqwest::Error>;
+    fn fetch_pr_raw_file_urls(
+        &self,
+        pr_url: &str,
+    ) -> Result<HashMap<String, String>, reqwest::Error>;
+    fn fetch_pr_file_as_string(&self, raw_file_url: &str) -> Result<String, reqwest::Error>;
+}
 
-        Ok(GithubApi { client })
-    }
-
+impl GithubApiAccess for GithubApi {
     /// Returns the unique numbers of all open pull requests for a given github repository
     ///
     /// # Arguments
     ///
     /// * `repo_url` - the url of a github repository
-    pub fn open_pr_numbers(&self, repo_url: &str) -> Result<Vec<String>, reqwest::Error> {
+    fn open_pr_numbers(&self, repo_url: &str) -> Result<Vec<String>, reqwest::Error> {
         let repo_prs_url = repo_url.to_owned() + "/pulls?state=open";
         let repo_prs: Vec<serde_json::Value> = self
             .client
@@ -45,7 +41,7 @@ impl GithubApi {
     /// # Arguments
     ///
     /// * `pr_url` - url of a github pull request
-    pub fn fetch_pr_raw_file_urls(
+    fn fetch_pr_raw_file_urls(
         &self,
         pr_url: &str,
     ) -> Result<HashMap<String, String>, reqwest::Error> {
@@ -81,8 +77,23 @@ impl GithubApi {
     /// # Arguments
     ///
     /// * `raw_file_url` - a raw file github url
-    pub fn fetch_pr_file(&self, raw_file_url: &str) -> Result<Vec<u8>, reqwest::Error> {
-        Ok(self.client.get(raw_file_url).send()?.bytes()?.to_vec())
+    fn fetch_pr_file_as_string(&self, raw_file_url: &str) -> Result<String, reqwest::Error> {
+        Ok(self.client.get(raw_file_url).send()?.text_with_charset("utf-8")?)
+    }
+}
+
+impl GithubApi {
+    /// Creates a new instance of GithubApi with a reqwest client
+    ///
+    /// # Arguments
+    ///
+    /// * `user_agent` - user_agent string which will be imbedded intp all HTTP requests
+    pub fn new(user_agent: &str) -> Result<GithubApi, reqwest::Error> {
+        let client = reqwest::blocking::Client::builder()
+            .user_agent(user_agent)
+            .build()?;
+
+        Ok(GithubApi { client })
     }
 }
 
@@ -359,9 +370,9 @@ mod tests {
 
             let repo_pr = mock_server.url() + "/example.txt";
 
-            let file_bytes = github_api.fetch_pr_file(repo_pr.as_str()).unwrap();
+            let file_bytes = github_api.fetch_pr_file_as_string(repo_pr.as_str()).unwrap();
 
-            assert_eq!(file_bytes, b"Hello World!")
+            assert_eq!(file_bytes, "Hello World!")
         }
     }
 }
