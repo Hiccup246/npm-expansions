@@ -29,6 +29,7 @@
         rgba(203, 56, 55, .16) 99.73%
     ),
     url("/coloured-rain.webp");
+    background-size: cover;
     overflow-y: scroll;
     height: 100%;
 }
