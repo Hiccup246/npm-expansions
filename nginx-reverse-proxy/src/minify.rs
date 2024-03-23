@@ -59,7 +59,7 @@ pub fn minify_file_contents(input_file: PathBuf) -> Result<Vec<u8>, std::io::Err
         "html" => {
             let file = fs::read(input_file)?;
 
-            Ok(minify_html::minify(&file, &minify_html::Cfg::new()))
+            Ok(minify_html::minify(&file, &minify_html::Cfg::spec_compliant()))
         }
         "css" => {
             let file = fs::read_to_string(input_file)?;
