@@ -13,34 +13,11 @@ jobs:
         working-directory: npm-expansions
     steps:
       - uses: actions/checkout@v4
-
-      - name: Start deployment
-        uses: bobheadxi/deployments@v1
-        id: deployment
-        with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: production-npm-expansions
-          ref: ${{ github.sha }}
-
       - uses: superfly/flyctl-actions/setup-flyctl@master
-
       - name: Deploy to Fly.io
-        id: deploy
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Finish deployment
-        uses: bobheadxi/deployments@v1
-        if: always()
-        with:
-          step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status }}
-          env: ${{ steps.deployment.outputs.env }}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-          env_url: https://npm-expansions.fly.dev
 
   deploy-nginx-reverse-proxy:
     runs-on: ubuntu-latest
@@ -50,31 +27,8 @@ jobs:
         working-directory: nginx-reverse-proxy
     steps:
       - uses: actions/checkout@v4
-
-      - name: Start deployment
-        uses: bobheadxi/deployments@v1
-        id: deployment
-        with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: production-nginx-reverse-proxy
-          ref: ${{ github.sha }}
-
       - uses: superfly/flyctl-actions/setup-flyctl@master
-
       - name: Deploy to Fly.io
-        id: deploy
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Finish deployment
-        uses: bobheadxi/deployments@v1
-        if: always()
-        with:
-          step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status }}
-          env: ${{ steps.deployment.outputs.env }}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-          env_url: https://npm-expansions-reverse-proxy.fly.dev
