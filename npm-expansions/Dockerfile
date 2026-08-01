@@ -12,10 +12,11 @@ WORKDIR /npm-expansions
 
 # Copy Projects Cargo.toml file to a new Cargo.toml file in filesystem of the container
 COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
 COPY ./rust-toolchain.toml ./rust-toolchain.toml
 
 # Generate a cargo release build
-RUN cargo build --release
+RUN cargo build --release --locked
 
 # Remove default cargo new project code
 RUN rm src/*.rs
@@ -27,7 +28,7 @@ ADD ./src ./src
 RUN rm -f ./target/release/deps/npm_expansions*
 
 # Re build the project for release using all the new project files
-RUN cargo build --release
+RUN cargo build --release --locked
 
 FROM debian:bullseye-slim as runner
 ARG APP=/usr/src/app
