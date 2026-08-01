@@ -33,7 +33,7 @@ pub struct InvalidMimeType;
 ///
 /// parse_mime_type("text/");
 /// ```
-pub fn parse_mime_type(mime_type: &str) -> Result<MimeType, InvalidMimeType> {
+pub fn parse_mime_type(mime_type: &str) -> Result<MimeType<'_>, InvalidMimeType> {
     let parts: Vec<&str> = mime_type.trim().split(';').collect();
 
     let parameters = match parts.get(1..) {

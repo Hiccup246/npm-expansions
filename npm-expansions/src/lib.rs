@@ -2,7 +2,6 @@
 //!
 //! A library creating a npm expansions web server based on HTTP/1.1
 
-#![feature(rustdoc_missing_doc_code_examples)]
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_doc_code_examples)]
 

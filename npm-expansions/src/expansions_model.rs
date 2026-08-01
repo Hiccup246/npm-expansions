@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt;
 use std::fs;
 use strsim::jaro_winkler;
 
@@ -23,7 +23,7 @@ impl ExpansionsAccess for ExpansionsModel {
     }
 
     fn random_expansion(&self) -> String {
-        let random_index: usize = rand::thread_rng().gen_range(0..self.expansions.len());
+        let random_index: usize = rand::rng().random_range(0..self.expansions.len());
         let expansion = self.expansions.get(random_index).unwrap();
 
         expansion.to_string()

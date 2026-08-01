@@ -47,7 +47,7 @@ impl ThreadPool {
     }
 
     /// Takes a clojure and executes it using workers from the ThreadPool
-    pub fn execute<F>(&self, f: F) -> Result<(), SendError<Box<(dyn FnOnce() + Send + 'static)>>>
+    pub fn execute<F>(&self, f: F) -> Result<(), SendError<Box<dyn FnOnce() + Send + 'static>>>
     where
         F: FnOnce() + Send + 'static,
     {

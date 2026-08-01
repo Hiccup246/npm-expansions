@@ -25,7 +25,7 @@ impl Read for MockTcpStream {
 }
 
 impl Write for MockTcpStream {
-    fn write(mut self: &mut Self, buf: &[u8]) -> Result<usize, Error> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Error> {
         self.write_data = Vec::from(buf);
 
         Ok(buf.len())
