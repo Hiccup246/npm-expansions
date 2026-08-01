@@ -24,7 +24,7 @@ RUN rm src/*.rs
 ADD ./src ./src
 
 # Remove binary built from the inital cargo build --release command
-RUN rm ./target/release/deps/npm_expansions*
+RUN rm -f ./target/release/deps/npm_expansions*
 
 # Re build the project for release using all the new project files
 RUN cargo build --release
