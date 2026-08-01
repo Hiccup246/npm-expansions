@@ -1,0 +1,18 @@
+#!/bin/sh
+# Tracked repo hook (see git config core.hooksPath). Runs checks for every
+# Rust crate in this monorepo, each from its own directory.
+
+set -e
+
+root="$(git rev-parse --show-toplevel)"
+
+for crate in npm-expansions nginx-reverse-proxy; do
+  echo "== $crate =="
+  cd "$root/$crate"
+  echo '+cargo test --all'
+  cargo test --all
+  echo '+cargo clippy --all -- -D warnings'
+  cargo clippy --all -- -D warnings
+  echo '+cargo fmt --all -- --check'
+  cargo fmt --all -- --check
+done
